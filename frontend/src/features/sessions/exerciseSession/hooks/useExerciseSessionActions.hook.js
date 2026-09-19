@@ -55,7 +55,7 @@ export const useExerciseSessionActions = ({ exerciseSessions }) => {
             const isConfirmed = await confirm({
                 mode: 'warning',
                 title: 'Start another exercise?',
-                text: 'You already have an exercise in progress. Starting a new one will mark your current exercise as skipped. Any completed sets will be saved, and you can resume it later during this workout session.',
+                text: 'You already have an exercise in progress. Starting a new one will mark it as skipped. Completed sets will stay completed, while your active set will be marked as not started. You can resume the exercise later.',
                 confirmText: 'Start New Exercise',
             });
 

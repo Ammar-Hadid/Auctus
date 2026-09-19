@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import ExerciseSession from "./ExerciseSession.model.js";
+import { cancelInProgressSetForExerciseSession } from "../setSessions/setSession.service.js";
+import { skipUnfinishedSetsForExerciseSession } from "../setSessions/setSession.service.js";
 
 export const startExerciseSession = async (req, res) => {
     const { exerciseSessionId } = req.params;
@@ -13,7 +15,7 @@ export const startExerciseSession = async (req, res) => {
     try {
         session.startTransaction();
 
-        await ExerciseSession.findOneAndUpdate(
+        const previousExerciseSession = await ExerciseSession.findOneAndUpdate(
             {
                 user: req.userId,
                 status: "in-progress",
@@ -56,6 +58,14 @@ export const startExerciseSession = async (req, res) => {
             }
         );
 
+        if (previousExerciseSession) {
+            await cancelInProgressSetForExerciseSession({
+                userId: req.userId,
+                exerciseSessionId: previousExerciseSession._id,
+                session,
+            });
+        }
+
         if (!exerciseSession) {
             await session.abortTransaction();
 
@@ -90,7 +100,11 @@ export const completeExerciseSession = async (req, res) => {
         return res.status(400).json({ error: 'Invalid exercise session id.' });
     }
 
+    const session = await mongoose.startSession();
+
     try {
+        session.startTransaction();
+
         const exerciseSession = await ExerciseSession.findOneAndUpdate(
             {
                 user: req.userId,
@@ -101,24 +115,41 @@ export const completeExerciseSession = async (req, res) => {
             {
                 status: 'completed',
                 completedAt: new Date(),
+                skippedAt: null,
             },
 
             {
-                new: true,
                 runValidators: true,
+                new: true,
+                session,
             }
         );
 
         if (!exerciseSession) {
+            await session.abortTransaction();
             return res.status(404).json({ error: 'Exercise session not found' });
         }
+
+        await skipUnfinishedSetsForExerciseSession({
+            userId: req.userId,
+            exerciseSessionId: exerciseSession._id,
+            skippedAt: exerciseSession.completedAt,
+            session,
+        });
+
+        await session.commitTransaction();
 
         return res.status(200).json({ exerciseSession });
     }
 
     catch (error) {
+        await session.abortTransaction();
         console.error(error);
         return res.status(500).json({ error: 'Server error.' })
+    }
+
+    finally {
+        await session.endSession();
     }
 }
 
@@ -129,7 +160,11 @@ export const skipExerciseSession = async (req, res) => {
         return res.status(400).json('Invalid exercise session id.');
     }
 
+    const session = await mongoose.startSession();
+
     try {
+        session.startTransaction();
+
         const exerciseSession = await ExerciseSession.findOneAndUpdate(
             {
                 user: req.userId,
@@ -147,18 +182,34 @@ export const skipExerciseSession = async (req, res) => {
             {
                 new: true,
                 runValidators: true,
+                session,
             },
         );
 
+        if (exerciseSession) {
+            await cancelInProgressSetForExerciseSession({
+                userId: req.userId,
+                exerciseSessionId: exerciseSession._id,
+                session,
+            });
+        }
+
         if (!exerciseSession) {
+            await session.abortTransaction();
             return res.status(404).json({ error: 'Exercise session not found.' });
         }
 
+        await session.commitTransaction();
         return res.status(200).json({ exerciseSession });
     }
 
     catch (error) {
+        await session.abortTransaction();
         console.error(error);
         return res.status(500).json({ error: 'Server error.' });
+    }
+
+    finally {
+        await session.endSession();
     }
 }

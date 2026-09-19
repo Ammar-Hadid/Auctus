@@ -6,6 +6,7 @@ import ActiveExercisePanel from "../../exerciseSession/components/ActiveExercise
 
 import ExercisesQueue from "../components/ExercisesQueue.component.jsx";
 
+import { useSetSessionActions } from "../../setSession/hooks/useSetSessionActions.hook.js";
 import { useExerciseSessionActions } from "../../exerciseSession/hooks/useExerciseSessionActions.hook.js";
 import { useWorkoutSessionActions } from "../hooks/useWorkoutSessionActions.hook.js";
 
@@ -34,6 +35,12 @@ const WorkoutSession = () => {
         pendingAction: pendingWorkoutAction,
         isPending: isWorkoutActionPending,
     } = useWorkoutSessionActions(workoutSession?._id, exerciseSessions);
+
+    const {
+        startSetSession,
+        pendingAction: pendingSetAction,
+        isPending: isSetActionPending,
+    } = useSetSessionActions({ setSessions });
 
     if (!workoutSession ||
         !exerciseSessions ||
@@ -74,6 +81,11 @@ const WorkoutSession = () => {
                     areExerciseActionsDisabled={areExerciseActionsDisabled}
                     setSessions={featuredSetSessions}
                     weightUnit={user.preferences.weightUnit}
+
+                    startSetSession={startSetSession}
+                    pendingAction={pendingSetAction}
+                    isPending={isSetActionPending}
+
                 />
 
                 <div className="min-h-0 min-w-0 lg:relative">

@@ -2,11 +2,13 @@ import { useState } from "react";
 import Card from "../../../../shared/layout/Card.jsx";
 import { formatWeight } from "../../../../shared/utils/weight.js";
 
-import { Check, X, CircleCheckBig, SkipForward, Play } from "lucide-react";
+import { Check, X, CircleCheckBig, Play } from "lucide-react";
 
 import DefaultButton from "../../../../shared/components/DefaultButton.jsx";
 
 import NumberStepperInput from "./NumberStepperInput.jsx";
+
+import StatusBadge from "../../shared/StatusBadge.component.jsx";
 
 const StatusIndicator = ({ status = "not-started" }) => {
 
@@ -70,7 +72,7 @@ const InProgressSetControls = ({ prevSetReps = 0, prevSetWeight = 0, weightUnit 
                 <DefaultButton
                     type="submit"
                     disabled={isConfirmButtonDisabled}
-                    className="w-full gap-sm"
+                    className="w-full gap-sm flex-1 sm:col-start-1 sm:col-end-3"
                 >
                     <CircleCheckBig />
                     Complete set
@@ -86,11 +88,16 @@ const UpNextBadge = () => {
     )
 }
 
-const NextSesseionControls = () => {
+const NextSesseionControls = ({ setId, startSetSession, pendingAction, isPending }) => {
 
     return (
         <div className="flex-1 p-md">
-            <DefaultButton className="w-full flex items-center justify-center gap-md">
+            <DefaultButton
+                className="w-full flex items-center justify-center gap-md"
+
+                disabled={isPending}
+                onClick={() => startSetSession(setId)}
+            >
                 <Play />
                 Start set
             </DefaultButton>
@@ -98,7 +105,7 @@ const NextSesseionControls = () => {
     )
 }
 
-const SetBox = ({ set, weightUnit, isnextSetSession }) => {
+const SetBox = ({ set, weightUnit, isnextSetSession, startSetSession, pendingAction, isPending }) => {
 
     const visualStatus = isnextSetSession
         ? "in-progress"
@@ -119,7 +126,7 @@ const SetBox = ({ set, weightUnit, isnextSetSession }) => {
         <div className={`${boxClasses} flex flex-col gap-md rounded-lg text-body`}>
             <div className="p-md rounded-lg flex items-center justify-between">
 
-                <div>
+                <div className="flex items-center gap-lg">
                     <span className="text-body-lg">Set {set?.order}</span>
 
                     {set?.status === 'completed'
@@ -130,6 +137,10 @@ const SetBox = ({ set, weightUnit, isnextSetSession }) => {
                                 <span className="text-text-secondary">{formatWeight(set.weightKg, weightUnit)}</span>
                             </div>
                         ) : null}
+
+                    {set?.status === 'in-progress' && (
+                        <StatusBadge status="in-progress" />
+                    )}
                 </div>
 
                 <div className="flex items-center gap-md md:gap-lg">
@@ -138,13 +149,28 @@ const SetBox = ({ set, weightUnit, isnextSetSession }) => {
                 </div>
             </div>
 
-            {set.status === 'in-progress' && <InProgressSetControls weightUnit={weightUnit} />}
-            {isnextSetSession && <NextSesseionControls />}
+            {set.status === 'in-progress' && (
+                <InProgressSetControls
+                    weightUnit={weightUnit}
+
+                    pendingAction={pendingAction}
+                    isPending={isPending}
+                />
+            )}
+
+            {isnextSetSession && (
+                <NextSesseionControls
+                    setId={set._id}
+                    startSetSession={startSetSession}
+                    pendingAction={pendingAction}
+                    isPending={isPending}
+                />
+            )}
         </div>
     )
 }
 
-const SetsProgress = ({ sets, weightUnit }) => {
+const SetsProgress = ({ sets, weightUnit, startSetSession, pendingAction, isPending }) => {
     if (!sets || !weightUnit) return null;
 
     const isnextSetSession = (set) => {
@@ -167,6 +193,9 @@ const SetsProgress = ({ sets, weightUnit }) => {
                             set={set}
                             weightUnit={weightUnit}
                             isnextSetSession={isnextSetSession(set)}
+                            startSetSession={startSetSession}
+                            pendingAction={pendingAction}
+                            isPending={isPending}
                         />))}
                 </div>
             </Card>

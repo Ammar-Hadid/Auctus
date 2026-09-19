@@ -10,6 +10,9 @@ import { createExerciseSessionsFromExercises } from "../exerciseSessions/exercis
 import { createSetSessionsFromExerciseSessions } from "../setSessions/setSession.service.js";
 import SetSession from "../setSessions/SetSession.model.js";
 
+import { skipUnfinishedSetsForWorkoutSession } from "../setSessions/setSession.service.js";
+import { finalizeExerciseSessionsForWorkout } from "../exerciseSessions/exerciseSession.service.js";
+
 export const createWorkoutSession = async (req, res) => {
     const { workoutId } = req.body;
 
@@ -64,12 +67,12 @@ export const createWorkoutSession = async (req, res) => {
         const exerciseSessions = await createExerciseSessionsFromExercises({
             exercises,
             session,
-            user: req.userId,
+            userId: req.userId,
             workoutSession: workoutSession._id,
         });
 
         const setSessions = await createSetSessionsFromExerciseSessions({
-            user: req.userId,
+            userId: req.userId,
             exerciseSessions,
             workoutSessionId: workoutSession._id,
             session
@@ -175,7 +178,12 @@ export const completeWorkoutSession = async (req, res) => {
         return res.status(400).json({ error: 'Invalid workout session id.' });
     }
 
+    const session = await mongoose.startSession();
+
     try {
+
+        session.startTransaction();
+
         const workoutSession = await WorkoutSession.findOneAndUpdate(
             {
                 user: req.userId,
@@ -207,19 +215,45 @@ export const completeWorkoutSession = async (req, res) => {
             {
                 new: true,
                 updatePipeline: true,
+                session,
             },
         );
 
         if (!workoutSession) {
+            await session.abortTransaction();
             return res.status(404).json({ error: 'Active workout session not found.' });
         }
+
+        await finalizeExerciseSessionsForWorkout(
+            {
+                userId: req.userId,
+                workoutSessionId: workoutSession._id,
+                session,
+            }
+        )
+
+        await skipUnfinishedSetsForWorkoutSession(
+            {
+                userId: req.userId,
+                workoutSessionId: workoutSession._id,
+                skippedAt: workoutSession.completedAt,
+                session,
+            }
+        );
+
+        await session.commitTransaction();
 
         return res.status(200).json({ workoutSession });
     }
 
     catch (error) {
+        await session.abortTransaction();
         console.error(error);
         return res.status(500).json({ error: 'Server error.' });
+    }
+
+    finally {
+        await session.endSession();
     }
 }
 

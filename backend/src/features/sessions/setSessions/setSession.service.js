@@ -1,6 +1,12 @@
+import {
+    NotFoundError,
+    ValidationError,
+} from "../../../errors/index.js";
 import SetSession from "./SetSession.model.js";
+import mongoose from "mongoose";
+import WorkoutSession from "../workoutSessions/WorkoutSession.model.js";
 
-export const createSetSessionsFromExerciseSessions = async ({ user, exerciseSessions, workoutSessionId, session }) => {
+export const createSetSessionsFromExerciseSessions = async ({ userId, exerciseSessions, workoutSessionId, session }) => {
 
     const setSessions = exerciseSessions.flatMap(exerciseSession => {
         return Array.from(
@@ -8,7 +14,7 @@ export const createSetSessionsFromExerciseSessions = async ({ user, exerciseSess
 
             (_, index) => (
                 {
-                    user,
+                    user: userId,
                     workoutSession: workoutSessionId,
                     exerciseSession,
                     order: index + 1,
@@ -22,3 +28,171 @@ export const createSetSessionsFromExerciseSessions = async ({ user, exerciseSess
     return createdSetSessions;
 }
 
+export const cancelInProgressSetForExerciseSession = async ({
+    userId,
+    exerciseSessionId,
+    session,
+}) => {
+    return SetSession.findOneAndUpdate(
+        {
+            user: userId,
+            exerciseSession: exerciseSessionId,
+            status: "in-progress",
+        },
+        {
+            status: "not-started",
+            startedAt: null,
+        },
+        {
+            new: true,
+            runValidators: true,
+            session,
+        },
+    );
+};
+
+const skipUnfinishedSets = async ({
+    filter,
+    skippedAt,
+    session
+}) => {
+
+    return await SetSession.updateMany(
+        {
+            ...filter,
+            status: {
+                $ne: "completed",
+            },
+        },
+
+        {
+            status: "skipped",
+            skippedAt,
+        },
+
+        {
+            session,
+            runValidators: true,
+            new: true,
+        }
+    );
+}
+
+export const skipUnfinishedSetsForWorkoutSession = async ({
+    userId,
+    workoutSessionId,
+    skippedAt,
+    session,
+}) => {
+
+    return await skipUnfinishedSets({
+        filter: {
+            user: userId,
+            workoutSession: workoutSessionId,
+        },
+        skippedAt,
+        session
+    })
+}
+
+export const skipUnfinishedSetsForExerciseSession = async ({
+    userId,
+    exerciseSessionId,
+    skippedAt,
+    session,
+}) => {
+
+    return await skipUnfinishedSets({
+        filter: {
+            user: userId,
+            exerciseSession: exerciseSessionId,
+        },
+        skippedAt,
+        session
+    })
+}
+
+export const startSetSession = async ({
+    userId,
+    setSessionId,
+}) => {
+
+    const session = await mongoose.startSession();
+
+    try {
+        return await session.withTransaction(async () => {
+            const now = new Date();
+
+
+            const currentSet = await SetSession.findOneAndUpdate(
+                {
+                    user: userId,
+                    _id: setSessionId,
+                    status: "not-started",
+                },
+
+                {
+                    status: "in-progress",
+                    startedAt: now,
+                },
+
+                {
+                    new: true,
+                    runValidators: true,
+                    session,
+                }
+            )
+
+            if (!currentSet) {
+                throw new NotFoundError("Set not found.")
+            }
+
+            const workoutSession = await WorkoutSession.findOne(
+                {
+                    user: userId,
+                    _id: currentSet.workoutSession,
+                }
+            ).session(session);
+
+            if (!workoutSession) {
+                throw new NotFoundError("Workout session not found.");
+            }
+
+            if (workoutSession.status !== "in-progress") {
+                throw new ValidationError("Workout session is not in progress.");
+            }
+
+            const previousSetSession = await SetSession.findOne(
+                {
+                    user: userId,
+                    workoutSession: currentSet.workoutSession,
+                    status: "completed",
+                    completedAt: { $ne: null },
+                    restAfterMs: null,
+                },
+
+                {},
+
+                {
+                    session,
+                }
+            ).sort({ completedAt: -1 });
+
+            if (previousSetSession) {
+
+                const restAfterMs = currentSet.startedAt - previousSetSession.completedAt;
+
+                previousSetSession.restAfterMs = restAfterMs;
+
+                await previousSetSession.save({ session });
+            }
+
+            return currentSet;
+        });
+
+    }
+
+    finally {
+        await session.endSession();
+    }
+}

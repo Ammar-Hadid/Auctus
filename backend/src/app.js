@@ -14,6 +14,7 @@ import muscleGroupsRouter from './features/muscleGroups/muscleGroups.routes.js';
 
 import workoutSessionsRouter from "./features/sessions/workoutSessions/workoutSession.routes.js";
 import exerciseSessionsRouter from "./features/sessions/exerciseSessions/exerciseSession.routes.js";
+import setSessionsRouter from "./features/sessions/setSessions/setSession.routes.js";
 
 const app = express();
 
@@ -54,7 +55,9 @@ app.use('/api/muscle-groups', muscleGroupsRouter);
 
 app.use('/api/workout-sessions', workoutSessionsRouter);
 
-app.use('/api/exercise-sessions', exerciseSessionsRouter)
+app.use('/api/exercise-sessions', exerciseSessionsRouter);
+
+app.use('/api/set-sessions', setSessionsRouter);
 
 
 
