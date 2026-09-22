@@ -56,8 +56,17 @@ export const useSetSessionActions = ({ setSessions }) => {
         });
     }
 
+    const completeSetSession = async (id, body) => {
+        return await runAction({
+            action: () => setSessionApi.completeSetSession(id, body),
+            pendingKey: `complete:${id}`,
+            successMessage: "Set completed."
+        })
+    }
+
     return {
         startSetSession,
+        completeSetSession,
         isPending: pendingAction !== null,
     }
 }

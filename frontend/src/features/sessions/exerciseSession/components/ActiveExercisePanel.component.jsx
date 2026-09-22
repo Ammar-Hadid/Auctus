@@ -3,7 +3,7 @@ import CurrentExercise from "./CurrentExercise.component";
 import SetsProgress from "../../setSession/components/SetsProgress";
 import NoActiveExercise from "./NoActiveExercise.component";
 
-const ActiveExercisePanel = ({ featuredExercise, completeExercise, skipExercise, areExerciseActionsDisabled, setSessions, weightUnit, startSetSession, pendingAction, isPending }) => {
+const ActiveExercisePanel = ({ featuredExercise, completeExercise, skipExercise, areExerciseActionsDisabled, setSessions, weightUnit, startSetSession, completeSetSession, pendingAction, isPending }) => {
 
     if (!featuredExercise) return <NoActiveExercise />
 
@@ -20,6 +20,7 @@ const ActiveExercisePanel = ({ featuredExercise, completeExercise, skipExercise,
                 sets={setSessions}
                 weightUnit={weightUnit}
                 startSetSession={startSetSession}
+                completeSetSession={completeSetSession}
                 pendingAction={pendingAction}
                 isPending={isPending}
             />

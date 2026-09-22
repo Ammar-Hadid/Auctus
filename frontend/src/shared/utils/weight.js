@@ -29,3 +29,9 @@ export const formatWeight = (weightKg, weightUnit) => {
 
     return `${roundedWeight} ${weightUnit}`;
 };
+
+export const convertWeightToKg = (weightInLb) => {
+    if (!weightInLb) throw new Error("Weight is missing.");
+
+    return weightInLb / LB_PER_KG;
+}

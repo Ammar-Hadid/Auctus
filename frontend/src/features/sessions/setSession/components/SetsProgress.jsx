@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Card from "../../../../shared/layout/Card.jsx";
-import { formatWeight } from "../../../../shared/utils/weight.js";
+import { formatWeight, convertWeightToKg } from "../../../../shared/utils/weight.js";
 
 import { Check, X, CircleCheckBig, Play } from "lucide-react";
 
@@ -28,7 +28,7 @@ const StatusIndicator = ({ status = "not-started" }) => {
     )
 };
 
-const InProgressSetControls = ({ prevSetReps = 0, prevSetWeight = 0, weightUnit }) => {
+const InProgressSetControls = ({ setId, prevSetReps = 0, prevSetWeight = 0, weightUnit, completeSetSession, pendingAction, isPending }) => {
     const initialFormData = {
         reps: prevSetReps,
         weight: prevSetWeight,
@@ -45,11 +45,22 @@ const InProgressSetControls = ({ prevSetReps = 0, prevSetWeight = 0, weightUnit 
                 [name]: value,
             }
         ));
+    };
+
+    const handleCompleteSetSession = (e) => {
+        e.preventDefault();
+
+        const body = {
+            reps: formData.reps,
+            weightKg: weightUnit === "lb" ? convertWeightToKg(formData.weight) : formData.weight,
+        }
+
+        completeSetSession(setId, body);
     }
 
     return (
         <div>
-            <form className="grid grid-cols-1 gap-x-md gap-y-lg sm:grid-cols-2">
+            <form className="grid grid-cols-1 gap-x-md gap-y-lg sm:grid-cols-2" onSubmit={handleCompleteSetSession}>
                 <NumberStepperInput
                     id="reps"
                     label="Reps"
@@ -105,7 +116,7 @@ const NextSesseionControls = ({ setId, startSetSession, pendingAction, isPending
     )
 }
 
-const SetBox = ({ set, weightUnit, isnextSetSession, startSetSession, pendingAction, isPending }) => {
+const SetBox = ({ set, previousSet, weightUnit, isnextSetSession, startSetSession, completeSetSession, pendingAction, isPending }) => {
 
     const visualStatus = isnextSetSession
         ? "in-progress"
@@ -122,6 +133,8 @@ const SetBox = ({ set, weightUnit, isnextSetSession, startSetSession, pendingAct
         boxStatusVariants[visualStatus] ??
         boxStatusVariants["not-started"];
 
+    const repUnit = (repsAmount) => repsAmount > 1 ? "reps" : "rep";
+
     return (
         <div className={`${boxClasses} flex flex-col gap-md rounded-lg text-body`}>
             <div className="p-md rounded-lg flex items-center justify-between">
@@ -132,8 +145,8 @@ const SetBox = ({ set, weightUnit, isnextSetSession, startSetSession, pendingAct
                     {set?.status === 'completed'
                         ? (
                             <div className="flex items-center gap-md">
-                                <span className="text-text-secondary">{set.reps}</span>
-                                <div className="size-md bg-white rounded-full" />
+                                <span className="text-text-secondary">{set.reps} {repUnit(set.reps)}</span>
+                                <div className="size-1.75 bg-text-secondary rounded-full" />
                                 <span className="text-text-secondary">{formatWeight(set.weightKg, weightUnit)}</span>
                             </div>
                         ) : null}
@@ -151,8 +164,13 @@ const SetBox = ({ set, weightUnit, isnextSetSession, startSetSession, pendingAct
 
             {set.status === 'in-progress' && (
                 <InProgressSetControls
+                    setId={set._id}
                     weightUnit={weightUnit}
 
+                    prevSetReps={previousSet?.reps ?? 0}
+                    prevSetWeight={previousSet?.weightKg ?? 0}
+
+                    completeSetSession={completeSetSession}
                     pendingAction={pendingAction}
                     isPending={isPending}
                 />
@@ -170,7 +188,7 @@ const SetBox = ({ set, weightUnit, isnextSetSession, startSetSession, pendingAct
     )
 }
 
-const SetsProgress = ({ sets, weightUnit, startSetSession, pendingAction, isPending }) => {
+const SetsProgress = ({ sets, weightUnit, startSetSession, pendingAction, isPending, completeSetSession }) => {
     if (!sets || !weightUnit) return null;
 
     const isnextSetSession = (set) => {
@@ -187,16 +205,21 @@ const SetsProgress = ({ sets, weightUnit, startSetSession, pendingAction, isPend
         <div>
             <Card heading="Sets progress" className="flex-1 bg-none border-0 shadow-none p-0 md:p-0 lg:p-0">
                 <div className="flex flex-col gap-md text-body-sm">
-                    {sets.map(set => (
-                        <SetBox
+                    {sets.map((set, index) => {
+                        const previousSet = index > 0 ? sets[index - 1] : null;
+
+                        return <SetBox
                             key={set._id}
                             set={set}
+                            previousSet={previousSet}
                             weightUnit={weightUnit}
                             isnextSetSession={isnextSetSession(set)}
                             startSetSession={startSetSession}
+                            completeSetSession={completeSetSession}
                             pendingAction={pendingAction}
                             isPending={isPending}
-                        />))}
+                        />
+                    })}
                 </div>
             </Card>
         </div>

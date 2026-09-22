@@ -1,7 +1,9 @@
 import {
+    InternalServerError,
     NotFoundError,
     ValidationError,
 } from "../../../errors/index.js";
+
 import SetSession from "./SetSession.model.js";
 import mongoose from "mongoose";
 import WorkoutSession from "../workoutSessions/WorkoutSession.model.js";
@@ -155,7 +157,7 @@ export const startSetSession = async ({
             ).session(session);
 
             if (!workoutSession) {
-                throw new NotFoundError("Workout session not found.");
+                throw new InternalServerError("Set session references a missing workout session.");
             }
 
             if (workoutSession.status !== "in-progress") {
@@ -190,6 +192,63 @@ export const startSetSession = async ({
             return currentSet;
         });
 
+    }
+
+    finally {
+        await session.endSession();
+    }
+}
+
+export const completeSetSession = async ({
+    userId,
+    setSessionId,
+    setData
+}) => {
+    const session = await mongoose.startSession();
+    const { weightKg, reps } = setData;
+
+    try {
+        return await session.withTransaction(async () => {
+            const setSession = await SetSession.findOneAndUpdate(
+                {
+                    user: userId,
+                    _id: setSessionId,
+                    status: "in-progress",
+                },
+
+                {
+                    status: "completed",
+                    completedAt: new Date(),
+                    weightKg,
+                    reps
+                },
+
+                {
+                    new: true,
+                    runValidators: true,
+                    session,
+                }
+            );
+
+            if (!setSession) {
+                throw new NotFoundError("Set session not found.");
+            }
+
+            const workoutSession = await WorkoutSession.findOne({
+                user: userId,
+                _id: setSession.workoutSession,
+            }).session(session);
+
+            if (!workoutSession) {
+                throw new InternalServerError("Set session references a missing workout session.")
+            }
+
+            if (workoutSession.status !== "in-progress") {
+                throw new ValidationError("Workout session is not in progress.")
+            }
+
+            return setSession;
+        })
     }
 
     finally {

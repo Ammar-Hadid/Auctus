@@ -38,6 +38,7 @@ const WorkoutSession = () => {
 
     const {
         startSetSession,
+        completeSetSession,
         pendingAction: pendingSetAction,
         isPending: isSetActionPending,
     } = useSetSessionActions({ setSessions });
@@ -83,6 +84,7 @@ const WorkoutSession = () => {
                     weightUnit={user.preferences.weightUnit}
 
                     startSetSession={startSetSession}
+                    completeSetSession={completeSetSession}
                     pendingAction={pendingSetAction}
                     isPending={isSetActionPending}
 
