@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 import WorkoutSession from "../../../src/features/sessions/workoutSessions/WorkoutSession.model.js";
 import ExerciseSession from "../../../src/features/sessions/exerciseSessions/ExerciseSession.model.js";
+import SetSession from "../../../src/features/sessions/setSessions/SetSession.model.js"
 
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
@@ -12,7 +13,7 @@ const askForConfirmation = async () => {
 
     try {
 
-        const answer = await readline.question("Delete all workout and exercise sessions? [y/N]");
+        const answer = await readline.question("Delete all workout, exercise, and set sessions? [y/N]");
 
         return answer.trim().toLocaleLowerCase() === 'y';
     }
@@ -30,14 +31,16 @@ const deleteAllWorkoutSessions = async () => {
     try {
         let workoutSessionResult;
         let exerciseSessionResult;
+        let setSessionResult;
 
         await session.withTransaction(async () => {
 
-            workoutSessionResult = await WorkoutSession.deleteMany({}, { session });
+            setSessionResult = await SetSession.deleteMany({}, { session });
             exerciseSessionResult = await ExerciseSession.deleteMany({}, { session });
+            workoutSessionResult = await WorkoutSession.deleteMany({}, { session });
         });
 
-        console.log(`Deleted ${workoutSessionResult.deletedCount} workout sessions & ${exerciseSessionResult.deletedCount} exercise sessions.`);
+        console.log(`Deleted ${workoutSessionResult.deletedCount} workout sessions & ${exerciseSessionResult.deletedCount} exercise sessions & ${setSessionResult.deletedCount} set sessions.`);
     }
 
     finally {

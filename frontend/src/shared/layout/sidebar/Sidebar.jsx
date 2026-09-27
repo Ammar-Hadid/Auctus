@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
-import SideBarButton from "./SideBarButton";
+import SideBarButton from "./SideBarButton.jsx";
+import Logo from "../../components/Logo.jsx";
 
 import {
     House,
@@ -54,13 +55,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
                         className="flex items-center gap-sm font-display text-body-sm font-medium"
                         aria-label="Auctus home"
                     >
-                        <img
-                            src="/auctus-logo.svg"
-                            alt=""
-                            className="w-xl h-xl shrink-0"
-                            aria-hidden="true"
-                        />
-                        <span>Auctus</span>
+                        <Logo />
                     </Link>
                 )}
 

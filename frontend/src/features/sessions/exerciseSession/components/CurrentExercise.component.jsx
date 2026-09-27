@@ -13,7 +13,7 @@ const CurrentExercise = ({
     skipExercise,
     isPending,
 }) => {
-    if (!featuredExercise) return <NoActiveExercise />
+    if (!featuredExercise) return null;
 
     const {
         _id,
@@ -28,8 +28,8 @@ const CurrentExercise = ({
 
 
     return (
-        <Card heading="Current exercise" className="flex-1">
-            <div className="flex flex-col gap-lg mt-md">
+        <Card heading="Current exercise" className="flex-1 bg-none border-0 shadow-none p-0 md:p-0 lg:p-0">
+            <div className="flex flex-col gap-lg">
                 <div className="flex flex-wrap items-center justify-between gap-md">
                     <div className="flex items-center gap-md">
                         <StepIndicator variant="featured" step={orderSnapshot} />

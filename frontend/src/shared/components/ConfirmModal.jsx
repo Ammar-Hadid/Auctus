@@ -50,7 +50,7 @@ const ConfirmModal = ({ options = {}, isOpen, onConfirm, onCancel }) => {
                         {title}
                     </h2>
 
-                    <p className="m-0 p-0 text-body text-text-secondary">
+                    <p className="m-0 p-0 text-body text-text-secondary leading-xl">
                         {text}
                     </p>
                 </div>

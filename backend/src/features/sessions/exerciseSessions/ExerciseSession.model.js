@@ -58,11 +58,11 @@ const exerciseSessionSchema = new mongoose.Schema({
         type: String,
         enum: ['not-started', 'in-progress', 'skipped', 'completed'],
         default: 'not-started',
-        required: true,
     },
 
     startedAt: {
         type: Date,
+        default: null,
     },
 
     completedAt: {

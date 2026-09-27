@@ -8,5 +8,9 @@ export const requireUser = async () => {
         throw redirect('/login');
     }
 
+    if (user?.onboarding?.needsOnboarding) {
+        throw redirect('/onboarding');
+    } 
+
     return { user };
 }

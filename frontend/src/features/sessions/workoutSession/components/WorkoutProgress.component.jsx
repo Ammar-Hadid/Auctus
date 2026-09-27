@@ -7,6 +7,7 @@ import IconBadge from "../../../../shared/components/IconBadge.component";
 import DefaultButton from "../../../../shared/components/DefaultButton";
 
 import { useEstimatedTimeLeft } from "../hooks/useEstimatedTimeLeft.hook";
+import CurrentTotalCount from "../../shared/currentTotalCount.component";
 
 
 const LoadingBar = ({ width }) => {
@@ -68,10 +69,8 @@ const WorkoutProgress = ({
 
                     <div className="flex flex-col gap-sm lg:gap-0">
                         <SectionHeading heading="Workout Progress" />
-                        <span className="text-h2">
-                            <span>{completedExercisesCount}</span>
-                            <span className="text-text-secondary">/{totalExercisesCount}</span>
-                        </span>
+
+                        <CurrentTotalCount current={completedExercisesCount} total={totalExercisesCount} />
 
                         <div className="flex flex-col gap-md lg:gap-sm">
                             <div className="flex gap-xl">

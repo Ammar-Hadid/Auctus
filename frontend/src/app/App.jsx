@@ -19,6 +19,8 @@ import { redirectIfAuthenticated } from "../features/auth/loaders/redirectIfAuth
 import { dashboardLoader } from "../features/dashboard/loaders/getDashboard.loader.js";
 import WorkoutSession from "../features/sessions/workoutSession/pages/WorkoutSession.Page.jsx";
 import { workoutSessionLoader } from "../features/sessions/workoutSession/loaders/workoutSession.loader.js";
+import { requireOnboarding } from "../features/onboarding/loaders/onboarding.loader.js";
+import Onboarding from "../features/onboarding/pages/Onboarding.page.jsx";
 
 const router = createBrowserRouter([
 
@@ -70,6 +72,12 @@ const router = createBrowserRouter([
         },
       }
     ]
+  },
+
+  {
+    path: '/onboarding',
+    element: <Onboarding />,
+    loader: requireOnboarding
   },
 
   {

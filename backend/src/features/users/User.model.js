@@ -24,6 +24,27 @@ const userSchema = new mongoose.Schema(
             required: true,
             minlength: 12,
             select: false
+        },
+
+        preferences: {
+
+            weightUnit: {
+                type: String,
+                enum: ['kg', 'lb'],
+                default: null,
+            },
+        },
+
+        onboarding: {
+            completedVersion: {
+                type: Number,
+                default: 0,
+            },
+
+            completedAt: {
+                type: Date,
+                default: null,
+            }
         }
     },
 
@@ -33,7 +54,7 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function () {
     if (!this.isModified('password')) return;
 
-    this.password = await bcrypt.hash(this.password, 10)
+    this.password = await bcrypt.hash(this.password, 10);
 })
 
 userSchema.methods.comparePasswords = async function (candidatePassword) {

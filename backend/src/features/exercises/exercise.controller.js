@@ -91,7 +91,7 @@ export const createExercise = async (req, res) => {
 
         if (!workout) return res.status(404).json({ error: 'Unable to create exercise because the parent workout was not found.' });
 
-        const lastExercise = await Exercise.findOne({ user: req.userId, workout: workoutId }).sort({ order: -1 })
+        const lastExercise = await Exercise.findOne({ user: req.userId, workout: workoutId }).sort({ order: -1 });
 
         const exercise = await Exercise.create(
             {

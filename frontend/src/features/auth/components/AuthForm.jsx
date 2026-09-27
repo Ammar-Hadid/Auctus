@@ -39,15 +39,21 @@ const AuthForm = ({ mode, setMode }) => {
         e.preventDefault();
 
         try {
+
+            let user;
+
             if (mode === 'login') {
-                await login(form);
+                user = await login(form);
             }
 
             else if (mode === 'register') {
-                await register(form)
+                user = await register(form)
             }
 
-            navigate('/', { replace: true });
+            navigate(user.onboarding.needsOnboarding
+                ? '/onboarding'
+                : '/'
+                , { replace: true });
         }
 
         catch (error) {

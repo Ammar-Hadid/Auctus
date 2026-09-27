@@ -104,7 +104,7 @@ const ExercisesQueue = ({ exercises, startExercise, isPending, pendingAction }) 
     if (!exercises?.length) return null;
 
     return (
-        <Card heading="up next" className="flex-1 min-h-0 lg:max-h-[60dvh]">
+        <Card heading="up next" className="flex-1 min-h-0 lg:h-full ">
 
             <div
                 className="min-h-0 flex-1 lg:overflow-y-auto lg:overflow-x-hidden

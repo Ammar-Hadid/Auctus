@@ -1,4 +1,5 @@
-import User from "./User.model.js";
+import User from "../users/User.model.js";
+import serializeUser from "../users/user.serializer.js";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -63,11 +64,7 @@ export const register = async (req, res) => {
         setAuthCookie(res, token);
 
         return res.status(201).json({
-            user: {
-                id: user._id,
-                userName: user.userName,
-                email: user.email
-            },
+            user: serializeUser(user),
         })
     }
 
@@ -104,11 +101,7 @@ export const login = async (req, res) => {
         setAuthCookie(res, token);
 
         return res.status(200).json({
-            user: {
-                id: user._id,
-                userName: user.userName,
-                email: user.email
-            },
+            user: serializeUser(user),
         })
     }
 
@@ -129,13 +122,16 @@ export const getMe = async (req, res) => {
     try {
         res.set('Cache-Control', 'no-store');
 
-        const user = await User.findById(req.userId).select("userName email");
+        const user = await User.findById(req.userId)
+            .select("userName email preferences onboarding");
 
         if (!user) {
             return res.status(401).json({ error: 'Unauthorized.' });
         }
 
-        return res.status(200).json({ user });
+        return res.status(200).json({
+            user: serializeUser(user),
+        });
     }
 
     catch (error) {
