@@ -7,6 +7,7 @@ import {
 import SetSession from "./SetSession.model.js";
 import mongoose from "mongoose";
 import WorkoutSession from "../workoutSessions/WorkoutSession.model.js";
+import ExerciseSession from "../exerciseSessions/ExerciseSession.model.js";
 
 export const createSetSessionsFromExerciseSessions = async ({ userId, exerciseSessions, workoutSessionId, session }) => {
 
@@ -209,6 +210,8 @@ export const completeSetSession = async ({
 
     try {
         return await session.withTransaction(async () => {
+            const now = new Date();
+
             const setSession = await SetSession.findOneAndUpdate(
                 {
                     user: userId,
@@ -218,7 +221,7 @@ export const completeSetSession = async ({
 
                 {
                     status: "completed",
-                    completedAt: new Date(),
+                    completedAt: now,
                     weightKg,
                     reps
                 },
@@ -245,6 +248,25 @@ export const completeSetSession = async ({
 
             if (workoutSession.status !== "in-progress") {
                 throw new ValidationError("Workout session is not in progress.")
+            }
+
+            const exerciseSession = await ExerciseSession.findOne({
+                user: userId,
+                _id: setSession.exerciseSession,
+                status: "in-progress",
+            }).session(session);
+
+            if (!exerciseSession) {
+                throw new InternalServerError("Set session references a missing exercise session.")
+            }
+
+            const isLastSetInExercise = setSession.order === exerciseSession.setsSnapshot;
+
+            if (isLastSetInExercise) {
+                exerciseSession.status = "completed";
+                exerciseSession.completedAt = now;
+
+                await exerciseSession.save({ session });
             }
 
             return setSession;
