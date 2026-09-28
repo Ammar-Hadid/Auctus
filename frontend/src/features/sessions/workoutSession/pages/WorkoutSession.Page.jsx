@@ -25,7 +25,7 @@ const WorkoutSession = () => {
         skipExercise,
         pendingAction: pendingExerciseAction,
         isPending: isExerciseActionPending,
-    } = useExerciseSessionActions({ exerciseSessions });
+    } = useExerciseSessionActions({ exerciseSessions, setSessions });
 
     const {
         pauseWorkout,
@@ -50,9 +50,11 @@ const WorkoutSession = () => {
 
     const featuredExerciseSession = getFeaturedExerciseSession(exerciseSessions);
     const areExerciseActionsDisabled =
+        isSetActionPending ||
         isExerciseActionPending ||
         isWorkoutActionPending ||
         workoutSession.status !== "in-progress";
+
 
     const featuredSetSessions = setSessions
         ?.filter(session => {
@@ -86,7 +88,6 @@ const WorkoutSession = () => {
                     startSetSession={startSetSession}
                     completeSetSession={completeSetSession}
                     pendingAction={pendingSetAction}
-                    isPending={isSetActionPending}
 
                 />
 

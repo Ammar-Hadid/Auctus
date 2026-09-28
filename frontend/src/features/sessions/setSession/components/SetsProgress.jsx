@@ -2,7 +2,7 @@ import { useState } from "react";
 import Card from "../../../../shared/layout/Card.jsx";
 import { formatWeight, convertWeightToKg } from "../../../../shared/utils/weight.js";
 
-import { Check, X, CircleCheckBig, Play } from "lucide-react";
+import { Check, X, CircleCheckBig, Play, UmbrellaOff } from "lucide-react";
 
 import DefaultButton from "../../../../shared/components/DefaultButton.jsx";
 
@@ -35,7 +35,7 @@ const InProgressSetControls = ({ setId, prevSetReps = 0, prevSetWeight = 0, weig
     }
     const [formData, setFormData] = useState(initialFormData);
 
-    const isConfirmButtonDisabled = !formData.weight;
+    const isConfirmButtonDisabled = !formData.weight || !formData.reps || isPending;
 
     const updateField = (name, value) => {
 
@@ -93,13 +93,14 @@ const InProgressSetControls = ({ setId, prevSetReps = 0, prevSetWeight = 0, weig
     )
 }
 
-const UpNextBadge = () => {
+const UpNextBadge = ({ className = "" }) => {
+
     return (
-        <div className="uppercase font-display bg-primary/200 text-primary border border-primary rounded-xl py-sm px-md font-semibold text-body-sm">up next</div>
+        <div className={`flex items-center justify-center uppercase font-display bg-primary/200 text-primary border border-primary rounded-xl py-sm px-md font-semibold text-body-sm ${className}`}>up next</div>
     )
 }
 
-const NextSesseionControls = ({ setId, startSetSession, pendingAction, isPending }) => {
+const NextSesseionControls = ({ setId, startSetSession, isPending }) => {
 
     return (
         <div className="flex-1 p-md">
@@ -137,10 +138,13 @@ const SetBox = ({ set, previousSet, weightUnit, isnextSetSession, startSetSessio
 
     return (
         <div className={`${boxClasses} flex flex-col gap-md rounded-lg text-body`}>
-            <div className="p-md rounded-lg flex items-center justify-between">
+            <div className="p-md rounded-lg flex items-start justify-between">
 
-                <div className="flex items-center gap-lg">
-                    <span className="text-body-lg">Set {set?.order}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-lg">
+                    <div className="flex items-start flex-col gap-md">
+                        <span className="text-body-lg">Set {set?.order}</span>
+                        {isnextSetSession && <UpNextBadge className="flex sm:hidden" />}
+                    </div>
 
                     {set?.status === 'completed'
                         ? (
@@ -157,7 +161,7 @@ const SetBox = ({ set, previousSet, weightUnit, isnextSetSession, startSetSessio
                 </div>
 
                 <div className="flex items-center gap-md md:gap-lg">
-                    {isnextSetSession && <UpNextBadge />}
+                    {isnextSetSession && <UpNextBadge className="hidden sm:flex" />}
                     <StatusIndicator status={set?.status} />
                 </div>
             </div>

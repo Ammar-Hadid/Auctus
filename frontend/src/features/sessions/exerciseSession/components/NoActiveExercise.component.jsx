@@ -5,7 +5,7 @@ import IconBadge from "../../../../shared/components/IconBadge.component.jsx";
 
 const NoActiveExercise = () => {
     return (
-        <Card className="flex-1 justify-top">
+        <Card className="flex-1 justify-top sm:min-h-[60dvh]!">
             <div className="relative mt-md flex min-h-72 overflow-hidden text-center">
                 <div
                     className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-primary/10 blur-3xl"

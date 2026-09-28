@@ -10,8 +10,9 @@ import {
 import { useConfirm } from "../../../../shared/context/confirmContext";
 import { useToast } from "../../../../shared/context/toastContext";
 import { getErrorMessage } from "../../../../shared/utils/errorHelper";
+import ConfirmModal from "../../../../shared/components/ConfirmModal";
 
-export const useExerciseSessionActions = ({ exerciseSessions }) => {
+export const useExerciseSessionActions = ({ exerciseSessions, setSessions }) => {
     const { confirm } = useConfirm();
     const { showToast } = useToast();
     const revalidate = useRevalidator();
@@ -70,6 +71,20 @@ export const useExerciseSessionActions = ({ exerciseSessions }) => {
     };
 
     const completeExercise = async (id) => {
+
+        const unFinishedSets = setSessions.some(set => set.exerciseSession === id && set.status !== "completed");
+
+        if (unFinishedSets) {
+            const isConfirmed = await confirm({
+                mode: 'warning',
+                title: 'Complete exercise?',
+                text: 'You still have unfinished sets. Completing this exercise will mark them as skipped. This action cannot be undone.',
+                confirmText: 'Complete Exercise',
+            });
+
+            if (!isConfirmed) return null;
+        }
+
         return await runAction({
             action: () => completeExerciseSession(id),
             pendingKey: `complete:${id}`,
