@@ -5,8 +5,6 @@ import DefaultButton from "../../../../shared/components/DefaultButton.jsx";
 import StatusBadge from "../../shared/StatusBadge.component.jsx";
 import formatMuscleGroup from "../../../muscleGroups/utils/formatMuscleGroup.js";
 
-import NoActiveExercise from "./NoActiveExercise.component.jsx";
-
 const CurrentExercise = ({
     featuredExercise,
     completeExercise,

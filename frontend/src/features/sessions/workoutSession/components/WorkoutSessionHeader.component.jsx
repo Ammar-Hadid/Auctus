@@ -9,6 +9,19 @@ import { formatElapsedTime } from "../utils/WorkoutTimeElapsed.util";
 
 import EllipsisMenu from "../../../../shared/components/EllipsisMenu";
 
+const ElapsedTime = ({ formattedElapsedTime, className = "" }) => {
+    return (
+        <div className={`flex items-center gap-md ${className}`}>
+            <Clock className="size-l sm:size-xl" />
+
+            <div className="flex flex-col">
+                <span className="text-body-lg text-text-primary">{formattedElapsedTime}</span>
+                <span className="text-body-sm text-text-secondary whitespace-nowrap">Elapsed Time</span>
+            </div>
+        </div>
+    )
+}
+
 const WorkoutSessionHeader = ({
     workoutSession,
     pauseWorkout,
@@ -44,22 +57,23 @@ const WorkoutSessionHeader = ({
 
     return (
         <Card className={`${pausedHeaderClass} flex flex-row md:p-lg lg:items-center justify-between`}>
-            <div className={`flex items-center gap-md ${isPaused ? 'text-warning' : 'text-primary'}`}>
-                <Circle className="size-md fill-current" aria-hidden="true" />
-                <span className="text-body whitespace-nowrap">
-                    {isPaused ? "Paused" : "In Progress"}
-                </span>
+
+            <div className="flex flex-col gap-lg">
+                <div className={`flex items-center gap-md ${isPaused ? 'text-warning' : 'text-primary'}`}>
+                    <Circle className="size-md fill-current" aria-hidden="true" />
+                    <span className="text-body whitespace-nowrap">
+                        {isPaused ? "Paused" : "In Progress"}
+                    </span>
+                </div>
+
+                <ElapsedTime formattedElapsedTime={formattedElapsedTime} className="flex sm:hidden" />
+
+
+
             </div>
 
-            <div className="flex items-center gap-sm justify-between">
-                <div className="flex items-center gap-md">
-                    <Clock className="size-xl" />
-
-                    <div className="flex flex-col">
-                        <span className="text-body-lg text-text-primary">{formattedElapsedTime}</span>
-                        <span className="text-body-sm text-text-secondary whitespace-nowrap">Elapsed Time</span>
-                    </div>
-                </div>
+            <div className="flex items-start sm:items-center gap-sm justify-between">
+                <ElapsedTime formattedElapsedTime={formattedElapsedTime} className="hidden sm:flex" />
 
                 <EllipsisMenu
                     actions={menuActions}
