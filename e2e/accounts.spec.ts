@@ -10,7 +10,7 @@ test('master password plus passkey, master-only provisioning, and isolated membe
   const origin = 'http://localhost:3100';
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('WebAuthn.enable');
-  await cdp.send('WebAuthn.addVirtualAuthenticator', {
+  const originalAuthenticator = await cdp.send('WebAuthn.addVirtualAuthenticator', {
     options: {
       protocol: 'ctap2',
       transport: 'internal',
@@ -156,6 +156,35 @@ test('master password plus passkey, master-only provisioning, and isolated membe
       })
     ).status(),
   ).toBe(403);
+  expect((await page.request.get('/api/state')).status()).toBe(403);
+  await page.getByRole('button', { name: 'Verify passkey', exact: true }).click();
+  await page.waitForURL(origin + '/');
+  expect((await page.request.get('/api/state')).status()).toBe(200);
+
+  // An already-verified session can enroll another provider when the first
+  // authenticator is unavailable, without deleting the original server key.
+  await cdp.send('WebAuthn.removeVirtualAuthenticator', originalAuthenticator);
+  await cdp.send('WebAuthn.addVirtualAuthenticator', {
+    options: {
+      protocol: 'ctap2',
+      transport: 'internal',
+      hasResidentKey: true,
+      hasUserVerification: true,
+      isUserVerified: true,
+      automaticPresenceSimulation: true,
+    },
+  });
+  await page.goto('/unlock?add=1');
+  await page.getByRole('button', { name: 'Create passkey', exact: true }).click();
+  await page.waitForURL(origin + '/');
+  const backupOptions = await page.request.post('/api/passkeys', {
+    headers: { origin },
+    data: { kind: 'register', action: 'options' },
+  });
+  expect(backupOptions.status()).toBe(200);
+  expect((await backupOptions.json()).excludeCredentials).toHaveLength(2);
+  await page.request.post('/api/auth/sign-out', { headers: { origin }, data: {} });
+  await login();
   expect((await page.request.get('/api/state')).status()).toBe(403);
   await page.getByRole('button', { name: 'Verify passkey', exact: true }).click();
   await page.waitForURL(origin + '/');

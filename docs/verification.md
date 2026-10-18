@@ -123,3 +123,17 @@ is not the next diagnostic step. The failure is inside the device ceremony,
 before a signed response is submitted for server verification; its underlying
 cause remains unknown. Verification of the same saved key in a separate Mac
 browser session is pending, while preserving the existing authenticated session.
+
+The Mac retry also failed. The user's screenshot shows 1Password's own dialog:
+“Passkey authentication failed / This passkey could not be used to sign in”,
+followed by Auctus's device-stage `NotAllowedError`. This rules out an iPhone-only
+failure but does not prove that the private key is corrupted. Read-only production
+checks found one active verified Macintosh session and a decodable ES256/P-256
+public key with 32-byte coordinates. No keys or sessions were reset.
+
+The existing `/unlock?add=1` flow permits another credential only from an already
+verified session. Expanded Chromium coverage confirms adding a second authenticator
+with the original unavailable, retaining both registered keys, and a fresh password
+plus backup-passkey login; the focused account test passes. The user was asked to
+create a backup in Apple Passwords from the original authenticated Mac window to
+test another provider. Physical registration/authentication acceptance is pending.
