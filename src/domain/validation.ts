@@ -7,7 +7,6 @@ export const prescription = z.object({
   id: id.optional(),
   type: setType,
   target_reps: z.number().int().min(0).max(1000),
-  target_grams: z.number().int().min(0).max(2000000),
   rest_ms: z.number().int().min(0).max(3600000),
 });
 export const templateInput = z.object({

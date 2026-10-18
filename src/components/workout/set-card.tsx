@@ -18,15 +18,20 @@ export function SetCard({
   send: Send;
 }) {
   const key = 'auctus.set-draft.' + set.id;
-  const [values, setValues] = useState<{ kg: string; reps: string; notes: string }>(() => {
+  const [draft, setDraft] = useState<{ kg: string; reps: string; notes: string } | null>(() => {
     if (typeof window !== 'undefined') {
       try {
         const d = localStorage.getItem(key);
         if (d) return JSON.parse(d);
       } catch {}
     }
-    return { kg: '', reps: '', notes: '' };
+    return null;
   });
+  const values = draft ?? {
+    kg: set.prefill_grams !== null ? String(set.prefill_grams / 1000) : '',
+    reps: '',
+    notes: '',
+  };
   const [confirm, setConfirm] = useState(false),
     [editing, setEditing] = useState(false);
   const act = (action: string, extra: Record<string, unknown> = {}) =>
@@ -39,7 +44,7 @@ export function SetCard({
     });
   function update(patch: Partial<typeof values>) {
     const next = { ...values, ...patch };
-    setValues(next);
+    setDraft(next);
     localStorage.setItem(key, JSON.stringify(next));
   }
   async function complete(e: React.FormEvent) {
@@ -69,8 +74,7 @@ export function SetCard({
               set
             </strong>
             <p className="set-target">
-              Target {set.target_grams / 1000} kg × {set.target_reps} reps · {set.rest_ms / 1000}s
-              rest
+              Planned {set.target_reps} reps · {set.rest_ms / 1000}s rest
             </p>
           </div>
         </div>
@@ -89,7 +93,7 @@ export function SetCard({
         <form className="stack result-form" onSubmit={complete}>
           <div className="field-grid">
             <label>
-              Actual weight · kg
+              Weight · kg
               <input
                 aria-label={`Set ${index + 1} actual kg`}
                 type="number"
@@ -98,7 +102,7 @@ export function SetCard({
                 max="2000"
                 step="0.001"
                 value={values.kg}
-                placeholder={String(set.target_grams / 1000)}
+                placeholder="Enter weight"
                 onChange={(e) => update({ kg: e.target.value })}
                 required
                 disabled={set.status === 'paused'}
@@ -120,6 +124,11 @@ export function SetCard({
               />
             </label>
           </div>
+          <p className="muted">
+            {set.prefill_grams !== null
+              ? `Last completed set: ${set.prefill_grams / 1000} kg. Weight is prefilled and editable.`
+              : 'No completed set yet. Enter the weight you use.'}
+          </p>
           <label>
             Set notes
             <input
@@ -154,7 +163,6 @@ export function SetCard({
                     }
                   : {
                       type: f.get('type'),
-                      target_grams: Math.round(Number(f.get('kg')) * 1000),
                       target_reps: Number(f.get('reps')),
                       rest_ms: Number(f.get('rest')) * 1000,
                     },
@@ -164,20 +172,20 @@ export function SetCard({
           }}
         >
           <div className="field-grid">
-            <label>
-              {set.status === 'completed' ? 'Actual' : 'Target'} kg
-              <input
-                name="kg"
-                type="number"
-                min="0"
-                max="2000"
-                step="0.001"
-                defaultValue={
-                  (set.status === 'completed' ? set.actual_grams! : set.target_grams) / 1000
-                }
-                required
-              />
-            </label>
+            {set.status === 'completed' && (
+              <label>
+                Weight · kg
+                <input
+                  name="kg"
+                  type="number"
+                  min="0"
+                  max="2000"
+                  step="0.001"
+                  defaultValue={set.actual_grams! / 1000}
+                  required
+                />
+              </label>
+            )}
             <label>
               Repetitions
               <input
@@ -235,7 +243,7 @@ export function SetCard({
             onClick={() => setEditing(!editing)}
             disabled={workout.status !== 'active'}
           >
-            {set.status === 'completed' ? 'Correct result' : 'Edit targets'}
+            {set.status === 'completed' ? 'Correct result' : 'Edit set plan'}
           </button>
         )}
         {set.status === 'pending' && (

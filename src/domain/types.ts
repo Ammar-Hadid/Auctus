@@ -19,7 +19,6 @@ export interface Prescription {
   id?: string;
   type: SetType;
   target_reps: number;
-  target_grams: number;
   rest_ms: number;
 }
 export interface TemplateExercise {
@@ -83,11 +82,12 @@ export interface SetSession {
   position: number;
   type: SetType;
   target_reps: number;
-  target_grams: number;
   rest_ms: number;
   status: ActivityStatus;
   actual_reps: number | null;
   actual_grams: number | null;
+  prefill_grams: number | null;
+  prefill_set_id: string | null;
   started_at: number | null;
   ended_at: number | null;
   notes: string;

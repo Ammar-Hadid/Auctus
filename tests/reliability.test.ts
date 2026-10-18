@@ -26,7 +26,7 @@ describe('recovery and database invariants', () => {
         exercises: [
           {
             exercise_id: e.id,
-            sets: [{ type: 'normal', target_reps: 8, target_grams: 20000, rest_ms: 60000 }],
+            sets: [{ type: 'normal', target_reps: 8, rest_ms: 60000 }],
           },
         ],
       });
@@ -84,7 +84,7 @@ describe('recovery and database invariants', () => {
       exercises: [
         {
           exercise_id: e.id,
-          sets: [{ type: 'normal', target_grams: 20000, target_reps: 8, rest_ms: 60000 }],
+          sets: [{ type: 'normal', target_reps: 8, rest_ms: 60000 }],
         },
       ],
     });

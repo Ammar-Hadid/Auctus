@@ -16,11 +16,11 @@ describe('programming and weekly assignments', () => {
       exercises: [
         {
           exercise_id: exercise.id,
-          sets: [{ type: 'normal', target_reps: 8, target_grams: 25000, rest_ms: 90000 }],
+          sets: [{ type: 'normal', target_reps: 8, rest_ms: 90000 }],
         },
       ],
     });
-    expect(service.templates()[0].exercises[0].sets[0].target_grams).toBe(25000);
+    expect(service.templates()[0].exercises[0].sets[0].target_reps).toBe(8);
     service.selectProgram(program.id);
     const week = service.availability();
     expect(week.assignments).toHaveLength(1);

@@ -78,7 +78,7 @@ try {
     exercises: [
       {
         exercise_id: exercise.id,
-        sets: [{ type: 'normal', target_grams: 20000, target_reps: 8, rest_ms: 60000 }],
+        sets: [{ type: 'normal', target_reps: 8, rest_ms: 60000 }],
       },
     ],
   });

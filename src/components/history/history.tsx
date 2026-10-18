@@ -93,8 +93,7 @@ export function HistoryView({
                         {s.removed_at ? ' · removed' : ''}
                       </span>
                       <p>
-                        Target {s.target_grams / 1000} kg × {s.target_reps} · rest{' '}
-                        {s.rest_ms / 1000}s
+                        Planned {s.target_reps} reps · rest {s.rest_ms / 1000}s
                       </p>
                     </div>
                     <div className="row">

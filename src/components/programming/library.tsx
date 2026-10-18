@@ -45,8 +45,8 @@ export function Library({
         <h2>Sets, reps and rest are set in your workouts</h2>
         <p>
           Go to Programs, open a program, then create or edit a workout. Add an exercise there to
-          choose its sets, reps, target weight and rest time. The same exercise can have different
-          settings in each workout.
+          choose its sets, reps and rest time. The same exercise can have different settings in each
+          workout.
         </p>
         <div>
           <button className="ghost" onClick={onPrograms}>

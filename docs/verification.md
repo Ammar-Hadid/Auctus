@@ -4,13 +4,17 @@ Local implementation is ready for owner setup and deployment preparation. Produc
 
 ## Automated evidence
 
-- **22 tests, 7 files:** SQLite migrations/reopen, private authentication and credential reset revocation, Amsterdam Monday 03:00 boundaries including both DST directions and year crossover, programming/archive/weekly availability, session snapshots/transitions/modifications, pause/rest accounting, retries/version conflicts, historical corrections/metrics and disk backup integrity.
+- **26 tests, 9 files:** SQLite migrations/reopen, private authentication and credential reset revocation, Amsterdam Monday 03:00 boundaries including both DST directions and year crossover, programming/archive/weekly availability, session snapshots/transitions/modifications, pause/rest accounting, retries/version conflicts, historical corrections/metrics and disk backup integrity.
 - **6 Playwright cases:** complete author/train/recover/edit/progress flow and protected endpoint checks in Chromium and mobile WebKit. Includes persisted drafts across reload, rest/pause recovery, offline retry, committed-write/lost-response retry, failed state GET during workout start, competing commands (200/409), abandonment and logout. No duplicate completed set/rest after replay. Custom Auctus selectors also cover keyboard open/select/Escape/focus return, create-and-select in templates and active workouts, failed creation/cancel preserving unsaved template edits, persisted set types, and 320–1440px menu/dialog bounds.
 - Dashboard overflow assertions at 320, 768, 1024 and 1440 pixels. Desktop and mobile dashboard/progress/active-workout screenshots inspected. Screenshots generated under ignored `test-results/`.
 - TypeScript, ESLint and production build pass. Docker build repeats unit/integration checks, typecheck, lint and production build on Linux arm64.
 - `node scripts/verify-container.mjs` checks the actual production image with disposable containers and volume: private login, program/template authoring, set result/rest creation, application restart, identical recovered workout, online backup/integrity checks and a fresh application instance using the restored database. It cleans up its own temporary containers/volume.
 
 All test credentials are explicitly disposable and scoped to temporary test databases. The real local database contains no seeded workout data or owner password.
+
+## Weight-entry amendment
+
+Templates no longer contain planned kilograms. Regression coverage verifies first-use empty weight, latest completed-set lookup by exercise identity, 30→40 kg progression between sets and workouts, corrected and zero loads, skipped/removed exclusion, pause/reload recovery, editable and intentionally cleared browser drafts, and populated database migration preserving actual results and old session prescriptions. Browser tests verify the absence of template weight controls and that a prefill is not saved as an actual result before completion.
 
 ## Review and corrections
 

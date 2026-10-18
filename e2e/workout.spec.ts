@@ -31,7 +31,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('combobox', { name: 'Add exercise', exact: true }).click();
   await page.getByRole('option', { name: 'Row ' + suffix, exact: true }).click();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
-  await page.getByLabel('Set 1 target kg').fill('20');
+  await expect(page.getByLabel('Set 1 target kg')).toHaveCount(0);
   await page.getByRole('button', { name: 'Save workout', exact: true }).click();
   await page.getByRole('button', { name: 'Use this program' }).click();
   await nav.getByRole('button', { name: 'Overview' }).click();
@@ -48,6 +48,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.unroute('**/api/state');
   await page.getByRole('button', { name: 'Start exercise', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
+  await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('');
   await page.getByLabel('Set 1 actual kg').fill('22');
   await page.getByLabel('Set 1 actual reps').fill('9');
   await page.reload();
@@ -123,7 +124,16 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('button', { name: 'Continue workout' }).click();
   await page.getByRole('button', { name: 'Start exercise', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
-  await page.getByLabel('Set 1 actual kg').fill('20');
+  await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('24');
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue workout' }).click();
+  await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('24');
+  // Clearing a suggestion is an intentional draft; it stays empty after reload.
+  await page.getByLabel('Set 1 actual kg').fill('');
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue workout' }).click();
+  await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('');
+  await page.getByLabel('Set 1 actual kg').fill('40');
   await page.getByLabel('Set 1 actual reps').fill('8');
   // Simulate a committed write whose response never reaches the phone.
   await page.route(
@@ -145,7 +155,13 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
       .filter((s: { status: string }) => s.status === 'completed'),
   ).toHaveLength(1);
   expect(state.activeWorkout.rests).toHaveLength(1);
-  const w = state.activeWorkout;
+  expect(state.activeWorkout.exercises[0].sets[0].actual_grams).toBe(40000);
+  // The next set picks up the weight just performed in this workout.
+  await page.getByRole('button', { name: 'Start set 2', exact: true }).click();
+  await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('40');
+  const nextState = await (await page.request.get('/api/state')).json();
+  expect(nextState.activeWorkout.exercises[0].sets[1].actual_grams).toBeNull();
+  const w = nextState.activeWorkout;
   const requests = await Promise.all(
     [1, 2].map(() =>
       page.request.post('/api/command', {

@@ -22,10 +22,10 @@ Your data lives at `data/auctus.db`, outside Git. Never delete this directory to
 
 1. Add exercises in **Library**.
 2. Create a program in **Programs** and open it.
-3. Add workouts, ordered exercises, prescribed sets, targets and planned rests. Choose **+ Create exercise** inside an exercise picker to save and select a new exercise without leaving the editor; the same action is available during training.
+3. Add workouts, ordered exercises, set types, planned reps and rest times. Choose **+ Create exercise** inside an exercise picker to save and select a new exercise without leaving the editor; the same action is available during training.
 4. Select **Use this program** / **Apply to this week**.
 5. In **Overview**, start a workout. Start any exercise, then start a set.
-6. Enter actual kg/reps and complete the set. Rest starts automatically; the next set or **End rest** ends it.
+6. Weight starts empty for an exercise with no completed sets. Otherwise, starting a set prefills the weight from the latest completed set for that exercise, including earlier sets in the current workout. Change it as needed, enter actual reps, and complete the set. Rest starts automatically; the next set or **End rest** ends it.
 7. Complete exercises, or explicitly skip unused sets. Finish the workout to add it to history.
 8. Correct recorded results in **History**; view exercise records via **Progress**.
 
@@ -39,6 +39,7 @@ A paused or active workout can always be recovered from Overview after reloading
 - Volume is **entered kg × entered reps**, including warm-ups, from completed sets in completed workouts. Dumbbell weight is per dumbbell; unilateral reps are per side. No implicit doubling is applied.
 - PRs exclude warm-ups. Heaviest recorded load is measured; Epley estimated 1RM is explicitly labelled and limited to 1–10 reps (one rep uses recorded weight).
 - Abandoned workouts retain all records but do not contribute to dashboard totals or records.
+- Templates do not prescribe kilograms. Prefilled weight is an editable draft, not a recorded result or a progression recommendation. Completed sets from abandoned workouts can supply a prefill; skipped or removed sets/exercises cannot. Editing a historical result affects subsequent prefills, while already-started sets retain their starting suggestion.
 - All confirmed state changes are server-persisted. Offline actions are labelled unconfirmed and require manual retry. A command ID makes a retry safe even if the server saved the original request but its response was lost. Local set drafts are not server records.
 
 ## PWA

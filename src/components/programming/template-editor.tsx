@@ -8,7 +8,6 @@ import type { Send } from '../use-model';
 export const defaultSet = (): Prescription => ({
   type: 'normal',
   target_reps: 8,
-  target_grams: 0,
   rest_ms: 90000,
 });
 export function move<T>(items: T[], index: number, delta: number) {
@@ -64,8 +63,8 @@ export function TemplateEditor({
         </button>
       </div>
       <p className="subtitle">
-        Add exercises below, then enter reps, target weight and rest for each set. Each row is one
-        set; use Add set to add more.
+        Add exercises below, then enter reps and rest for each set. Each row is one set; use Add set
+        to add more.
       </p>
       <div className="panel stack">
         <label>
@@ -84,7 +83,8 @@ export function TemplateEditor({
         </label>
         <p className="muted">
           Workout duration is recorded automatically from Start to Finish when you train. Pauses are
-          excluded from active time.
+          excluded from active time. Weight is entered during training, prefilled from the last
+          completed set for that exercise when available.
         </p>
       </div>
       {items.map((e, ei) => (
@@ -137,22 +137,7 @@ export function TemplateEditor({
                   }
                 />
               </label>
-              <label>
-                Target kg
-                <input
-                  aria-label={`Set ${si + 1} target kg`}
-                  type="number"
-                  min="0"
-                  max="2000"
-                  step="0.001"
-                  value={s.target_grams / 1000}
-                  onChange={(ev) =>
-                    setPrescription(ei, si, {
-                      target_grams: Math.round(Number(ev.target.value) * 1000),
-                    })
-                  }
-                />
-              </label>
+
               <label>
                 Reps
                 <input

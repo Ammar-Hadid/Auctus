@@ -138,3 +138,7 @@ October 19 target: finish remaining required editing/statistics/error paths, pro
 - Background behavior: https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
 - Vibration support: https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API
 - Audio restrictions: https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay
+
+## Approved amendment — weight entry (18 October 2026)
+
+Remove prescribed kilograms from templates. Templates retain exercise order, set count/type, reps and planned rest. At set start, snapshot the actual load from the latest completed, non-removed set for the same exercise identity (including current-workout results and completed sets in abandoned workouts). Do not match by set number or prescribe a progression. No prior result means an empty weight field; zero is a valid recorded load. Local edits, including clearing the field, survive refresh and take precedence over the prefill. Only completion writes actual results. Legacy session load prescriptions remain archived in the database; existing actual results and training statistics are unchanged.

@@ -33,7 +33,9 @@ export class Sessions {
     ).map((e) => ({
       ...e,
       sets: this.sql
-        .prepare('SELECT * FROM set_session WHERE exercise_session_id=? ORDER BY position')
+        .prepare(
+          'SELECT id,workout_id,exercise_session_id,position,type,target_reps,rest_ms,status,actual_reps,actual_grams,started_at,ended_at,notes,removed_at,prefill_grams,prefill_set_id FROM set_session WHERE exercise_session_id=? ORDER BY position',
+        )
         .all(e.id) as SetSession[],
     }));
     return {
@@ -111,22 +113,14 @@ export class Sessions {
       })
       .immediate();
   }
+  // The legacy load column is retained only to preserve pre-migration session snapshots.
   private insertSet(workout: string, exercise: string, position: number, input: unknown) {
     const s = prescription.parse(input);
     this.sql
       .prepare(
-        "INSERT INTO set_session (id,workout_id,exercise_session_id,position,type,target_reps,target_grams,rest_ms,status) VALUES (?,?,?,?,?,?,?,?,'pending')",
+        "INSERT INTO set_session (id,workout_id,exercise_session_id,position,type,target_reps,legacy_target_grams,rest_ms,status) VALUES (?,?,?,?,?,?,0,?,'pending')",
       )
-      .run(
-        randomUUID(),
-        workout,
-        exercise,
-        position,
-        s.type,
-        s.target_reps,
-        s.target_grams,
-        s.rest_ms,
-      );
+      .run(randomUUID(), workout, exercise, position, s.type, s.target_reps, s.rest_ms);
   }
   private closeRest(workout: string, now: number, reason: string) {
     this.sql
@@ -317,10 +311,8 @@ export class Sessions {
             );
             const v = prescription.parse(c);
             this.sql
-              .prepare(
-                'UPDATE set_session SET type=?,target_reps=?,target_grams=?,rest_ms=? WHERE id=?',
-              )
-              .run(v.type, v.target_reps, v.target_grams, v.rest_ms, set.id);
+              .prepare('UPDATE set_session SET type=?,target_reps=?,rest_ms=? WHERE id=?')
+              .run(v.type, v.target_reps, v.rest_ms, set.id);
             break;
           }
           case 'set.edit': {
@@ -346,10 +338,23 @@ export class Sessions {
             const parent = w.exercises.find((e) => e.id === set.exercise_session_id)!;
             requireCondition(parent.status === 'active', 'Start this exercise first.');
             requireCondition(!activeSet, 'Another set is already active.', 409);
+            const previous = this.sql
+              .prepare(
+                `
+              SELECT s.id,s.actual_grams FROM set_session s
+              JOIN exercise_session e ON e.id=s.exercise_session_id
+              WHERE e.exercise_id=? AND s.status='completed'
+                AND s.removed_at IS NULL AND e.removed_at IS NULL AND s.ended_at<=?
+              ORDER BY s.ended_at DESC,s.rowid DESC LIMIT 1
+            `,
+              )
+              .get(parent.exercise_id, now) as { id: string; actual_grams: number } | undefined;
             this.closeRest(w.id, now, 'next_set');
             this.sql
-              .prepare("UPDATE set_session SET status='active',started_at=? WHERE id=?")
-              .run(now, set.id);
+              .prepare(
+                "UPDATE set_session SET status='active',started_at=?,prefill_grams=?,prefill_set_id=? WHERE id=?",
+              )
+              .run(now, previous?.actual_grams ?? null, previous?.id ?? null, set.id);
             break;
           }
           case 'set.complete': {

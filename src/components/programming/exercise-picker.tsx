@@ -121,7 +121,7 @@ export function ExercisePicker({
             </div>
             <Dialog.Description className="muted">
               Save the exercise name and technique notes here. Then add it to this workout to set
-              its sets, reps, weight and rest. Your workout edits are kept.
+              its sets, reps and rest. Your workout edits are kept.
             </Dialog.Description>
             <form className="stack" onSubmit={create}>
               <label>
