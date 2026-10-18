@@ -161,3 +161,11 @@ Validation: 51 unit/integration tests, typecheck, lint and production build pass
 six Chromium cases pass across the isolated runs (including a focused recheck of the
 keyboard-style assertion); five mobile WebKit cases pass, with the Chromium-only virtual
 passkey case skipped. Desktop and mobile screenshots confirm the alarm controls fit.
+
+Live acceptance: image `auctus:7fe049a` is healthy on nexo-vps. Public HTTPS smoke checks
+passed in Chromium and mobile WebKit using the existing test member: sign-in, Rest alerts,
+real looping AudioBufferSource playback past a full cycle, explicit stop, sign-out and a
+subsequent private-state 401. No training records were created by these smoke checks.
+Unrelated service container IDs remained unchanged. Pre-update online backup:
+`/srv/backups/auctus/sqlite/auctus-2026-10-18T23-50-45Z.db`; rollback image:
+`auctus:before-looping-alarm-2026-10-19`. Local production server is also updated on port 3105.
