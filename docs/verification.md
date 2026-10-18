@@ -115,5 +115,11 @@ service container IDs did not change. Pre-update online backup:
 `/srv/backups/auctus/sqlite/auctus-2026-10-18T23-03-52Z.db`; rollback image:
 `auctus:before-passkey-chooser-2026-10-19`.
 
-The user confirmed the Auctus passkey is visible in 1Password on the iPhone.
-A physical-device retry of the deployed chooser is pending.
+Physical-device acceptance failed: the user reports `Device: NotAllowedError`
+with the deployed chooser. The passkey is visible in 1Password on the iPhone,
+AutoFill already uses All Accounts, and explicitly choosing Other options →
+1Password → the Auctus passkey still fails. Repeating those setup instructions
+is not the next diagnostic step. The failure is inside the device ceremony,
+before a signed response is submitted for server verification; its underlying
+cause remains unknown. Verification of the same saved key in a separate Mac
+browser session is pending, while preserving the existing authenticated session.
