@@ -113,7 +113,11 @@ export function Dashboard({
                 </div>
                 <button
                   className={a.completed ? 'ghost' : 'primary'}
-                  disabled={!!state.activeWorkout}
+                  disabled={
+                    !!state.activeWorkout ||
+                    !!t?.archived_at ||
+                    t?.program_id !== state.selectedProgramId
+                  }
                   onClick={async () => {
                     if (
                       await send('workout.start', { assignment_id: a.id, repeat: a.completed > 0 })

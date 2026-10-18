@@ -214,14 +214,45 @@ export function ActiveWorkout({
               {e.sets
                 .filter((s) => !s.removed_at)
                 .map((s, i) => (
-                  <SetCard
-                    key={s.id}
-                    set={s}
-                    index={i}
-                    workout={w}
-                    parentActive={e.status === 'active'}
-                    send={send}
-                  />
+                  <div key={s.id}>
+                    <SetCard
+                      set={s}
+                      index={i}
+                      workout={w}
+                      parentActive={e.status === 'active'}
+                      send={send}
+                    />
+                    <div className="row set-order">
+                      <button
+                        className="small ghost"
+                        disabled={e.sets.indexOf(s) === 0 || w.status === 'paused'}
+                        aria-label={`Move set ${i + 1} up`}
+                        onClick={() =>
+                          act('set.reorder', {
+                            id: e.id,
+                            ids: move(e.sets, e.sets.indexOf(s), -1).map((s) => s.id),
+                          })
+                        }
+                      >
+                        <ArrowUp size={13} />
+                        Move up
+                      </button>
+                      <button
+                        className="small ghost"
+                        disabled={e.sets.indexOf(s) === e.sets.length - 1 || w.status === 'paused'}
+                        aria-label={`Move set ${i + 1} down`}
+                        onClick={() =>
+                          act('set.reorder', {
+                            id: e.id,
+                            ids: move(e.sets, e.sets.indexOf(s), 1).map((s) => s.id),
+                          })
+                        }
+                      >
+                        <ArrowDown size={13} />
+                        Move down
+                      </button>
+                    </div>
+                  </div>
                 ))}
               {!['completed', 'skipped'].includes(e.status) && (
                 <>

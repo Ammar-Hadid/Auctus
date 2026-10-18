@@ -1040,3 +1040,13 @@ td:nth-child(2) {
     grid-template-columns: 1fr;
   }
 }
+.set-order {
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}
+.set-order button {
+  font-size: 10px;
+  min-height: 36px;
+  color: var(--muted);
+}

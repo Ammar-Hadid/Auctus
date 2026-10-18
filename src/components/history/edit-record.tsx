@@ -18,8 +18,8 @@ export function EditRecord({
   send: Send;
   close: () => void;
 }) {
-  const start = set?.started_at ?? rest?.started_at ?? workout.started_at;
-  const end = set?.ended_at ?? rest?.ended_at ?? workout.ended_at!;
+  const start = set ? set.started_at : (rest?.started_at ?? workout.started_at);
+  const end = set ? set.ended_at : (rest?.ended_at ?? workout.ended_at!);
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -28,8 +28,8 @@ export function EditRecord({
       version: workout.version,
       kind: set ? 'set' : rest ? 'rest' : 'workout',
       id: set?.id ?? rest?.id,
-      started_at: new Date(String(f.get('start'))).getTime(),
-      ended_at: new Date(String(f.get('end'))).getTime(),
+      started_at: f.get('start') ? new Date(String(f.get('start'))).getTime() : null,
+      ended_at: f.get('end') ? new Date(String(f.get('end'))).getTime() : null,
       notes: f.get('notes') ?? '',
     };
     if (set)
@@ -106,8 +106,8 @@ export function EditRecord({
             type="datetime-local"
             step="0.001"
             name="start"
-            defaultValue={localInput(start)}
-            required
+            defaultValue={start === null ? '' : localInput(start)}
+            required={!set}
           />
         </label>
         <label>
@@ -116,8 +116,8 @@ export function EditRecord({
             type="datetime-local"
             step="0.001"
             name="end"
-            defaultValue={localInput(end)}
-            required
+            defaultValue={end === null ? '' : localInput(end)}
+            required={!set}
           />
         </label>
       </div>
@@ -128,8 +128,9 @@ export function EditRecord({
         </label>
       )}
       <p className="muted">
-        Times must remain within the workout and cannot overlap another set or rest. Statistics
-        update after saving.
+        Completed sets require both times; unstarted skipped sets may have no start time. Times must
+        remain within the workout and cannot overlap another set or rest. Statistics update after
+        saving.
       </p>
       <button className="primary">Save correction</button>
     </form>

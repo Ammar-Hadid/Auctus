@@ -77,6 +77,65 @@ describe('historical corrections and metrics', () => {
     expect(s.get(w.id).exercises[0].name).toBe('Row');
     store.sqlite.close();
   });
+  it('edits notes on unstarted skipped sets without inventing timestamps', () => {
+    const store = openDatabase(':memory:');
+    const p = new Programming(store);
+    const e = p.saveExercise({ name: 'Row' });
+    const program = p.saveProgram({ name: 'A' });
+    p.saveTemplate({
+      program_id: program.id,
+      name: 'A',
+      exercises: [
+        {
+          exercise_id: e.id,
+          sets: [{ type: 'normal', target_grams: 10000, target_reps: 10, rest_ms: 60000 }],
+        },
+      ],
+    });
+    p.selectProgram(program.id);
+    const s = new Sessions(store);
+    let w = s.start(p.availability().assignments[0].id, false);
+    w = s.act({
+      workout_id: w.id,
+      version: w.version,
+      action: 'workout.complete',
+      skipRemaining: true,
+    });
+    const set = w.exercises[0].sets[0];
+    const result = editHistory(store, {
+      workout_id: w.id,
+      version: w.version,
+      kind: 'set',
+      id: set.id,
+      status: 'skipped',
+      actual_reps: 0,
+      actual_grams: 0,
+      type: 'normal',
+      started_at: set.started_at,
+      ended_at: set.ended_at,
+      notes: 'Missed equipment',
+    });
+    expect(result.exercises[0].sets[0].notes).toBe('Missed equipment');
+    expect(result.exercises[0].sets[0].started_at).toBeNull();
+    expect(result.rests).toHaveLength(0);
+    expect(() =>
+      editHistory(store, {
+        workout_id: w.id,
+        version: result.version,
+        kind: 'set',
+        id: set.id,
+        status: 'skipped',
+        actual_reps: 0,
+        actual_grams: 0,
+        type: 'normal',
+        started_at: null,
+        ended_at: w.ended_at! + 86400000,
+        notes: '',
+      }),
+    ).toThrow('within the workout');
+    expect(s.get(w.id).version).toBe(result.version);
+    store.sqlite.close();
+  });
   it('labels estimated one-rep max and restricts the estimate range', () => {
     expect(estimatedMax(100, 1)).toBe(100);
     expect(estimatedMax(100, 10)).toBeCloseTo(133.33, 2);

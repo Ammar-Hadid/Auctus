@@ -80,7 +80,13 @@ export class Sessions {
           .get(a.id);
         requireCondition(!completed || repeat, 'Use Repeat to perform this workout again.', 409);
         const t = p.templates().find((t) => t.id === a.template_id);
-        requireCondition(t && !t.archived_at, 'Template is no longer available.');
+        requireCondition(
+          t &&
+            !t.archived_at &&
+            t.program_id === p.selected() &&
+            p.programs().some((program) => program.id === t.program_id && !program.archived_at),
+          'Template is no longer in your current program.',
+        );
         requireCondition(
           t.exercises.length > 0 && t.exercises.every((e) => e.sets.length > 0),
           'Add exercises and at least one set to each exercise before starting.',
@@ -292,8 +298,8 @@ export class Sessions {
                 'Complete or skip the remaining sets first.',
               );
             }
-            if (exercise.status === 'active')
-              this.closeRest(w.id, now, completing ? 'exercise_completed' : 'exercise_skipped');
+            if (exercise.status === 'active' && !completing)
+              this.closeRest(w.id, now, 'exercise_skipped');
             this.sql
               .prepare(
                 "UPDATE set_session SET status='skipped',ended_at=? WHERE exercise_session_id=? AND status NOT IN ('completed','skipped')",
@@ -302,6 +308,36 @@ export class Sessions {
             this.sql
               .prepare('UPDATE exercise_session SET status=?,ended_at=? WHERE id=?')
               .run(completing ? 'completed' : 'skipped', now, exercise.id);
+            break;
+          }
+          case 'set.prescription': {
+            requireCondition(
+              set && set.status === 'pending' && !set.removed_at,
+              'Only a planned set can have its prescription changed.',
+            );
+            const v = prescription.parse(c);
+            this.sql
+              .prepare(
+                'UPDATE set_session SET type=?,target_reps=?,target_grams=?,rest_ms=? WHERE id=?',
+              )
+              .run(v.type, v.target_reps, v.target_grams, v.rest_ms, set.id);
+            break;
+          }
+          case 'set.edit': {
+            requireCondition(
+              set && set.status === 'completed',
+              'Only a completed set can be corrected.',
+            );
+            const v = z
+              .object({
+                actual_reps: z.number().int().min(0).max(1000),
+                actual_grams: z.number().int().min(0).max(2000000),
+                notes,
+              })
+              .parse(c);
+            this.sql
+              .prepare('UPDATE set_session SET actual_reps=?,actual_grams=?,notes=? WHERE id=?')
+              .run(v.actual_reps, v.actual_grams, v.notes, set.id);
             break;
           }
           case 'set.start': {

@@ -26,7 +26,8 @@ export function SetCard({
     }
     return { kg: '', reps: '', notes: '' };
   });
-  const [confirm, setConfirm] = useState(false);
+  const [confirm, setConfirm] = useState(false),
+    [editing, setEditing] = useState(false);
   const act = (action: string, extra: Record<string, unknown> = {}) =>
     send('session.action', {
       workout_id: workout.id,
@@ -74,7 +75,7 @@ export function SetCard({
         </div>
         <span className="status">{set.status}</span>
       </div>
-      {set.status === 'completed' && (
+      {set.status === 'completed' && !editing && (
         <div className="recorded number">
           {(set.actual_grams ?? 0) / 1000}
           <small>kg</small>
@@ -134,7 +135,108 @@ export function SetCard({
           </button>
         </form>
       )}
+      {editing && (
+        <form
+          className="stack result-form"
+          onSubmit={async (ev) => {
+            ev.preventDefault();
+            const f = new FormData(ev.currentTarget);
+            const completed = set.status === 'completed';
+            if (
+              await act(
+                completed ? 'set.edit' : 'set.prescription',
+                completed
+                  ? {
+                      actual_grams: Math.round(Number(f.get('kg')) * 1000),
+                      actual_reps: Number(f.get('reps')),
+                      notes: f.get('notes'),
+                    }
+                  : {
+                      type: f.get('type'),
+                      target_grams: Math.round(Number(f.get('kg')) * 1000),
+                      target_reps: Number(f.get('reps')),
+                      rest_ms: Number(f.get('rest')) * 1000,
+                    },
+              )
+            )
+              setEditing(false);
+          }}
+        >
+          <div className="field-grid">
+            <label>
+              {set.status === 'completed' ? 'Actual' : 'Target'} kg
+              <input
+                name="kg"
+                type="number"
+                min="0"
+                max="2000"
+                step="0.001"
+                defaultValue={
+                  (set.status === 'completed' ? set.actual_grams! : set.target_grams) / 1000
+                }
+                required
+              />
+            </label>
+            <label>
+              Repetitions
+              <input
+                name="reps"
+                type="number"
+                min="0"
+                max="1000"
+                defaultValue={set.status === 'completed' ? set.actual_reps! : set.target_reps}
+                required
+              />
+            </label>
+            {set.status === 'pending' && (
+              <>
+                <label>
+                  Type
+                  <select name="type" defaultValue={set.type}>
+                    <option value="normal">Normal</option>
+                    <option value="warmup">Warm-up</option>
+                    <option value="dropset">Dropset</option>
+                    <option value="failure">Failure</option>
+                  </select>
+                </label>
+                <label>
+                  Planned rest · seconds
+                  <input
+                    name="rest"
+                    type="number"
+                    min="0"
+                    max="3600"
+                    defaultValue={set.rest_ms / 1000}
+                    required
+                  />
+                </label>
+              </>
+            )}
+          </div>
+          {set.status === 'completed' && (
+            <label>
+              Notes
+              <input name="notes" defaultValue={set.notes} />
+            </label>
+          )}
+          <div className="row">
+            <button className="primary">Save set changes</button>
+            <button type="button" onClick={() => setEditing(false)}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
       <div className="row set-actions">
+        {['pending', 'completed'].includes(set.status) && (
+          <button
+            className="small ghost"
+            onClick={() => setEditing(!editing)}
+            disabled={workout.status !== 'active'}
+          >
+            {set.status === 'completed' ? 'Correct result' : 'Edit targets'}
+          </button>
+        )}
         {set.status === 'pending' && (
           <button
             className="primary"

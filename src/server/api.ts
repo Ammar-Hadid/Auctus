@@ -14,6 +14,8 @@ export async function authorize(request: Request, write = false) {
     throw new DomainError('Your sign-in expired. Sign in again; your draft is kept.', 401);
 }
 export function apiError(error: unknown) {
+  if (error instanceof SyntaxError)
+    return Response.json({ error: 'Invalid JSON request.' }, { status: 400 });
   if (error instanceof DomainError)
     return Response.json({ error: error.message }, { status: error.status });
   if (error instanceof ZodError)

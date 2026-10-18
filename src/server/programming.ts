@@ -206,7 +206,13 @@ export class Programming {
           .prepare('SELECT *,0 AS completed FROM weekly_assignment WHERE week_id=?')
           .all(week.id) as Assignment[];
         for (const a of assignments)
-          if (!ids.includes(a.template_id) && a.withdrawn_at === null)
+          if (
+            !ids.includes(a.template_id) &&
+            a.withdrawn_at === null &&
+            !this.sql
+              .prepare('SELECT id FROM workout_session WHERE assignment_id=? LIMIT 1')
+              .get(a.id)
+          )
             this.sql
               .prepare('UPDATE weekly_assignment SET withdrawn_at=? WHERE id=?')
               .run(at, a.id);

@@ -8,6 +8,20 @@ const instant = z.number().int().nonnegative().max(8640000000000000);
 function validateTimeline(w: WorkoutDetail) {
   const end = w.ended_at!;
   requireCondition(end >= w.started_at, 'Workout ends before its start.');
+  for (const exercise of w.exercises) {
+    for (const set of exercise.sets) {
+      for (const timestamp of [set.started_at, set.ended_at])
+        requireCondition(
+          timestamp === null || (timestamp >= w.started_at && timestamp <= end),
+          'Set timestamps must remain within the workout.',
+        );
+      if (set.ended_at !== null && exercise.ended_at !== null)
+        requireCondition(
+          set.ended_at <= exercise.ended_at,
+          'Set finish must remain within its exercise.',
+        );
+    }
+  }
   const sets = w.exercises
     .flatMap((e) => e.sets)
     .filter((s) => s.started_at !== null && s.ended_at !== null);
@@ -101,10 +115,34 @@ export function editHistory(store: Store, input: unknown) {
             actual_grams: z.number().int().min(0).max(2000000),
             type: setType,
             notes,
-            started_at: instant,
-            ended_at: instant,
+            started_at: instant.nullable(),
+            ended_at: instant.nullable(),
           })
           .parse(c);
+        requireCondition(
+          v.status !== 'completed' || (v.started_at !== null && v.ended_at !== null),
+          'Completed sets require start and finish times.',
+        );
+        requireCondition(
+          v.started_at === null || v.ended_at !== null,
+          'A started set requires a finish time.',
+        );
+        // A correction can supply the first recorded activity for a previously unstarted exercise.
+        const parent = w.exercises.find((e) => e.sets.some((s) => s.id === previous.id))!;
+        if (parent.started_at === null && v.started_at !== null) {
+          store.sqlite
+            .prepare('UPDATE exercise_session SET started_at=?,ended_at=?,status=? WHERE id=?')
+            .run(
+              v.started_at,
+              Math.max(parent.ended_at ?? v.ended_at!, v.ended_at!),
+              v.status === 'completed' ? 'completed' : parent.status,
+              parent.id,
+            );
+        }
+        requireCondition(
+          !w.rests.some((r) => r.set_id === previous.id) || v.ended_at !== null,
+          'A set with recorded rest must retain its finish time.',
+        );
         store.sqlite
           .prepare(
             'UPDATE set_session SET status=?,actual_reps=?,actual_grams=?,type=?,notes=?,started_at=?,ended_at=? WHERE id=?',

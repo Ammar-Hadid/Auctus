@@ -43,6 +43,27 @@ const context = (x: ReturnType<typeof setup>) => ({
   version: x.s.get(x.workout.id).version,
 });
 describe('persistent workout engine', () => {
+  it('keeps final-set rest running after exercise completion until switching', () => {
+    const x = setup();
+    const [a, b] = x.workout.exercises;
+    x.s.act({ ...context(x), action: 'exercise.start', id: b.id });
+    x.s.act({ ...context(x), action: 'set.start', id: b.sets[0].id });
+    x.tick(10000);
+    x.s.act({
+      ...context(x),
+      action: 'set.complete',
+      id: b.sets[0].id,
+      actual_reps: 8,
+      actual_grams: 20000,
+    });
+    x.tick(1000);
+    x.s.act({ ...context(x), action: 'exercise.complete', id: b.id });
+    expect(x.s.get(x.workout.id).rests[0].ended_at).toBeNull();
+    x.tick(29000);
+    const w = x.s.act({ ...context(x), action: 'exercise.start', id: a.id });
+    expect(restDuration(w.rests[0], w.pauses, x.clock())).toBe(30000);
+    x.store.sqlite.close();
+  });
   it('snapshots prescriptions and exercise names independently of templates', () => {
     const x = setup();
     x.p.saveTemplate({ ...x.template, name: 'Changed', version: 0, exercises: [] });
@@ -176,4 +197,37 @@ describe('persistent workout engine', () => {
     expect(x.s.get(x.workout.id).exercises[0].removed_at).not.toBeNull();
     x.store.sqlite.close();
   });
+});
+
+it('edits live prescriptions and recorded results without changing the original targets', () => {
+  const x = setup();
+  const e = x.workout.exercises[0];
+  const id = e.sets[0].id;
+  x.s.act({
+    ...context(x),
+    action: 'set.prescription',
+    id,
+    type: 'dropset',
+    target_reps: 12,
+    target_grams: 15000,
+    rest_ms: 45000,
+  });
+  x.s.act({ ...context(x), action: 'exercise.start', id: e.id });
+  x.s.act({ ...context(x), action: 'set.start', id });
+  x.tick(1000);
+  x.s.act({ ...context(x), action: 'set.complete', id, actual_grams: 15000, actual_reps: 10 });
+  x.s.act({
+    ...context(x),
+    action: 'set.edit',
+    id,
+    actual_grams: 16000,
+    actual_reps: 11,
+    notes: 'Correction',
+  });
+  const w = x.s.get(x.workout.id);
+  expect(w.exercises[0].sets[0].target_grams).toBe(15000);
+  expect(w.exercises[0].sets[0].actual_grams).toBe(16000);
+  expect(w.rests).toHaveLength(1);
+  expect(w.rests[0].planned_ms).toBe(45000);
+  x.store.sqlite.close();
 });

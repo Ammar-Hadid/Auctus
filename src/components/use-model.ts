@@ -10,7 +10,9 @@ export function useModel(initial: State) {
     [offline, setOffline] = useState(false),
     [pending, setPending] = useState<Pending | null>(null);
   const lock = useRef(false);
+  const refreshSequence = useRef(0);
   const refresh = useCallback(async () => {
+    const sequence = ++refreshSequence.current;
     try {
       const r = await fetch('/api/state', { cache: 'no-store' });
       if (!r.ok) {
@@ -18,8 +20,11 @@ export function useModel(initial: State) {
           setError('Sign-in expired. Sign in again in another tab, then retry.');
         return;
       }
-      setState(await r.json());
-      setOffline(false);
+      const next: State = await r.json();
+      if (sequence === refreshSequence.current) {
+        setState(next);
+        setOffline(false);
+      }
     } catch {
       setOffline(true);
     }
@@ -41,10 +46,14 @@ export function useModel(initial: State) {
       if (document.visibilityState === 'visible') void refresh();
     };
     recover();
+    const poll = setInterval(() => {
+      if (document.visibilityState === 'visible' && !lock.current) void refresh();
+    }, 60000);
     window.addEventListener('online', recover);
     window.addEventListener('offline', onOffline);
     document.addEventListener('visibilitychange', visible);
     return () => {
+      clearInterval(poll);
       window.removeEventListener('online', recover);
       window.removeEventListener('offline', onOffline);
       document.removeEventListener('visibilitychange', visible);
@@ -57,8 +66,8 @@ export function useModel(initial: State) {
       setBusy(true);
       setError('');
       setPending(p);
-      localStorage.setItem('auctus.pending', JSON.stringify(p));
       try {
+        localStorage.setItem('auctus.pending', JSON.stringify(p));
         const r = await fetch('/api/command', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -70,11 +79,16 @@ export function useModel(initial: State) {
             localStorage.removeItem('auctus.pending');
             setPending(null);
           }
+          if (r.status === 409) await refresh();
           throw new Error(body.error || 'Save failed.');
         }
+        if (!body.state)
+          throw new Error('Saved response lacked current state. Retry to reconcile.');
+        ++refreshSequence.current;
+        setState(body.state);
+        setOffline(false);
         localStorage.removeItem('auctus.pending');
         setPending(null);
-        await refresh();
         return true;
       } catch (e) {
         setError(
