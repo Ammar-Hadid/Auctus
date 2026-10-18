@@ -1,7 +1,10 @@
 'use client';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { State } from '@/domain/types';
-export type Send = (action: string, data: Record<string, unknown>) => Promise<boolean>;
+export type Send = (
+  action: string,
+  data: Record<string, unknown>,
+) => Promise<false | { result: unknown }>;
 type Pending = { requestId: string; action: string; data: Record<string, unknown> };
 export function useModel(initial: State) {
   const [state, setState] = useState(initial),
@@ -89,7 +92,7 @@ export function useModel(initial: State) {
         setOffline(false);
         localStorage.removeItem('auctus.pending');
         setPending(null);
-        return true;
+        return { result: body.result as unknown };
       } catch (e) {
         setError(
           e instanceof Error ? e.message : 'Connection failed. This action is not confirmed saved.',

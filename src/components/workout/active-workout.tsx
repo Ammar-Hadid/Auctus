@@ -1,4 +1,5 @@
 'use client';
+import { ExercisePicker } from '../programming/exercise-picker';
 import { useState } from 'react';
 import { Play, Pause, Check, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import type { State } from '@/domain/types';
@@ -152,19 +153,14 @@ export function ActiveWorkout({
         <section className="stack exercise-detail">
           {add && (
             <div className="panel stack">
-              <label>
-                Exercise
-                <select value={selection} onChange={(ev) => setSelection(ev.target.value)}>
-                  <option value="">Choose movement</option>
-                  {state.exercises
-                    .filter((e) => !e.archived_at)
-                    .map((e) => (
-                      <option key={e.id} value={e.id}>
-                        {e.name}
-                      </option>
-                    ))}
-                </select>
-              </label>
+              <ExercisePicker
+                label="Exercise"
+                exercises={state.exercises}
+                value={selection}
+                onValueChange={setSelection}
+                send={send}
+                disabled={w.status === 'paused'}
+              />
               <button
                 disabled={!selection || w.status === 'paused'}
                 onClick={async () => {

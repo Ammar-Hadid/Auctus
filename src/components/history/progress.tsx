@@ -1,4 +1,5 @@
 'use client';
+import { AuctusSelect } from '../ui/select';
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import type { Exercise, WorkoutDetail } from '@/domain/types';
@@ -54,15 +55,17 @@ export function ProgressView({
               <label className="sr-only" htmlFor="progress-metric">
                 Metric
               </label>
-              <select
+              <AuctusSelect
                 id="progress-metric"
+                label="Metric"
                 className="chart-select"
                 value={metric}
-                onChange={(e) => setMetric(e.target.value as typeof metric)}
-              >
-                <option value="heaviest">Heaviest load</option>
-                <option value="estimated">Estimated 1RM</option>
-              </select>
+                onValueChange={(value) => setMetric(value as typeof metric)}
+                options={[
+                  { value: 'heaviest', label: 'Heaviest load' },
+                  { value: 'estimated', label: 'Estimated 1RM' },
+                ]}
+              />
             </div>
             {eligible.length >= 2 ? (
               <svg

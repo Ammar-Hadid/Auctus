@@ -1,4 +1,5 @@
 'use client';
+import { AuctusSelect } from '../ui/select';
 import { useState } from 'react';
 import { ArrowLeft, ArrowUpRight, Clock, Check, Edit3 } from 'lucide-react';
 import type { WorkoutDetail } from '@/domain/types';
@@ -175,14 +176,15 @@ export function HistoryView({
         </div>
         <label>
           Training week
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="all">All weeks</option>
-            {weeks.map((w) => (
-              <option key={w} value={w}>
-                Week of {w}
-              </option>
-            ))}
-          </select>
+          <AuctusSelect
+            label="Training week"
+            value={filter}
+            onValueChange={setFilter}
+            options={[
+              { value: 'all', label: 'All weeks' },
+              ...weeks.map((w) => ({ value: w, label: `Week of ${w}` })),
+            ]}
+          />
         </label>
       </div>
       {!workouts.length ? (

@@ -1,4 +1,6 @@
 'use client';
+import { AuctusSelect, setTypeOptions } from '../ui/select';
+import { ExercisePicker } from './exercise-picker';
 import { useState } from 'react';
 import { ArrowUp, ArrowDown, Plus, X } from 'lucide-react';
 import type { Template, Exercise, TemplateExercise, Prescription } from '@/domain/types';
@@ -118,17 +120,14 @@ export function TemplateEditor({
               <span className="set-index">{si + 1}</span>
               <label>
                 Type
-                <select
+                <AuctusSelect
+                  label={`Set ${si + 1} type`}
                   value={s.type}
-                  onChange={(ev) =>
-                    setPrescription(ei, si, { type: ev.target.value as Prescription['type'] })
+                  options={setTypeOptions}
+                  onValueChange={(type) =>
+                    setPrescription(ei, si, { type: type as Prescription['type'] })
                   }
-                >
-                  <option value="normal">Normal</option>
-                  <option value="warmup">Warm-up</option>
-                  <option value="dropset">Dropset</option>
-                  <option value="failure">Failure</option>
-                </select>
+                />
               </label>
               <label>
                 Target kg
@@ -218,19 +217,12 @@ export function TemplateEditor({
         </section>
       ))}
       <div className="panel stack">
-        <label>
-          Add exercise
-          <select value={selection} onChange={(e) => setSelection(e.target.value)}>
-            <option value="">Choose a movement</option>
-            {exercises
-              .filter((e) => !e.archived_at)
-              .map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-          </select>
-        </label>
+        <ExercisePicker
+          exercises={exercises}
+          value={selection}
+          onValueChange={setSelection}
+          send={send}
+        />
         <button
           type="button"
           disabled={!selection}
@@ -245,7 +237,6 @@ export function TemplateEditor({
           <Plus size={16} />
           Add exercise
         </button>
-        {exercises.length === 0 && <p>Create exercises in the Library first.</p>}
       </div>
       <div className="sticky-actions">
         <p>Loads per dumbbell · unilateral reps per side</p>

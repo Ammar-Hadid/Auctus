@@ -28,9 +28,8 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     .click();
   await page.getByRole('button', { name: 'New workout' }).click();
   await page.getByLabel('Workout name').fill('Full Body ' + suffix);
-  await page
-    .getByRole('combobox', { name: 'Add exercise', exact: true })
-    .selectOption({ label: 'Row ' + suffix });
+  await page.getByRole('combobox', { name: 'Add exercise', exact: true }).click();
+  await page.getByRole('option', { name: 'Row ' + suffix, exact: true }).click();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByLabel('Set 1 target kg').fill('20');
   await page.getByRole('button', { name: 'Save workout', exact: true }).click();
@@ -41,7 +40,10 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await expect(page.getByRole('heading', { name: 'Full Body ' + suffix })).toBeVisible();
   // Command responses carry authoritative state even if a subsequent state read fails.
   await page.route('**/api/state', (route) => route.fulfill({ status: 503, body: '{}' }));
-  await page.getByRole('button', { name: 'Start workout', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Start workout', exact: true })
+    .and(page.locator(':enabled'))
+    .click();
   await expect(page.getByRole('button', { name: 'Start exercise', exact: true })).toBeVisible();
   await page.unroute('**/api/state');
   await page.getByRole('button', { name: 'Start exercise', exact: true }).click();
@@ -77,11 +79,18 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     .click();
   await page.getByRole('button', { name: 'Edit set 1', exact: true }).click();
   await page.getByLabel('Corrected weight').fill('24');
+  await page.getByRole('combobox', { name: 'Set type', exact: true }).click();
+  await page.getByRole('option', { name: 'Dropset', exact: true }).click();
   await page.getByRole('button', { name: 'Save correction' }).click();
   await expect(page.getByText('24 kg × 9', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Progress', exact: true }).click();
   await expect(page.getByText('24', { exact: true })).toBeVisible();
   await expect(page.getByText('31.2', { exact: true })).toBeVisible();
+  await page.getByRole('combobox', { name: 'Metric', exact: true }).click();
+  await page.getByRole('option', { name: 'Estimated 1RM', exact: true }).click();
+  await expect(page.getByRole('combobox', { name: 'Metric', exact: true })).toContainText(
+    'Estimated 1RM',
+  );
   await page.screenshot({
     path: `test-results/progress-${test.info().project.name}.png`,
     fullPage: true,

@@ -1,4 +1,5 @@
 'use client';
+import { AuctusSelect, setTypeOptions } from '../ui/select';
 import type { WorkoutDetail, SetSession, Rest } from '@/domain/types';
 import type { Send } from '../use-model';
 export function localInput(timestamp: number) {
@@ -79,22 +80,24 @@ export function EditRecord({
             </label>
             <label>
               Set type
-              <select name="type" defaultValue={set.type}>
-                <option value="normal">Normal</option>
-                <option value="warmup">Warm-up</option>
-                <option value="dropset">Dropset</option>
-                <option value="failure">Failure</option>
-              </select>
+              <AuctusSelect
+                label="Set type"
+                name="type"
+                defaultValue={set.type}
+                options={setTypeOptions}
+              />
             </label>
             <label>
               Status
-              <select
+              <AuctusSelect
+                label="Status"
                 name="status"
                 defaultValue={set.status === 'completed' ? 'completed' : 'skipped'}
-              >
-                <option value="completed">Completed</option>
-                <option value="skipped">Skipped</option>
-              </select>
+                options={[
+                  { value: 'completed', label: 'Completed' },
+                  { value: 'skipped', label: 'Skipped' },
+                ]}
+              />
             </label>
           </div>
         </>

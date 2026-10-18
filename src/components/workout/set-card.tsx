@@ -1,4 +1,5 @@
 'use client';
+import { AuctusSelect, setTypeOptions } from '../ui/select';
 import { useState } from 'react';
 import { Check, Play, SkipForward, Trash2 } from 'lucide-react';
 import type { SetSession, WorkoutDetail } from '@/domain/types';
@@ -192,12 +193,12 @@ export function SetCard({
               <>
                 <label>
                   Type
-                  <select name="type" defaultValue={set.type}>
-                    <option value="normal">Normal</option>
-                    <option value="warmup">Warm-up</option>
-                    <option value="dropset">Dropset</option>
-                    <option value="failure">Failure</option>
-                  </select>
+                  <AuctusSelect
+                    label="Set type"
+                    name="type"
+                    defaultValue={set.type}
+                    options={setTypeOptions}
+                  />
                 </label>
                 <label>
                   Planned rest · seconds
