@@ -104,3 +104,16 @@ authenticator, rejection of another account's credential, and a simulated device
 `NotAllowedError` with fresh retries in Chromium/mobile WebKit. Simulating the error tests
 the recovery UI; it does not reproduce 1Password itself. Physical iPhone/1Password acceptance
 remains required before calling the reported device issue resolved.
+
+Deployed app commit `7fc0b70` to nexo-vps. Validation: 48 unit/integration tests,
+TypeScript, ESLint, production build, 5 Chromium and 4 mobile WebKit browser cases
+pass (the CDP authenticator case is Chromium-only). Public HTTPS browser smoke
+confirmed Auctus renders, the existing test member can sign in, master passkey
+endpoints reject that member with 403, and sign-out restores 401 for private state.
+The server is healthy and still has the original single registered passkey. Other
+service container IDs did not change. Pre-update online backup:
+`/srv/backups/auctus/sqlite/auctus-2026-10-18T23-03-52Z.db`; rollback image:
+`auctus:before-passkey-chooser-2026-10-19`.
+
+The user confirmed the Auctus passkey is visible in 1Password on the iPhone.
+A physical-device retry of the deployed chooser is pending.
