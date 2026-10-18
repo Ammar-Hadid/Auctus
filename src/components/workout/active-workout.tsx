@@ -288,7 +288,7 @@ export function ActiveWorkout({
           ) : (
             <div className="empty">
               <h2>No exercises remaining</h2>
-              <p>Add a movement or finish the workout.</p>
+              <p>Add an exercise or finish the workout.</p>
             </div>
           )}
         </section>

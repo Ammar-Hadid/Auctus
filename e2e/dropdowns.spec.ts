@@ -58,7 +58,7 @@ test('custom menus create exercises in place and preserve template and training 
   await page.getByRole('option', { name: 'Create exercise', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Create exercise', exact: true });
   await expect(dialog.getByLabel('Exercise name')).toBeFocused();
-  await dialog.getByLabel('Exercise name').fill('Cancelled movement');
+  await dialog.getByLabel('Exercise name').fill('Cancelled exercise');
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(picker).toBeFocused();
   await expect(page.getByLabel('Workout name')).toHaveValue('Upper body strength');
@@ -143,7 +143,7 @@ test('custom menus create exercises in place and preserve template and training 
   expect(
     state.templates.find((t: { id: string }) => t.id === state.activeWorkout.template_id).notes,
   ).toBe('Keep these unsaved cues.');
-  expect(state.exercises.some((e: { name: string }) => e.name === 'Cancelled movement')).toBe(
+  expect(state.exercises.some((e: { name: string }) => e.name === 'Cancelled exercise')).toBe(
     false,
   );
   await page.reload();

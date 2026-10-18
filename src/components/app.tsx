@@ -112,6 +112,7 @@ export function App({ initial }: { initial: State }) {
               <Library
                 exercises={model.state.exercises}
                 send={model.send}
+                onPrograms={() => navigate('programs')}
                 onProgress={(id) => {
                   setProgressId(id);
                   navigate('progress');

@@ -63,6 +63,10 @@ export function TemplateEditor({
           Cancel
         </button>
       </div>
+      <p className="subtitle">
+        Add exercises below, then enter reps, target weight and rest for each set. Each row is one
+        set; use Add set to add more.
+      </p>
       <div className="panel stack">
         <label>
           Workout name
@@ -78,6 +82,10 @@ export function TemplateEditor({
           Workout notes
           <textarea name="notes" defaultValue={template?.notes} />
         </label>
+        <p className="muted">
+          Workout duration is recorded automatically from Start to Finish when you train. Pauses are
+          excluded from active time.
+        </p>
       </div>
       {items.map((e, ei) => (
         <section className="panel stack" key={ei}>

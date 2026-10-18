@@ -74,7 +74,7 @@ export function AuctusSelect({
           <Select.Viewport className="select-viewport">
             {options.length === 0 && (
               <div className="select-empty">
-                No exercises yet. Create your first movement below.
+                No exercises yet. Create your first exercise below.
               </div>
             )}
             {options.map((option) => (

@@ -71,7 +71,7 @@ export function ExercisePicker({
           options={exercises
             .filter((e) => !e.archived_at)
             .map((e) => ({ value: e.id, label: e.name }))}
-          placeholder="Choose a movement"
+          placeholder="Choose an exercise"
           triggerRef={trigger}
           creating={open}
           onCreate={() => {
@@ -105,7 +105,7 @@ export function ExercisePicker({
           >
             <div className="row between">
               <div>
-                <span className="eyeline accent">Movement library</span>
+                <span className="eyeline accent">Exercise library</span>
                 <Dialog.Title>Create exercise</Dialog.Title>
               </div>
               <Dialog.Close asChild>
@@ -120,7 +120,8 @@ export function ExercisePicker({
               </Dialog.Close>
             </div>
             <Dialog.Description className="muted">
-              Save a new movement and select it here. Your workout stays right where you left it.
+              Save the exercise name and technique notes here. Then add it to this workout to set
+              its sets, reps, weight and rest. Your workout edits are kept.
             </Dialog.Description>
             <form className="stack" onSubmit={create}>
               <label>

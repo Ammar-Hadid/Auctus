@@ -20,9 +20,9 @@ Your data lives at `data/auctus.db`, outside Git. Never delete this directory to
 
 ## First workout
 
-1. Add movements in **Library**.
+1. Add exercises in **Library**.
 2. Create a program in **Programs** and open it.
-3. Add workouts, ordered exercises, prescribed sets, targets and planned rests. Choose **+ Create exercise** inside an exercise picker to save and select a new movement without leaving the editor; the same action is available during training.
+3. Add workouts, ordered exercises, prescribed sets, targets and planned rests. Choose **+ Create exercise** inside an exercise picker to save and select a new exercise without leaving the editor; the same action is available during training.
 4. Select **Use this program** / **Apply to this week**.
 5. In **Overview**, start a workout. Start any exercise, then start a set.
 6. Enter actual kg/reps and complete the set. Rest starts automatically; the next set or **End rest** ends it.

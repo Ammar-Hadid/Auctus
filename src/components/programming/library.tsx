@@ -7,10 +7,12 @@ export function Library({
   exercises,
   send,
   onProgress,
+  onPrograms,
 }: {
   exercises: Exercise[];
   send: Send;
   onProgress: (id: string) => void;
+  onPrograms: () => void;
 }) {
   const [query, setQuery] = useState(''),
     [editing, setEditing] = useState<Exercise | null | undefined>(undefined),
@@ -32,13 +34,26 @@ export function Library({
       <div className="row between">
         <div>
           <h1>Exercise library</h1>
-          <p className="subtitle">The movements behind your progress.</p>
+          <p className="subtitle">Save exercise names and technique notes here.</p>
         </div>
         <button className="primary" onClick={() => setEditing(null)}>
           <Plus size={18} />
           New exercise
         </button>
       </div>
+      <section className="panel stack" aria-label="Exercise setup guide">
+        <h2>Sets, reps and rest are set in your workouts</h2>
+        <p>
+          Go to Programs, open a program, then create or edit a workout. Add an exercise there to
+          choose its sets, reps, target weight and rest time. The same exercise can have different
+          settings in each workout.
+        </p>
+        <div>
+          <button className="ghost" onClick={onPrograms}>
+            Go to programs <ArrowUpRight size={16} />
+          </button>
+        </div>
+      </section>
       {editing !== undefined && (
         <form className="panel stack" onSubmit={save} key={editing?.id || 'new'}>
           <div className="row between">
@@ -64,7 +79,7 @@ export function Library({
           aria-label="Search exercises"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Find a movement…"
+          placeholder="Find an exercise…"
         />
       </label>
       <div className="list">
@@ -114,7 +129,7 @@ export function Library({
       </div>
       {!exercises.some((e) => !e.archived_at) && (
         <div className="empty">
-          <h2>Build your movement library</h2>
+          <h2>Build your exercise library</h2>
           <p>Add your first exercise, then use it in a workout.</p>
           <button onClick={() => setEditing(null)}>Add exercise</button>
         </div>
