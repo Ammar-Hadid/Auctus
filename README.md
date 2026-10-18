@@ -71,3 +71,5 @@ pnpm backup /path/to/private/backups/auctus.db
 Backups use SQLite's online backup API and verify database and foreign-key integrity. Store an encrypted copy off the VPS. A backup on the same disk alone does not protect against host loss.
 
 See [deployment and recovery](docs/deployment.md), the [approved architecture](tasks/plan.md), and [delivery checklist](tasks/todo.md). VPS configuration is intentionally pending host details; the app must not replace unrelated proxy/services.
+
+The rest timer stays fixed at the top during training. Pause/Resume freezes only its countdown; +5s and +15s extend the current rest without changing the template. Timer controls persist across refreshes. Actual rest continues to measure recovery time, excluding workout pauses.

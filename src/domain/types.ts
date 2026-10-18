@@ -107,6 +107,9 @@ export interface Rest {
   workout_id: string;
   set_id: string;
   planned_ms: number;
+  added_ms: number;
+  timer_paused_at: number | null;
+  timer_paused_ms: number;
   started_at: number;
   ended_at: number | null;
   reason: string | null;

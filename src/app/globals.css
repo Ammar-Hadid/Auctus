@@ -870,14 +870,23 @@ main > .notice {
   padding: 0 8px;
 }
 .rest-panel {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  z-index: 40;
+  flex-wrap: wrap;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding: 24px;
+  padding: 14px 18px;
   border: 1px solid #536735;
   border-radius: 12px;
   background: #1b2416;
+}
+.rest-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .rest-panel .eyeline {
   color: var(--accent);
@@ -886,7 +895,7 @@ main > .notice {
   gap: 6px;
 }
 .rest-clock {
-  font-size: 56px;
+  font-size: 40px;
   line-height: 1.2;
   color: var(--accent);
 }
@@ -931,7 +940,7 @@ details[open] summary {
     padding: 16px;
   }
   .rest-clock {
-    font-size: 46px;
+    font-size: 36px;
   }
   .rest-panel button {
     padding: 8px;
@@ -1290,4 +1299,14 @@ td:nth-child(2) {
   flex-shrink: 0;
   padding: 6px;
   border-top: 1px solid var(--line);
+}
+
+/* Reserve space above the entire workout, including save/retry messages. */
+main:not(.login):has(.rest-panel) {
+  padding-top: max(46px, calc(var(--rest-panel-height, 220px) + 24px - 80px));
+}
+@media (max-width: 760px) {
+  main:not(.login):has(.rest-panel) {
+    padding-top: max(28px, calc(var(--rest-panel-height, 220px) + 24px - 64px));
+  }
 }

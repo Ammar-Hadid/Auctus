@@ -1,3 +1,4 @@
+import { elapsed } from '../domain/timing';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { Store } from './db/connection';
@@ -139,6 +140,14 @@ export class Sessions {
       );
   }
   private closeRest(workout: string, now: number, reason: string) {
+    const w = this.get(workout);
+    const rest = w.rests.find((r) => r.ended_at === null);
+    if (rest && rest.timer_paused_at !== null)
+      this.sql
+        .prepare(
+          'UPDATE rest_period SET timer_paused_ms=timer_paused_ms+?,timer_paused_at=NULL WHERE id=?',
+        )
+        .run(elapsed(rest.timer_paused_at, now, w.pauses), rest.id);
     this.sql
       .prepare('UPDATE rest_period SET ended_at=?,reason=? WHERE workout_id=? AND ended_at IS NULL')
       .run(now, reason, workout);
@@ -404,7 +413,9 @@ export class Sessions {
               )
               .run(v.actual_reps, v.actual_grams, v.notes, now, set.id);
             this.sql
-              .prepare('INSERT INTO rest_period VALUES (?,?,?,?,?,NULL,NULL)')
+              .prepare(
+                'INSERT INTO rest_period (id,workout_id,set_id,planned_ms,started_at,ended_at,reason) VALUES (?,?,?,?,?,NULL,NULL)',
+              )
               .run(randomUUID(), w.id, set.id, set.rest_ms, now);
             break;
           }
@@ -417,6 +428,31 @@ export class Sessions {
             this.sql
               .prepare("UPDATE set_session SET status='skipped',ended_at=? WHERE id=?")
               .run(now, set.id);
+            break;
+          }
+          case 'rest.pause':
+          case 'rest.resume':
+          case 'rest.extend': {
+            const rest = w.rests.find((r) => r.ended_at === null);
+            requireCondition(rest && rest.id === c.id, 'This rest is no longer active.', 409);
+            if (c.action === 'rest.pause') {
+              requireCondition(rest.timer_paused_at === null, 'Rest timer is already paused.', 409);
+              this.sql
+                .prepare('UPDATE rest_period SET timer_paused_at=? WHERE id=?')
+                .run(now, rest.id);
+            } else if (c.action === 'rest.resume') {
+              requireCondition(rest.timer_paused_at !== null, 'Rest timer is not paused.', 409);
+              this.sql
+                .prepare(
+                  'UPDATE rest_period SET timer_paused_ms=timer_paused_ms+?,timer_paused_at=NULL WHERE id=?',
+                )
+                .run(elapsed(rest.timer_paused_at, now, w.pauses), rest.id);
+            } else {
+              const ms = z.union([z.literal(5000), z.literal(15000)]).parse(c.ms);
+              this.sql
+                .prepare('UPDATE rest_period SET added_ms=added_ms+? WHERE id=?')
+                .run(ms, rest.id);
+            }
             break;
           }
           case 'rest.end':

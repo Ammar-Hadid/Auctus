@@ -39,6 +39,7 @@ export function ActiveWorkout({
     : null;
   return (
     <div className="stack">
+      <RestTimer workout={w} now={now} end={() => act('rest.end')} act={act} />
       <div className="row between">
         <div>
           <span className="status accent">
@@ -96,7 +97,6 @@ export function ActiveWorkout({
           <button onClick={() => setConfirm(null)}>Keep training</button>
         </div>
       )}
-      <RestTimer workout={w} now={now} end={() => act('rest.end')} />
       <div className="training-layout">
         <aside className="exercise-rail">
           <div className="row between">

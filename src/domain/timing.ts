@@ -17,6 +17,16 @@ export function activeDuration(workout: WorkoutDetail, now: number) {
 export function restDuration(rest: Rest, pauses: Pause[], now: number) {
   return elapsed(rest.started_at, rest.ended_at ?? now, pauses);
 }
+// Timer pauses freeze the countdown only; actual rest remains elapsed recovery time.
+export function restRemaining(rest: Rest, pauses: Pause[], now: number) {
+  const end = rest.ended_at ?? now;
+  const countdownEnd = rest.timer_paused_at ?? end;
+  return (
+    rest.planned_ms +
+    rest.added_ms -
+    Math.max(0, elapsed(rest.started_at, countdownEnd, pauses) - rest.timer_paused_ms)
+  );
+}
 export function durationLabel(ms: number) {
   const seconds = Math.floor(Math.max(0, ms) / 1000);
   return `${Math.floor(seconds / 60)

@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { openDatabase } from '../src/server/db/connection';
 import { Programming } from '../src/server/programming';
 import { Sessions } from '../src/server/sessions';
-import { activeDuration, restDuration } from '../src/domain/timing';
+import { activeDuration, restDuration, restRemaining } from '../src/domain/timing';
 import { command } from '../src/server/commands';
 function setup() {
   const store = openDatabase(':memory:');
@@ -229,5 +229,65 @@ it('edits live prescriptions and recorded results without changing the original 
   expect(w.exercises[0].sets[0].actual_grams).toBe(16000);
   expect(w.rests).toHaveLength(1);
   expect(w.rests[0].planned_ms).toBe(45000);
+  x.store.sqlite.close();
+});
+
+it('persists independent rest pauses and extensions without double-counting workout pauses', () => {
+  const x = setup();
+  const exercise = x.workout.exercises[0];
+  x.s.act({ ...context(x), action: 'exercise.start', id: exercise.id });
+  x.s.act({ ...context(x), action: 'set.start', id: exercise.sets[0].id });
+  x.tick(10000);
+  let w = x.s.act({
+    ...context(x),
+    action: 'set.complete',
+    id: exercise.sets[0].id,
+    actual_reps: 8,
+    actual_grams: 20000,
+  });
+  const id = w.rests[0].id;
+  const act = (action: string, extra = {}) => x.s.act({ ...context(x), id, action, ...extra });
+  x.tick(10000);
+  w = act('rest.pause');
+  expect(w.status).toBe('active');
+  expect(restRemaining(w.rests[0], w.pauses, x.clock())).toBe(50000);
+  x.tick(5000);
+  act('workout.pause');
+  x.tick(20000);
+  act('workout.resume');
+  x.tick(5000);
+  // Reload from persisted state, including the overlapping workout pause.
+  w = new Sessions(x.store, x.clock).get(w.id);
+  expect(restRemaining(w.rests[0], w.pauses, x.clock())).toBe(50000);
+  expect(restDuration(w.rests[0], w.pauses, x.clock())).toBe(20000);
+  expect(activeDuration(w, x.clock())).toBe(30000);
+  act('rest.extend', { ms: 5000 });
+  w = act('rest.extend', { ms: 15000 });
+  expect(restRemaining(w.rests[0], w.pauses, x.clock())).toBe(70000);
+  expect(w.rests[0].planned_ms).toBe(60000);
+  expect(() => act('rest.extend', { ms: -5000 })).toThrow();
+  expect(() => act('rest.extend', { ms: 10000 })).toThrow();
+  expect(() => act('rest.pause')).toThrow('already paused');
+  act('rest.resume');
+  expect(() => act('rest.resume')).toThrow('not paused');
+  x.tick(75000);
+  w = x.s.get(w.id);
+  expect(restRemaining(w.rests[0], w.pauses, x.clock())).toBe(-5000);
+  // A retry receipt must not add the same 15 seconds twice.
+  const request = randomUUID();
+  const payload = { ...context(x), action: 'rest.extend', id, ms: 15000 };
+  const execute = () => x.s.act(payload);
+  command(x.store, request, payload, x.clock(), execute);
+  command(x.store, request, payload, x.clock(), execute);
+  w = x.s.get(w.id);
+  expect(w.rests[0].added_ms).toBe(35000);
+  expect(restRemaining(w.rests[0], w.pauses, x.clock())).toBe(10000);
+  act('rest.pause');
+  x.tick(3000);
+  w = act('set.start', { id: exercise.sets[1].id });
+  expect(w.rests[0].timer_paused_at).toBeNull();
+  expect(w.rests[0].timer_paused_ms).toBe(13000);
+  expect(w.rests[0].ended_at).toBe(x.clock());
+  expect(() => act('rest.extend', { ms: 5000 })).toThrow('no longer active');
   x.store.sqlite.close();
 });

@@ -94,9 +94,40 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('22');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
+  const restTimer = page.getByRole('region', { name: 'Rest timer' });
+  await restTimer.getByRole('button', { name: 'Pause rest timer', exact: true }).click();
+  await expect(restTimer.getByText('Rest paused', { exact: true })).toBeVisible();
+  const pausedTime = await restTimer.getByRole('timer').textContent();
+  await expect(page.getByText('Session in progress', { exact: true })).toBeVisible();
+  await restTimer.getByRole('button', { name: '+5s', exact: true }).click();
+  await restTimer.getByRole('button', { name: '+15s', exact: true }).click();
+  const seconds = (text: string | null) =>
+    text!
+      .split(':')
+      .map(Number)
+      .reduce((a, b) => a * 60 + b);
+  await expect
+    .poll(
+      async () => seconds(await restTimer.getByRole('timer').textContent()) - seconds(pausedTime),
+    )
+    .toBe(20);
+  const extendedTime = await restTimer.getByRole('timer').textContent();
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
+  await expect(restTimer.getByRole('timer')).toHaveText(extendedTime!);
+  await expect(
+    restTimer.getByRole('button', { name: 'Resume rest timer', exact: true }),
+  ).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const timerBox = await restTimer.boundingBox();
+  expect(timerBox!.y).toBeGreaterThanOrEqual(0);
+  expect(timerBox!.y).toBeLessThanOrEqual(16);
+  expect(timerBox!.x + timerBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  await restTimer.getByRole('button', { name: 'Resume rest timer', exact: true }).click();
+
   await page.screenshot({
     path: `test-results/active-${test.info().project.name}.png`,
-    fullPage: true,
+    fullPage: false,
   });
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.getByText('Rest paused', { exact: false })).toBeVisible();
