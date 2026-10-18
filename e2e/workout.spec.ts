@@ -116,7 +116,6 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     )
     .toBe(1);
   await expect(restTimer.getByRole('button', { name: 'Sound on', exact: true })).toBeVisible();
-  await restTimer.getByRole('button', { name: 'Stop alarm', exact: true }).click();
   await expect(restTimer.getByRole('button', { name: 'Stop alarm', exact: true })).toHaveCount(0);
 
   await restTimer.getByRole('button', { name: 'Pause rest timer', exact: true }).click();

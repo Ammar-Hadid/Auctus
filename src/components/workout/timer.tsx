@@ -108,11 +108,6 @@ export function RestTimer({
           </p>
         </div>
         <div className="rest-controls">
-          {sound.activeKey && (
-            <button className="primary" onClick={() => stopAlarm()}>
-              Stop alarm
-            </button>
-          )}
           <button
             aria-label={timerPaused ? 'Resume rest timer' : 'Pause rest timer'}
             disabled={workout.status === 'paused'}
@@ -144,6 +139,7 @@ export function RestTimer({
             Test alarm
           </button>
           <button
+            className="primary"
             onClick={() => {
               stopAlarm();
               end();

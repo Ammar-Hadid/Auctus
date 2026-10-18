@@ -169,3 +169,15 @@ subsequent private-state 401. No training records were created by these smoke ch
 Unrelated service container IDs remained unchanged. Pre-update online backup:
 `/srv/backups/auctus/sqlite/auctus-2026-10-18T23-50-45Z.db`; rollback image:
 `auctus:before-looping-alarm-2026-10-19`. Local production server is also updated on port 3105.
+
+## End rest dismisses the alarm — 19 October 2026
+
+The workout timer no longer offers a separate Stop alarm button. End rest is its primary
+action: it silences audio immediately and ends the rest period. Settings retains a stop
+control only for its test preview, and its instructions now explain End rest.
+
+Focused Chromium and mobile WebKit checks pass for repeating expiry audio, End rest,
+absence of the separate stop button, and persistence after reload. The workout flow and
+API authorization checks also pass in both browsers. Typecheck and lint pass. A stale
+development build initially caused reload loops; restarting with a fresh development
+cache resolved those test-server failures.

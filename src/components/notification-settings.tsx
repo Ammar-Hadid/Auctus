@@ -105,8 +105,9 @@ export function NotificationSettings() {
     <section className="panel stack">
       <h2>Rest alerts</h2>
       <p>
-        While Auctus is open, the rest alarm repeats until you stop it. Tap Test alarm to enable and
-        hear it, then Stop alarm to silence it. Check your device volume if you cannot hear it.
+        While Auctus is open, the rest alarm repeats until you tap End rest. Tap Test alarm to
+        enable and hear a preview, then Stop alarm to silence the preview. Check your device volume
+        if you cannot hear it.
       </p>
       <div className="row">
         <button onClick={() => void testSound()}>Test alarm</button>
