@@ -34,7 +34,7 @@ export class Sessions {
       ...e,
       sets: this.sql
         .prepare(
-          'SELECT id,workout_id,exercise_session_id,position,type,target_reps,rest_ms,status,actual_reps,actual_grams,started_at,ended_at,notes,removed_at,prefill_grams,prefill_set_id FROM set_session WHERE exercise_session_id=? ORDER BY position',
+          'SELECT id,workout_id,exercise_session_id,position,type,min_reps,max_reps,rest_ms,status,actual_reps,actual_grams,started_at,ended_at,notes,removed_at,prefill_grams,prefill_set_id FROM set_session WHERE exercise_session_id=? ORDER BY position',
         )
         .all(e.id) as SetSession[],
     }));
@@ -118,9 +118,9 @@ export class Sessions {
     const s = prescription.parse(input);
     this.sql
       .prepare(
-        "INSERT INTO set_session (id,workout_id,exercise_session_id,position,type,target_reps,legacy_target_grams,rest_ms,status) VALUES (?,?,?,?,?,?,0,?,'pending')",
+        "INSERT INTO set_session (id,workout_id,exercise_session_id,position,type,min_reps,max_reps,legacy_target_grams,rest_ms,status) VALUES (?,?,?,?,?,?,?,0,?,'pending')",
       )
-      .run(randomUUID(), workout, exercise, position, s.type, s.target_reps, s.rest_ms);
+      .run(randomUUID(), workout, exercise, position, s.type, s.min_reps, s.max_reps, s.rest_ms);
   }
   private closeRest(workout: string, now: number, reason: string) {
     this.sql
@@ -311,8 +311,8 @@ export class Sessions {
             );
             const v = prescription.parse(c);
             this.sql
-              .prepare('UPDATE set_session SET type=?,target_reps=?,rest_ms=? WHERE id=?')
-              .run(v.type, v.target_reps, v.rest_ms, set.id);
+              .prepare('UPDATE set_session SET type=?,min_reps=?,max_reps=?,rest_ms=? WHERE id=?')
+              .run(v.type, v.min_reps, v.max_reps, v.rest_ms, set.id);
             break;
           }
           case 'set.edit': {

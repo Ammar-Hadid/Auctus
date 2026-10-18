@@ -19,7 +19,7 @@ describe('historical corrections and metrics', () => {
       exercises: [
         {
           exercise_id: e.id,
-          sets: [{ type: 'normal', target_reps: 10, rest_ms: 60000 }],
+          sets: [{ type: 'normal', min_reps: 10, max_reps: 10, rest_ms: 60000 }],
         },
       ],
     });
@@ -88,7 +88,7 @@ describe('historical corrections and metrics', () => {
       exercises: [
         {
           exercise_id: e.id,
-          sets: [{ type: 'normal', target_reps: 10, rest_ms: 60000 }],
+          sets: [{ type: 'normal', min_reps: 10, max_reps: 10, rest_ms: 60000 }],
         },
       ],
     });

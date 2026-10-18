@@ -7,7 +7,8 @@ import type { Template, Exercise, TemplateExercise, Prescription } from '@/domai
 import type { Send } from '../use-model';
 export const defaultSet = (): Prescription => ({
   type: 'normal',
-  target_reps: 8,
+  min_reps: 8,
+  max_reps: 8,
   rest_ms: 90000,
 });
 export function move<T>(items: T[], index: number, delta: number) {
@@ -63,8 +64,9 @@ export function TemplateEditor({
         </button>
       </div>
       <p className="subtitle">
-        Add exercises below, then enter reps and rest for each set. Each row is one set; use Add set
-        to add more.
+        Add exercises below, then enter minimum reps, maximum reps and rest for each set. For 6–8
+        reps, enter 6 and 8. For exactly 8 reps, enter 8 in both fields. Each row is one set; use
+        Add set to add more.
       </p>
       <div className="panel stack">
         <label>
@@ -139,16 +141,27 @@ export function TemplateEditor({
               </label>
 
               <label>
-                Reps
+                Min reps
                 <input
-                  aria-label={`Set ${si + 1} target reps`}
+                  aria-label={`Set ${si + 1} minimum reps`}
                   type="number"
                   min="0"
                   max="1000"
-                  value={s.target_reps}
-                  onChange={(ev) =>
-                    setPrescription(ei, si, { target_reps: Number(ev.target.value) })
-                  }
+                  required
+                  value={s.min_reps}
+                  onChange={(ev) => setPrescription(ei, si, { min_reps: Number(ev.target.value) })}
+                />
+              </label>
+              <label>
+                Max reps
+                <input
+                  aria-label={`Set ${si + 1} maximum reps`}
+                  type="number"
+                  min={s.min_reps}
+                  max="1000"
+                  required
+                  value={s.max_reps}
+                  onChange={(ev) => setPrescription(ei, si, { max_reps: Number(ev.target.value) })}
                 />
               </label>
               <label>

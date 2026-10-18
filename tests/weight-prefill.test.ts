@@ -9,7 +9,7 @@ function setup() {
   const exercise = p.saveExercise({ name: 'Incline dumbbell press' });
   const other = p.saveExercise({ name: 'Incline dumbbell press' });
   const program = p.saveProgram({ name: 'Strength' });
-  const set = { type: 'normal', target_reps: 8, rest_ms: 60000 };
+  const set = { type: 'normal', min_reps: 8, max_reps: 8, rest_ms: 60000 };
   const template = p.saveTemplate({
     program_id: program.id,
     name: 'Upper',

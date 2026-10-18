@@ -142,3 +142,7 @@ October 19 target: finish remaining required editing/statistics/error paths, pro
 ## Approved amendment — weight entry (18 October 2026)
 
 Remove prescribed kilograms from templates. Templates retain exercise order, set count/type, reps and planned rest. At set start, snapshot the actual load from the latest completed, non-removed set for the same exercise identity (including current-workout results and completed sets in abandoned workouts). Do not match by set number or prescribe a progression. No prior result means an empty weight field; zero is a valid recorded load. Local edits, including clearing the field, survive refresh and take precedence over the prefill. Only completion writes actual results. Legacy session load prescriptions remain archived in the database; existing actual results and training statistics are unchanged.
+
+## Approved amendment — rep ranges (18 October 2026)
+
+Replace the single planned rep count with minimum and maximum reps per template set and session snapshot. Both are integers from 0–1000, with maximum at least minimum; equal bounds express an exact target. Migrate existing targets to equal bounds. Pending session prescriptions can be edited independently of templates. Training and history show the planned range, while completion and corrections record the exact reps performed, including results outside the range.

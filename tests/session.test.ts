@@ -13,7 +13,7 @@ function setup() {
   const exercise = p.saveExercise({ name: 'Row' });
   const other = p.saveExercise({ name: 'Press' });
   const program = p.saveProgram({ name: 'Strength' });
-  const prescription = { type: 'normal', target_reps: 8, rest_ms: 60000 };
+  const prescription = { type: 'normal', min_reps: 8, max_reps: 8, rest_ms: 60000 };
   const template = p.saveTemplate({
     program_id: program.id,
     name: 'A',
@@ -70,7 +70,7 @@ describe('persistent workout engine', () => {
     const w = x.s.get(x.workout.id);
     expect(w.name).toBe('A');
     expect(w.exercises).toHaveLength(2);
-    expect(w.exercises[0].sets[0].target_reps).toBe(8);
+    expect(w.exercises[0].sets[0].min_reps).toBe(8);
     expect(() => x.s.start(w.assignment_id, true)).toThrow('unfinished');
     x.store.sqlite.close();
   });
@@ -122,7 +122,7 @@ describe('persistent workout engine', () => {
     w = x.s.get(w.id);
     expect(restDuration(w.rests[0], w.pauses, x.clock())).toBe(70000);
     expect(activeDuration(w, x.clock())).toBe(90000);
-    expect(w.exercises[0].sets[0].target_reps).toBe(8);
+    expect(w.exercises[0].sets[0].min_reps).toBe(8);
     expect(w.exercises[0].sets[0].actual_grams).toBe(22000);
     x.store.sqlite.close();
   });
@@ -188,7 +188,8 @@ describe('persistent workout engine', () => {
       action: 'set.add',
       id: a.id,
       type: 'warmup',
-      target_reps: 10,
+      min_reps: 10,
+      max_reps: 10,
       rest_ms: 30000,
     });
     expect(x.s.get(x.workout.id).exercises[1].sets).toHaveLength(3);
@@ -207,7 +208,8 @@ it('edits live prescriptions and recorded results without changing the original 
     action: 'set.prescription',
     id,
     type: 'dropset',
-    target_reps: 12,
+    min_reps: 12,
+    max_reps: 12,
     rest_ms: 45000,
   });
   x.s.act({ ...context(x), action: 'exercise.start', id: e.id });
@@ -223,7 +225,7 @@ it('edits live prescriptions and recorded results without changing the original 
     notes: 'Correction',
   });
   const w = x.s.get(x.workout.id);
-  expect(w.exercises[0].sets[0].target_reps).toBe(12);
+  expect(w.exercises[0].sets[0].min_reps).toBe(12);
   expect(w.exercises[0].sets[0].actual_grams).toBe(16000);
   expect(w.rests).toHaveLength(1);
   expect(w.rests[0].planned_ms).toBe(45000);

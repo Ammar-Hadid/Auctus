@@ -7,6 +7,7 @@ import type { Send } from '../use-model';
 import { activeDuration, durationLabel, restDuration } from '@/domain/timing';
 import { trainingWeek } from '@/domain/calendar';
 import { EditRecord } from './edit-record';
+import { repRangeLabel } from '@/domain/reps';
 export function HistoryView({
   workouts,
   send,
@@ -93,7 +94,8 @@ export function HistoryView({
                         {s.removed_at ? ' · removed' : ''}
                       </span>
                       <p>
-                        Planned {s.target_reps} reps · rest {s.rest_ms / 1000}s
+                        Planned {repRangeLabel(s.min_reps, s.max_reps)} reps · rest{' '}
+                        {s.rest_ms / 1000}s
                       </p>
                     </div>
                     <div className="row">

@@ -51,6 +51,17 @@ it('upgrades populated databases without changing actual results or legacy sessi
       'target_grams',
     );
     const active = new Sessions(migrated).get('w').exercises[0].sets[1];
+    // Exact targets are preserved as equal bounds by the subsequent rep-range migration.
+    expect(active).toMatchObject({ min_reps: 8, max_reps: 8 });
+    expect(new Sessions(migrated).get('w').exercises[0].sets[0]).toMatchObject({
+      min_reps: 8,
+      max_reps: 8,
+      actual_reps: 8,
+    });
+    expect(migrated.sqlite.prepare('SELECT * FROM template_set').get()).toMatchObject({
+      min_reps: 8,
+      max_reps: 8,
+    });
     expect(active.prefill_grams).toBe(30000);
     expect(active.actual_grams).toBeNull();
     expect(migrated.sqlite.pragma('foreign_key_check')).toEqual([]);

@@ -18,7 +18,8 @@ export interface Program {
 export interface Prescription {
   id?: string;
   type: SetType;
-  target_reps: number;
+  min_reps: number;
+  max_reps: number;
   rest_ms: number;
 }
 export interface TemplateExercise {
@@ -81,7 +82,8 @@ export interface SetSession {
   exercise_session_id: string;
   position: number;
   type: SetType;
-  target_reps: number;
+  min_reps: number;
+  max_reps: number;
   rest_ms: number;
   status: ActivityStatus;
   actual_reps: number | null;

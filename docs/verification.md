@@ -4,7 +4,7 @@ Local implementation is ready for owner setup and deployment preparation. Produc
 
 ## Automated evidence
 
-- **26 tests, 9 files:** SQLite migrations/reopen, private authentication and credential reset revocation, Amsterdam Monday 03:00 boundaries including both DST directions and year crossover, programming/archive/weekly availability, session snapshots/transitions/modifications, pause/rest accounting, retries/version conflicts, historical corrections/metrics and disk backup integrity.
+- **29 tests, 10 files:** SQLite migrations/reopen, private authentication and credential reset revocation, Amsterdam Monday 03:00 boundaries including both DST directions and year crossover, programming/archive/weekly availability, session snapshots/transitions/modifications, pause/rest accounting, retries/version conflicts, historical corrections/metrics and disk backup integrity.
 - **6 Playwright cases:** complete author/train/recover/edit/progress flow and protected endpoint checks in Chromium and mobile WebKit. Includes persisted drafts across reload, rest/pause recovery, offline retry, committed-write/lost-response retry, failed state GET during workout start, competing commands (200/409), abandonment and logout. No duplicate completed set/rest after replay. Custom Auctus selectors also cover keyboard open/select/Escape/focus return, create-and-select in templates and active workouts, failed creation/cancel preserving unsaved template edits, persisted set types, and 320–1440px menu/dialog bounds.
 - Dashboard overflow assertions at 320, 768, 1024 and 1440 pixels. Desktop and mobile dashboard/progress/active-workout screenshots inspected. Screenshots generated under ignored `test-results/`.
 - TypeScript, ESLint and production build pass. Docker build repeats unit/integration checks, typecheck, lint and production build on Linux arm64.
@@ -15,6 +15,10 @@ All test credentials are explicitly disposable and scoped to temporary test data
 ## Weight-entry amendment
 
 Templates no longer contain planned kilograms. Regression coverage verifies first-use empty weight, latest completed-set lookup by exercise identity, 30→40 kg progression between sets and workouts, corrected and zero loads, skipped/removed exclusion, pause/reload recovery, editable and intentionally cleared browser drafts, and populated database migration preserving actual results and old session prescriptions. Browser tests verify the absence of template weight controls and that a prefill is not saved as an actual result before completion.
+
+## Rep-range amendment
+
+Templates and pending session sets accept minimum and maximum reps. Validation rejects inverted, fractional and out-of-bounds ranges. Workout snapshots retain their original range after template edits, while actual results remain exact counts and may fall outside the plan. Existing exact targets migrate to equal bounds without changing completed results. Browser coverage checks 6–8 rep authoring, invalid-range feedback, session editing, history display, and template layout from 320–1440px.
 
 ## Review and corrections
 

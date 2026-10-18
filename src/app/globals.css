@@ -503,7 +503,7 @@ main > .notice {
 }
 .prescription {
   display: grid;
-  grid-template-columns: 24px 1.3fr 1fr 1fr auto;
+  grid-template-columns: 24px 1.3fr 1fr 1fr 1fr auto;
   gap: 10px;
   align-items: end;
 }
@@ -571,7 +571,7 @@ main > .notice {
     padding: 32px 30px;
   }
   .prescription {
-    grid-template-columns: 24px repeat(3, minmax(0, 1fr));
+    grid-template-columns: 24px repeat(4, minmax(0, 1fr));
   }
   .prescription > .row {
     grid-column: 2/-1;
@@ -675,11 +675,15 @@ main > .notice {
     grid-template-columns: 20px repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
-  .prescription label:nth-of-type(3) {
+  .prescription label:first-of-type {
+    grid-column: 2/-1;
+  }
+  .prescription label:nth-of-type(2),
+  .prescription label:nth-of-type(4) {
     grid-column: 2;
   }
   .prescription > .row {
-    grid-column: 2/-1;
+    grid-column: 3;
   }
   .sticky-actions {
     bottom: 72px;

@@ -32,6 +32,28 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('option', { name: 'Row ' + suffix, exact: true }).click();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await expect(page.getByLabel('Set 1 target kg')).toHaveCount(0);
+  await page.getByLabel('Set 1 minimum reps').fill('9');
+  await page.getByLabel('Set 1 maximum reps').fill('8');
+  await page.getByRole('button', { name: 'Save workout', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'New workout', exact: true })).toBeVisible();
+  expect(
+    await page
+      .getByLabel('Set 1 maximum reps')
+      .evaluate((el: HTMLInputElement) => el.validity.rangeUnderflow),
+  ).toBe(true);
+  await page.getByLabel('Set 1 minimum reps').fill('6');
+  for (const width of [320, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+    await expect(page.getByLabel('Set 1 maximum reps')).toBeVisible();
+  }
+  await page.setViewportSize(test.info().project.use.viewport!);
+  await page.screenshot({
+    path: `test-results/rep-range-template-${test.info().project.name}.png`,
+    fullPage: true,
+  });
   await page.getByRole('button', { name: 'Save workout', exact: true }).click();
   await page.getByRole('button', { name: 'Use this program' }).click();
   await nav.getByRole('button', { name: 'Overview' }).click();
@@ -46,6 +68,21 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     .click();
   await expect(page.getByRole('button', { name: 'Start exercise', exact: true })).toBeVisible();
   await page.unroute('**/api/state');
+  await expect(page.getByText('Planned 6–8 reps', { exact: false })).toBeVisible();
+  await page
+    .locator('.set-card')
+    .filter({
+      has: page.getByRole('button', { name: 'Start set 1', exact: true }),
+    })
+    .getByRole('button', { name: 'Edit set plan', exact: true })
+    .click();
+  await page.getByLabel('Set 1 minimum reps').fill('9');
+  await page.getByRole('button', { name: 'Save set changes', exact: true }).click();
+  await expect(
+    page.getByText('Maximum reps must be at least minimum reps.', { exact: false }),
+  ).toBeVisible();
+  await page.getByLabel('Set 1 minimum reps').fill('6');
+  await page.getByRole('button', { name: 'Save set changes', exact: true }).click();
   await page.getByRole('button', { name: 'Start exercise', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('');
@@ -79,6 +116,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     .getByRole('button', { name: 'View workout' })
     .click();
   await page.getByRole('button', { name: 'Edit set 1', exact: true }).click();
+  await expect(page.getByText('Planned 6–8 reps', { exact: false })).toBeVisible();
   await page.getByLabel('Corrected weight').fill('24');
   await page.getByRole('combobox', { name: 'Set type', exact: true }).click();
   await page.getByRole('option', { name: 'Dropset', exact: true }).click();

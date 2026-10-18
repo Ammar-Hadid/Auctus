@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Check, Play, SkipForward, Trash2 } from 'lucide-react';
 import type { SetSession, WorkoutDetail } from '@/domain/types';
 import type { Send } from '../use-model';
+import { repRangeLabel } from '@/domain/reps';
 export function SetCard({
   set,
   index,
@@ -74,7 +75,7 @@ export function SetCard({
               set
             </strong>
             <p className="set-target">
-              Planned {set.target_reps} reps · {set.rest_ms / 1000}s rest
+              Planned {repRangeLabel(set.min_reps, set.max_reps)} reps · {set.rest_ms / 1000}s rest
             </p>
           </div>
         </div>
@@ -117,7 +118,7 @@ export function SetCard({
                 min="0"
                 max="1000"
                 value={values.reps}
-                placeholder={String(set.target_reps)}
+                placeholder="Enter reps performed"
                 onChange={(e) => update({ reps: e.target.value })}
                 required
                 disabled={set.status === 'paused'}
@@ -163,7 +164,8 @@ export function SetCard({
                     }
                   : {
                       type: f.get('type'),
-                      target_reps: Number(f.get('reps')),
+                      min_reps: Number(f.get('min_reps')),
+                      max_reps: Number(f.get('max_reps')),
                       rest_ms: Number(f.get('rest')) * 1000,
                     },
               )
@@ -186,19 +188,45 @@ export function SetCard({
                 />
               </label>
             )}
-            <label>
-              Repetitions
-              <input
-                name="reps"
-                type="number"
-                min="0"
-                max="1000"
-                defaultValue={set.status === 'completed' ? set.actual_reps! : set.target_reps}
-                required
-              />
-            </label>
+            {set.status === 'completed' && (
+              <label>
+                Repetitions
+                <input
+                  name="reps"
+                  type="number"
+                  min="0"
+                  max="1000"
+                  defaultValue={set.actual_reps!}
+                  required
+                />
+              </label>
+            )}
             {set.status === 'pending' && (
               <>
+                <label>
+                  Min reps
+                  <input
+                    name="min_reps"
+                    aria-label={`Set ${index + 1} minimum reps`}
+                    type="number"
+                    min="0"
+                    max="1000"
+                    defaultValue={set.min_reps}
+                    required
+                  />
+                </label>
+                <label>
+                  Max reps
+                  <input
+                    name="max_reps"
+                    aria-label={`Set ${index + 1} maximum reps`}
+                    type="number"
+                    min="0"
+                    max="1000"
+                    defaultValue={set.max_reps}
+                    required
+                  />
+                </label>
                 <label>
                   Type
                   <AuctusSelect

@@ -129,9 +129,9 @@ export class Programming {
           e.sets.forEach((s, i) =>
             this.sql
               .prepare(
-                'INSERT INTO template_set (id,template_exercise_id,position,type,target_reps,rest_ms) VALUES (?,?,?,?,?,?)',
+                'INSERT INTO template_set (id,template_exercise_id,position,type,min_reps,max_reps,rest_ms) VALUES (?,?,?,?,?,?,?)',
               )
-              .run(randomUUID(), eid, i, s.type, s.target_reps, s.rest_ms),
+              .run(randomUUID(), eid, i, s.type, s.min_reps, s.max_reps, s.rest_ms),
           );
         });
         return this.templates().find((t) => t.id === key)!;
