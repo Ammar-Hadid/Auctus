@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRestSound } from './use-rest-sound';
-import { testSound, muteSound } from '@/client/rest-sound';
+import { testSound, muteSound, stopAlarm } from '@/client/rest-sound';
 type PushConfig = { configured: boolean; publicKey: string | null };
 async function command(data: Record<string, unknown>) {
   const response = await fetch('/api/push', {
@@ -105,11 +105,16 @@ export function NotificationSettings() {
     <section className="panel stack">
       <h2>Rest alerts</h2>
       <p>
-        Tap Test sound to hear the rest chime and enable it. Check your volume and silent mode if
-        you cannot hear it.
+        While Auctus is open, the rest alarm repeats until you stop it. Tap Test alarm to enable and
+        hear it, then Stop alarm to silence it. Check your device volume if you cannot hear it.
       </p>
       <div className="row">
-        <button onClick={() => void testSound()}>Test sound</button>
+        <button onClick={() => void testSound()}>Test alarm</button>
+        {sound.activeKey && (
+          <button className="primary" onClick={() => stopAlarm()}>
+            Stop alarm
+          </button>
+        )}
         {sound.enabled && <button onClick={muteSound}>Mute timer sound</button>}
       </div>
       {sound.error && (

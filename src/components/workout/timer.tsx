@@ -2,7 +2,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Volume2, Timer, Pause, Play } from 'lucide-react';
 import { useRestSound } from '../use-rest-sound';
-import { testSound, muteSound, playRestSound, rememberRestSound } from '@/client/rest-sound';
+import { testSound, muteSound, playRestSound, stopAlarm } from '@/client/rest-sound';
 import type { WorkoutDetail } from '@/domain/types';
 import { restDuration, restRemaining, durationLabel } from '@/domain/timing';
 export function useNow(serverNow: number) {
@@ -32,7 +32,6 @@ export function RestTimer({
 }) {
   const rest = workout.rests.find((r) => r.ended_at === null);
   const sound = useRestSound();
-  const alerted = useRef<string | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
   const [position, setPosition] = useState({ left: 12, width: 0 });
@@ -65,25 +64,20 @@ export function RestTimer({
   const remaining = rest ? restRemaining(rest, workout.pauses, now) : 0;
   const timerPaused = rest?.timer_paused_at != null;
   useEffect(() => {
-    if (remaining > 0) alerted.current = null;
-    if (
-      !rest ||
-      remaining > 0 ||
-      timerPaused ||
-      workout.status !== 'active' ||
-      document.visibilityState !== 'visible' ||
-      alerted.current === rest.id
-    )
+    if (!rest || timerPaused || workout.status !== 'active' || !sound.enabled) {
+      if (sound.activeKey) stopAlarm(false);
       return;
-    // Muted or suspended audio must not consume the completion alert.
-    if (playRestSound(`${rest.id}:${rest.added_ms}`)) alerted.current = rest.id;
-  }, [rest, remaining, workout.status, sound, timerPaused]);
-  async function previewSound() {
-    const played = await testSound();
-    if (played && rest && remaining <= 0) {
-      alerted.current = rest.id;
-      rememberRestSound(`${rest.id}:${rest.added_ms}`);
     }
+    if (remaining > 0) {
+      if (sound.activeKey && sound.activeKey !== 'preview') stopAlarm(false);
+      return;
+    }
+    if (document.visibilityState !== 'visible') return;
+    // Muted or suspended audio must not consume the completion alert.
+    playRestSound(`${rest.id}:${rest.added_ms}`);
+  }, [rest, remaining, workout.status, sound, timerPaused]);
+  function previewSound() {
+    void testSound(rest && remaining <= 0 ? `${rest.id}:${rest.added_ms}` : 'preview');
   }
   if (!rest) return null;
   return (
@@ -114,6 +108,11 @@ export function RestTimer({
           </p>
         </div>
         <div className="rest-controls">
+          {sound.activeKey && (
+            <button className="primary" onClick={() => stopAlarm()}>
+              Stop alarm
+            </button>
+          )}
           <button
             aria-label={timerPaused ? 'Resume rest timer' : 'Pause rest timer'}
             disabled={workout.status === 'paused'}
@@ -141,10 +140,16 @@ export function RestTimer({
             <Volume2 size={16} />
             {sound.enabled && sound.ready ? 'Sound on' : 'Enable sound'}
           </button>
-          <button className="ghost" onClick={() => void previewSound()}>
-            Test sound
+          <button className="ghost" onClick={previewSound}>
+            Test alarm
           </button>
-          <button onClick={end} disabled={workout.status === 'paused'}>
+          <button
+            onClick={() => {
+              stopAlarm();
+              end();
+            }}
+            disabled={workout.status === 'paused'}
+          >
             End rest
           </button>
         </div>

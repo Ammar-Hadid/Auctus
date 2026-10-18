@@ -137,3 +137,27 @@ with the original unavailable, retaining both registered keys, and a fresh passw
 plus backup-passkey login; the focused account test passes. The user was asked to
 create a backup in Apple Passwords from the original authenticated Mac window to
 test another provider. Physical registration/authentication acceptance is pending.
+
+## Repeating rest alarm — 19 October 2026
+
+Foreground rest completion now starts a looping clock-alarm buffer. Stop alarm acknowledges
+that rest deadline without muting the next rest; pause, extension into the future, ending rest,
+starting the next set and leaving the screen stop playback. Settings and the fixed rest panel
+both offer the same repeating preview and a visible stop control. A pending audio-unlock request
+cannot restart playback after mute. Background Web Push remains notification-based: native iOS
+AlarmKit is required for reliable scheduled system alarms outside the web app.
+
+Audio unit coverage checks waveform content, looping, dismissal/reload, extension re-arming,
+cleanup, delayed unlock cancellation and blocked/suspended audio recovery. Browser coverage
+uses real AudioBufferSource nodes to check expiry, playback beyond a full loop, explicit stop,
+extension, pause/resume and next-set cleanup. The authentication suite runs with its own temporary
+database/server to avoid exhausting the unchanged production sign-in limiter. The existing
+keyboard-focus assertion now waits for the rendered style instead of reading it immediately.
+
+Physical iPhone speaker output and background notification delivery still require device
+acceptance; automated WebKit does not demonstrate native iOS background alarm capability.
+
+Validation: 51 unit/integration tests, typecheck, lint and production build pass. All
+six Chromium cases pass across the isolated runs (including a focused recheck of the
+keyboard-style assertion); five mobile WebKit cases pass, with the Chromium-only virtual
+passkey case skipped. Desktop and mobile screenshots confirm the alarm controls fit.

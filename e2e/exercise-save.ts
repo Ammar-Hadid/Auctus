@@ -13,7 +13,9 @@ export async function verifyExerciseSave(page: Page, programName: string) {
     await page.keyboard.press('Shift+Tab');
     await page.keyboard.press('Tab');
     await expect(save).toBeFocused();
-    expect(await save.evaluate((el) => getComputedStyle(el).outlineOffset)).toBe('-2px');
+    await expect
+      .poll(() => save.evaluate((el) => getComputedStyle(el).outlineOffset))
+      .toBe('-2px');
   }
   await page.getByLabel('Workout name').fill('');
   await save.click();

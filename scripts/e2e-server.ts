@@ -17,6 +17,11 @@ await createMember(store, master.id, {
   email: 'athlete@example.test',
   password: 'test-only-training-password',
 });
+await createMember(store, master.id, {
+  name: 'Alarm test',
+  email: 'alarm@example.test',
+  password: 'test-only-alarm-password',
+});
 store.sqlite.close();
 const child = spawn(
   'node',

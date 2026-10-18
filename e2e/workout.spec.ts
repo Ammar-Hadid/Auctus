@@ -4,15 +4,15 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.addInitScript(() => {
     const tracked = window as typeof window & { tonesStarted: number };
     tracked.tonesStarted = 0;
-    const create = AudioContext.prototype.createOscillator;
-    AudioContext.prototype.createOscillator = function () {
-      const oscillator = create.call(this);
-      const start = oscillator.start.bind(oscillator);
-      oscillator.start = (when?: number) => {
+    const create = AudioContext.prototype.createBufferSource;
+    AudioContext.prototype.createBufferSource = function () {
+      const source = create.call(this);
+      const start = source.start.bind(source);
+      source.start = (when?: number) => {
         tracked.tonesStarted++;
         start(when);
       };
-      return oscillator;
+      return source;
     };
   });
   await page.goto('/');
@@ -109,13 +109,15 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
   const restTimer = page.getByRole('region', { name: 'Rest timer' });
-  await restTimer.getByRole('button', { name: 'Test sound', exact: true }).click();
+  await restTimer.getByRole('button', { name: 'Test alarm', exact: true }).click();
   await expect
     .poll(() =>
       page.evaluate(() => (window as typeof window & { tonesStarted: number }).tonesStarted),
     )
-    .toBe(3);
+    .toBe(1);
   await expect(restTimer.getByRole('button', { name: 'Sound on', exact: true })).toBeVisible();
+  await restTimer.getByRole('button', { name: 'Stop alarm', exact: true }).click();
+  await expect(restTimer.getByRole('button', { name: 'Stop alarm', exact: true })).toHaveCount(0);
 
   await restTimer.getByRole('button', { name: 'Pause rest timer', exact: true }).click();
   await expect(restTimer.getByText('Rest paused', { exact: true })).toBeVisible();
@@ -158,7 +160,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     .poll(() =>
       page.evaluate(() => (window as typeof window & { tonesStarted: number }).tonesStarted),
     )
-    .toBe(tonesBeforeExpiry + 3);
+    .toBe(tonesBeforeExpiry + 1);
 
   await page.screenshot({
     path: `test-results/active-${test.info().project.name}.png`,
@@ -294,7 +296,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await expect(
     page.getByText('Background alerts become available', { exact: false }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Test sound', exact: true }).click();
+  await page.getByRole('button', { name: 'Test alarm', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Mute timer sound', exact: true })).toBeVisible();
   await page.screenshot({
     path: `test-results/rest-alert-settings-${test.info().project.name}.png`,

@@ -1,4 +1,4 @@
-# iPhone rest alerts — verified 18 October 2026
+# iPhone rest alerts — updated 19 October 2026
 
 ## Supported behavior
 
@@ -18,7 +18,7 @@ Sources: [WebKit background audio suspension](https://bugs.webkit.org/show_bug.c
 
 ## Implementation
 
-Foreground audio now uses a shared AudioContext, remembered preference, gesture-based resume, immediate Test sound preview, and a three-tone chime. Only successfully scheduled sound consumes an alert. A session-scoped completion key prevents repeated alerts on screen remount/reload. Where supported, the Audio Session API selects playback during the chime and restores auto afterward. No silent audio loop is used to keep the app alive. Browser audio cannot detect whether device volume or output routing made the sound physically audible.
+Foreground audio uses a shared AudioContext, remembered preference, and gesture-based resume. A two-second clock-alarm buffer (four alternating beeps and a gap) loops in the audio engine until explicitly stopped. Test alarm uses the same repeating sound and exposes Stop alarm. Stopping an expired rest alarm remembers that rest/extension key in session storage without muting future rests. Pause, additional time that moves the deadline into the future, ending rest, starting the next set, and leaving the screen stop playback; an undismissed overdue rest can ring again when resumed. Where supported, the Audio Session API selects playback while ringing and restores auto afterward. There is no silent keepalive or promise of background alarm playback. Browser audio cannot detect whether device volume or output routing made the sound physically audible.
 
 Sources: [AudioContext.resume](https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/resume), [AudioSession.type](https://developer.mozilla.org/en-US/docs/Web/API/AudioSession/type), [WebKit iOS silent-switch behavior](https://bugs.webkit.org/show_bug.cgi?id=237322).
 
@@ -34,4 +34,4 @@ Set BETTER_AUTH_URL to the actual public HTTPS origin and run the regular persis
 
 On the iPhone: open the HTTPS site in Safari, Add to Home Screen, launch Auctus there, sign in, open Settings → Rest alerts, and tap Enable background alerts. Allow the OS prompt. Use Test notification, then test a short rest while another app is open and while the screen is locked. Check iOS notification permissions, volume, sound/haptic settings, and Focus separately.
 
-Automated coverage exercises audio scheduling, mute/suspension recovery, push deadline calculation, pause/extension/end behavior, deduplication, retries, endpoint validation, session revocation, service-worker notification display and click, and authenticated API boundaries. A physical iPhone and a public HTTPS deployment were not available in this session; real APNs delivery, audible speaker output, and iPhone haptics are not claimed as verified.
+Automated coverage exercises audio scheduling, mute/suspension recovery, push deadline calculation, pause/extension/end behavior, deduplication, retries, endpoint validation, session revocation, service-worker notification display and click, and authenticated API boundaries. The public HTTPS deployment is available. Physical speaker output, background APNs delivery and iPhone haptics still need device acceptance; automated WebKit tests are not proof of physical iOS behavior.
