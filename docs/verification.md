@@ -79,3 +79,28 @@ The Chromium integration test uses a disposable virtual authenticator against a 
 The account update passes 47 tests across 16 files, typecheck and lint. Browser suites run against separate temporary databases per browser so their combined sign-ins do not trip the production five-attempts-per-minute limiter: four Chromium tests and three mobile WebKit tests pass; the CDP-only passkey test is skipped on WebKit. Both actual local and VPS pre-update backups were migrated separately and compared row-for-row, including settings and command receipts; database and foreign-key integrity passed.
 
 Live acceptance: image `auctus:d83aac7` passed a disposable Linux container restart and backup/restore drill. Both local and deployed test credentials were verified against their actual databases. Public HTTPS checks passed in desktop Chromium and mobile WebKit, with Secure/HttpOnly/SameSite cookies, empty member data, blocked administration/signup and successful logout. The real master password led to the mobile passkey setup screen; `/api/state`, `/api/command`, `/api/accounts` and `/api/push` were inaccessible before verification. The returned registration options require device user verification and the exact production relying-party ID. Physical enrollment remains the owner’s action.
+
+## iPhone / 1Password passkey investigation — 19 October 2026
+
+The master passkey exists, and the canonical relying-party origin is
+`https://auctus.ammarhadid.com`. Recent iPhone password sessions have authentication
+challenges but no completed passkey verification. The existing logs do not establish
+why the device failed; this is not proof of a signature or database error.
+
+Authentication now uses the discoverable saved-passkey chooser (`allowCredentials: []`),
+matching the resident credentials required at registration. The server still binds the
+returned credential to the password-authenticated account and verifies the signature,
+origin, relying-party ID, one-use challenge, and user verification. No credential reset,
+session bypass, schema change, or weaker verification is involved. The device call follows
+a native fetch directly in the click handler for Safari compatibility. Errors identify
+whether the failure occurred starting the request, on the device, or verifying the response.
+
+References: [SimpleWebAuthn passkey guidance](https://simplewebauthn.dev/docs/advanced/passkeys/)
+and [Safari browser quirks](https://simplewebauthn.dev/docs/advanced/browser-quirks).
+The older Safari gesture restriction does not establish the cause on modern iOS.
+
+Regression coverage includes real registration/authentication with a Chromium virtual
+authenticator, rejection of another account's credential, and a simulated device
+`NotAllowedError` with fresh retries in Chromium/mobile WebKit. Simulating the error tests
+the recovery UI; it does not reproduce 1Password itself. Physical iPhone/1Password acceptance
+remains required before calling the reported device issue resolved.

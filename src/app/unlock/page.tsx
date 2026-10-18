@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import { passkeyError, type PasskeyStage } from '@/lib/passkey-error';
 export default function Unlock() {
   const [enrolled, setEnrolled] = useState<boolean | null>(null),
     [error, setError] = useState(''),
@@ -25,26 +26,33 @@ export default function Unlock() {
     setBusy(true);
     setError('');
     const kind = !enrolled || adding ? 'register' : 'authenticate';
-    async function post(data: unknown) {
+    let stage: PasskeyStage = 'options';
+    try {
+      // Keep the native fetch in the click handler before opening the device prompt.
+      // Extra asynchronous wrappers here can break user activation in older Safari.
       const r = await fetch('/api/passkeys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ kind, action: 'options' }),
       });
-      const result = await r.json();
-      if (!r.ok) throw new Error(result.error);
-      return result;
-    }
-    try {
-      const optionsJSON = await post({ kind, action: 'options' });
+      const optionsJSON = await r.json();
+      if (!r.ok) throw new Error(optionsJSON.error);
+      stage = 'device';
       const response =
         kind === 'register'
           ? await startRegistration({ optionsJSON })
           : await startAuthentication({ optionsJSON });
-      await post({ kind, action: 'verify', response });
+      stage = 'verify';
+      const verification = await fetch('/api/passkeys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind, action: 'verify', response }),
+      });
+      const result = await verification.json();
+      if (!verification.ok) throw new Error(result.error);
       location.replace(new URL('/', location.origin).href);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Passkey verification was cancelled. Try again.');
+      setError(passkeyError(e, stage));
     } finally {
       setBusy(false);
     }

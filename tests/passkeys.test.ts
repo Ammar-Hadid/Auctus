@@ -25,6 +25,21 @@ it('requires fresh first enrollment, consumes challenges once, and revokes verif
     expect(sql.prepare('SELECT * FROM passkey_challenge').all()).toEqual([]);
     expect(passkeyVerified(store, 's', user)).toBe(false);
     sql.prepare('INSERT INTO passkey VALUES (?,?,?,?,?)').run('key', user, Buffer.alloc(0), 0, now);
+    const authentication = await passkeyOptions(store, 's', user, 'authenticate');
+    expect(authentication).toMatchObject({ allowCredentials: [], userVerification: 'required' });
+    // A discoverable chooser must not authorize an unrecognized/other account's key.
+    sql
+      .prepare(
+        "INSERT INTO user (id,name,email,created_at,updated_at) VALUES ('other','Other','other@example.test',0,0)",
+      )
+      .run();
+    sql
+      .prepare('INSERT INTO passkey VALUES (?,?,?,?,?)')
+      .run('another-account-key', 'other', Buffer.alloc(0), 0, now);
+    await expect(
+      verifyPasskey(store, 's', user, 'authenticate', { id: 'another-account-key' } as never),
+    ).rejects.toThrow('Passkey not found');
+    expect(passkeyVerified(store, 's', user)).toBe(false);
     await expect(passkeyOptions(store, 's', user, 'register')).rejects.toThrow('existing passkey');
     sql.prepare('INSERT INTO session_verification VALUES (?,?)').run('s', now);
     expect(passkeyVerified(store, 's', user)).toBe(true);

@@ -144,6 +144,10 @@ test('master password plus passkey, master-only provisioning, and isolated membe
     data: { kind: 'authenticate', action: 'options' },
   });
   expect(options.status()).toBe(200);
+  expect(await options.json()).toMatchObject({
+    allowCredentials: [],
+    userVerification: 'required',
+  });
   expect(
     (
       await page.request.post('/api/passkeys', {

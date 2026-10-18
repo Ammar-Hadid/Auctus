@@ -67,7 +67,10 @@ export async function passkeyOptions(
         })
       : await generateAuthenticationOptions({
           rpID,
-          allowCredentials: keys,
+          // All enrolled keys are discoverable. Let the device/password manager
+          // offer its saved passkeys, including ones synced from another device.
+          // Verification below still binds the chosen key to the signed-in user.
+          allowCredentials: [],
           userVerification: 'required',
         });
   store.sqlite
