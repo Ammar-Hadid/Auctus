@@ -4,7 +4,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Plus, X } from 'lucide-react';
 import type { Exercise } from '@/domain/types';
 import type { Send } from '../use-model';
-import { AuctusSelect } from '../ui/select';
+import { ExerciseSearch } from '../ui/exercise-search';
 
 export function ExercisePicker({
   exercises,
@@ -24,7 +24,8 @@ export function ExercisePicker({
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const trigger = useRef<HTMLButtonElement>(null);
+  const trigger = useRef<HTMLInputElement>(null);
+  const [draftName, setDraftName] = useState('');
   const savingLock = useRef(false);
   const nameInput = useRef<HTMLInputElement>(null);
   async function create(event: React.FormEvent<HTMLFormElement>) {
@@ -61,9 +62,8 @@ export function ExercisePicker({
   }
   return (
     <>
-      <label>
-        {label}
-        <AuctusSelect
+      <div className="exercise-search">
+        <ExerciseSearch
           label={label}
           value={value}
           onValueChange={onValueChange}
@@ -71,15 +71,14 @@ export function ExercisePicker({
           options={exercises
             .filter((e) => !e.archived_at)
             .map((e) => ({ value: e.id, label: e.name }))}
-          placeholder="Choose an exercise"
-          triggerRef={trigger}
-          creating={open}
-          onCreate={() => {
+          inputRef={trigger}
+          onCreate={(query) => {
+            setDraftName(query);
             setError('');
             setOpen(true);
           }}
         />
-      </label>
+      </div>
       <Dialog.Root
         open={open}
         onOpenChange={(next) => {
@@ -129,6 +128,7 @@ export function ExercisePicker({
                 <input
                   ref={nameInput}
                   name="exercise-name"
+                  defaultValue={draftName}
                   placeholder="e.g. Incline dumbbell press"
                   required
                   maxLength={120}

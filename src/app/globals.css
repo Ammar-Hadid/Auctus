@@ -1252,3 +1252,42 @@ td:nth-child(2) {
     transition: none;
   }
 }
+
+/* Searchable exercise picker, sharing the Auctus menu surface and options. */
+.exercise-search {
+  display: grid;
+  gap: 8px;
+}
+.exercise-search-field {
+  position: relative;
+}
+.exercise-search-field > svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.exercise-search-field input {
+  padding-left: 38px;
+}
+.exercise-search-menu {
+  width: var(--radix-popper-anchor-width);
+  max-height: var(--radix-popper-available-height);
+}
+.exercise-search-menu [role='listbox'] {
+  display: flex;
+  flex-direction: column;
+  max-height: min(320px, var(--radix-popper-available-height));
+}
+.exercise-search-results {
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+.exercise-search-create {
+  flex-shrink: 0;
+  padding: 6px;
+  border-top: 1px solid var(--line);
+}

@@ -45,3 +45,7 @@ Additional regression coverage protects archived-program assignment history and 
 - VPS OS/resources/architecture, existing proxy, DNS/subdomain, access and backup destination; then HTTPS/cookies, firewall, startup, deployment restart and off-host restore checks.
 - Offline logging is deliberately excluded. The app requires connectivity to confirm writes and retains one uncertain command for manual retry. Local draft storage and recovery are not a replacement for server backups.
 - History is currently loaded for the single owner's dataset in one state response. Introduce pagination if real history size warrants it; no large-history performance benchmark is claimed.
+
+## Searchable exercise picker
+
+Exercise pickers in templates and active workouts use an editable combobox with the shared Auctus menu styling. Browser coverage checks case-insensitive, trimmed name filtering, no matches, keyboard selection, Escape/Tab dismissal, clearing an old selection while typing, reset after adding, and query-prefilled creation. Creating an exercise restores input focus without reopening the menu over the Add action. Desktop and mobile screenshots and 320–1440px bounds checks cover placement.

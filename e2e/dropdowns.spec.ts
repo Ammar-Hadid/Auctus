@@ -64,8 +64,14 @@ test('custom menus create exercises in place and preserve template and training 
   await expect(picker).toBeFocused();
   await expect(page.getByLabel('Workout name')).toHaveValue('Upper body strength');
   await expect(page.getByLabel('Workout notes')).toHaveValue('Keep these unsaved cues.');
-  await picker.click();
-  await page.getByRole('option', { name: 'Create exercise', exact: true }).click();
+  await picker.fill('No matching exercise xyz');
+  await expect(page.getByText('No exercises found.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('option')).toHaveCount(1);
+  await picker.press('Enter');
+  await expect(dialog).toBeHidden();
+  await picker.press('ArrowDown');
+  await picker.press('Enter');
+  await expect(dialog.getByLabel('Exercise name')).toHaveValue('No matching exercise xyz');
   await dialog.getByLabel('Exercise name').fill('Incline dumbbell press');
   await dialog.getByLabel('Details / technique notes').fill('Bench at 30 degrees.');
   await page.screenshot({
@@ -101,9 +107,35 @@ test('custom menus create exercises in place and preserve template and training 
 
   await dialog.getByRole('button', { name: 'Create and select' }).click();
   await expect(dialog).toBeHidden();
-  await expect(picker).toContainText('Incline dumbbell press');
+  await expect(picker).toHaveValue('Incline dumbbell press');
   await expect(page.getByLabel('Workout name')).toHaveValue('Upper body strength');
+  await picker.fill('  INCLINE dumbbell  ');
+  await expect(
+    page.getByRole('option', { name: 'Incline dumbbell press', exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add exercise', exact: true })).toBeDisabled();
+  await expect(page.getByRole('option', { name: 'Cable lateral raise', exact: true })).toHaveCount(
+    0,
+  );
+  await page.screenshot({
+    path: `test-results/exercise-search-${test.info().project.name}.png`,
+    fullPage: true,
+    animations: 'disabled',
+  });
+  await picker.press('ArrowDown');
+  await expect(picker).toHaveAttribute('aria-activedescendant', /option-0$/);
+  await picker.press('Enter');
+  await expect(picker).toHaveValue('Incline dumbbell press');
+  await expect(page.getByRole('listbox')).toBeHidden();
+  await picker.click();
+  await picker.press('Escape');
+  await expect(picker).toBeFocused();
+  await expect(page.getByRole('listbox')).toBeHidden();
+  await picker.click();
+  await picker.press('Tab');
+  await expect(page.getByRole('listbox')).toBeHidden();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
+  await expect(picker).toHaveValue('');
   const type = page.getByRole('combobox', { name: 'Set 1 type', exact: true });
   await type.click();
   await page.getByRole('option', { name: 'Warm-up', exact: true }).click();
@@ -118,7 +150,9 @@ test('custom menus create exercises in place and preserve template and training 
   expect(
     await page
       .getByRole('combobox')
-      .evaluateAll((nodes) => nodes.every((node) => node.tagName === 'BUTTON')),
+      .evaluateAll((nodes) =>
+        nodes.every((node) => node.tagName === 'BUTTON' || node.tagName === 'INPUT'),
+      ),
   ).toBe(true);
   await verifyExerciseSave(page, program);
   await page.setViewportSize(test.info().project.use.viewport!);
@@ -139,7 +173,8 @@ test('custom menus create exercises in place and preserve template and training 
   await page.getByRole('option', { name: 'Create exercise', exact: true }).click();
   await dialog.getByLabel('Exercise name').fill('Cable lateral raise');
   await dialog.getByRole('button', { name: 'Create and select' }).click();
-  await expect(activePicker).toContainText('Cable lateral raise');
+  await expect(activePicker).toHaveValue('Cable lateral raise');
+  await expect(page.getByRole('listbox')).toBeHidden();
   await page.getByRole('button', { name: 'Add to workout', exact: true }).click();
   const state = await (await page.request.get('/api/state')).json();
   expect(state.activeWorkout.exercises.map((e: { name: string }) => e.name)).toEqual([
