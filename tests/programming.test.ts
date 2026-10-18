@@ -51,3 +51,37 @@ describe('programming and weekly assignments', () => {
     store.sqlite.close();
   });
 });
+
+it('rejects borrowed or duplicated set identities without losing the saved template', () => {
+  const store = openDatabase(':memory:');
+  try {
+    const p = new Programming(store);
+    const exercise = p.saveExercise({ name: 'Press' });
+    const program = p.saveProgram({ name: 'Strength' });
+    const input = {
+      program_id: program.id,
+      name: 'A',
+      exercises: [
+        {
+          exercise_id: exercise.id,
+          sets: [{ type: 'normal', min_reps: 6, max_reps: 8, rest_ms: 60000 }],
+        },
+      ],
+    };
+    const a = p.saveTemplate(input);
+    const b = p.saveTemplate({ ...input, name: 'B' });
+    expect(() =>
+      p.saveTemplate({ ...a, exercises: [{ ...a.exercises[0], sets: b.exercises[0].sets }] }),
+    ).toThrow('Set reference');
+    expect(() =>
+      p.saveTemplate({
+        ...a,
+        exercises: [{ ...a.exercises[0], sets: [a.exercises[0].sets[0], a.exercises[0].sets[0]] }],
+      }),
+    ).toThrow('Set reference');
+    expect(p.templates().find((t) => t.id === a.id)).toEqual(a);
+    expect(p.templates().find((t) => t.id === b.id)).toEqual(b);
+  } finally {
+    store.sqlite.close();
+  }
+});

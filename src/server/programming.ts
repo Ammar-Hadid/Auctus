@@ -100,8 +100,8 @@ export class Programming {
           this.programs().some((p) => p.id === v.program_id && !p.archived_at),
           'Choose an available program.',
         );
+        const prior = v.id ? this.templates().find((t) => t.id === v.id) : undefined;
         if (v.id) {
-          const prior = this.templates().find((t) => t.id === v.id);
           requireCondition(prior, 'Workout not found.', 404);
           requireCondition(
             prior.version === v.version,
@@ -117,22 +117,35 @@ export class Programming {
           this.sql
             .prepare('INSERT INTO workout_template VALUES (?,?,?,?,NULL,0,?)')
             .run(key, v.program_id, v.name, v.notes, this.clock());
+        const usedIds = new Set<string>();
         v.exercises.forEach((e, position) => {
           requireCondition(
             this.exercises().some((x) => x.id === e.exercise_id),
             'Exercise not found.',
           );
-          const eid = randomUUID();
+          const priorExercise = prior?.exercises.find((old) => old.id === e.id);
+          requireCondition(
+            !e.id || (priorExercise?.exercise_id === e.exercise_id && !usedIds.has(e.id)),
+            'Exercise reference is invalid. Reload the workout before saving.',
+          );
+          const eid = e.id ?? randomUUID();
+          usedIds.add(eid);
           this.sql
             .prepare('INSERT INTO template_exercise VALUES (?,?,?,?)')
             .run(eid, key, e.exercise_id, position);
-          e.sets.forEach((s, i) =>
+          e.sets.forEach((s, i) => {
+            requireCondition(
+              !s.id || (priorExercise?.sets.some((old) => old.id === s.id) && !usedIds.has(s.id)),
+              'Set reference is invalid. Reload the workout before saving.',
+            );
+            const sid = s.id ?? randomUUID();
+            usedIds.add(sid);
             this.sql
               .prepare(
                 'INSERT INTO template_set (id,template_exercise_id,position,type,min_reps,max_reps,rest_ms) VALUES (?,?,?,?,?,?,?)',
               )
-              .run(randomUUID(), eid, i, s.type, s.min_reps, s.max_reps, s.rest_ms),
-          );
+              .run(sid, eid, i, s.type, s.min_reps, s.max_reps, s.rest_ms);
+          });
         });
         return this.templates().find((t) => t.id === key)!;
       })

@@ -34,7 +34,7 @@ export class Sessions {
       ...e,
       sets: this.sql
         .prepare(
-          'SELECT id,workout_id,exercise_session_id,position,type,min_reps,max_reps,rest_ms,status,actual_reps,actual_grams,started_at,ended_at,notes,removed_at,prefill_grams,prefill_set_id FROM set_session WHERE exercise_session_id=? ORDER BY position',
+          'SELECT id,template_set_id,workout_id,exercise_session_id,position,type,min_reps,max_reps,rest_ms,status,actual_reps,actual_grams,started_at,ended_at,notes,removed_at,prefill_grams,prefill_set_id FROM set_session WHERE exercise_session_id=? ORDER BY position',
         )
         .all(e.id) as SetSession[],
     }));
@@ -107,20 +107,36 @@ export class Sessions {
               "INSERT INTO exercise_session (id,workout_id,exercise_id,name,position,status) VALUES (?,?,?,?,?,'pending')",
             )
             .run(eid, id, e.exercise_id, source.name, i);
-          e.sets.forEach((s, j) => this.insertSet(id, eid, j, s));
+          e.sets.forEach((s, j) => this.insertSet(id, eid, j, s, s.id));
         });
         return this.get(id);
       })
       .immediate();
   }
   // The legacy load column is retained only to preserve pre-migration session snapshots.
-  private insertSet(workout: string, exercise: string, position: number, input: unknown) {
+  private insertSet(
+    workout: string,
+    exercise: string,
+    position: number,
+    input: unknown,
+    templateSetId: string | null = null,
+  ) {
     const s = prescription.parse(input);
     this.sql
       .prepare(
-        "INSERT INTO set_session (id,workout_id,exercise_session_id,position,type,min_reps,max_reps,legacy_target_grams,rest_ms,status) VALUES (?,?,?,?,?,?,?,0,?,'pending')",
+        "INSERT INTO set_session (id,template_set_id,workout_id,exercise_session_id,position,type,min_reps,max_reps,legacy_target_grams,rest_ms,status) VALUES (?,?,?,?,?,?,?,?,0,?,'pending')",
       )
-      .run(randomUUID(), workout, exercise, position, s.type, s.min_reps, s.max_reps, s.rest_ms);
+      .run(
+        randomUUID(),
+        templateSetId,
+        workout,
+        exercise,
+        position,
+        s.type,
+        s.min_reps,
+        s.max_reps,
+        s.rest_ms,
+      );
   }
   private closeRest(workout: string, now: number, reason: string) {
     this.sql
@@ -343,12 +359,24 @@ export class Sessions {
                 `
               SELECT s.id,s.actual_grams FROM set_session s
               JOIN exercise_session e ON e.id=s.exercise_session_id
-              WHERE e.exercise_id=? AND s.status='completed'
-                AND s.removed_at IS NULL AND e.removed_at IS NULL AND s.ended_at<=?
-              ORDER BY s.ended_at DESC,s.rowid DESC LIMIT 1
+              WHERE s.workout_id=(
+                SELECT id FROM workout_session
+                WHERE template_id=? AND id<>? AND status IN ('completed','abandoned') AND ended_at<=?
+                ORDER BY ended_at DESC,rowid DESC LIMIT 1
+              )
+                AND s.template_set_id=? AND s.type=? AND e.exercise_id=?
+                AND s.status='completed' AND s.removed_at IS NULL AND e.removed_at IS NULL
+              LIMIT 1
             `,
               )
-              .get(parent.exercise_id, now) as { id: string; actual_grams: number } | undefined;
+              .get(
+                w.template_id,
+                w.id,
+                w.started_at,
+                set.template_set_id,
+                set.type,
+                parent.exercise_id,
+              ) as { id: string; actual_grams: number } | undefined;
             this.closeRest(w.id, now, 'next_set');
             this.sql
               .prepare(

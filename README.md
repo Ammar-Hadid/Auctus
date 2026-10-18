@@ -25,7 +25,7 @@ Your data lives at `data/auctus.db`, outside Git. Never delete this directory to
 3. Add workouts, ordered exercises, set types, minimum/maximum reps and rest times. For 6–8 reps, enter minimum 6 and maximum 8; for an exact target, use the same number in both fields. Choose **+ Create exercise** inside an exercise picker to save and select a new exercise without leaving the editor; the same action is available during training.
 4. Select **Use this program** / **Apply to this week**.
 5. In **Overview**, start a workout. Start any exercise, then start a set.
-6. Weight starts empty for an exercise with no completed sets. Otherwise, starting a set prefills the weight from the latest completed set for that exercise, including earlier sets in the current workout. Change it as needed, enter actual reps, and complete the set. Rest starts automatically; the next set or **End rest** ends it.
+6. Starting a set prefills its own completed weight from the previous run of the same workout template. Warm-up and working sets keep separate weights, including separate working sets. New sets, changed set types and sets without a completed match in that previous workout start empty. Change it as needed, enter actual reps, and complete the set. Rest starts automatically; the next set or **End rest** ends it.
 7. Complete exercises, or explicitly skip unused sets. Finish the workout to add it to history.
 8. Correct recorded results in **History**; view exercise records via **Progress**.
 
@@ -39,7 +39,7 @@ A paused or active workout can always be recovered from Overview after reloading
 - Volume is **entered kg × entered reps**, including warm-ups, from completed sets in completed workouts. Dumbbell weight is per dumbbell; unilateral reps are per side. No implicit doubling is applied.
 - PRs exclude warm-ups. Heaviest recorded load is measured; Epley estimated 1RM is explicitly labelled and limited to 1–10 reps (one rep uses recorded weight).
 - Abandoned workouts retain all records but do not contribute to dashboard totals or records.
-- Templates do not prescribe kilograms. Prefilled weight is an editable draft, not a recorded result or a progression recommendation. Completed sets from abandoned workouts can supply a prefill; skipped or removed sets/exercises cannot. Editing a historical result affects subsequent prefills, while already-started sets retain their starting suggestion.
+- Templates do not prescribe kilograms. Prefilled weight is an editable draft, not a recorded result or a progression recommendation. The source is the most recent finished run of the same template (including abandoned runs); only its completed, non-removed matching sets qualify. There is no fallback to today’s other sets or older workouts. Set identity survives template saves and reordering. Session-only added sets have no template history. Editing a historical result affects subsequent prefills, while already-started sets retain their starting suggestion. Legacy sessions are linked only where exercise and set structure can be matched; uncertain matches remain empty.
 - All confirmed state changes are server-persisted. Offline actions are labelled unconfirmed and require manual retry. A command ID makes a retry safe even if the server saved the original request but its response was lost. Local set drafts are not server records.
 
 ## PWA

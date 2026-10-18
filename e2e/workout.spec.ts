@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { verifyPerSetWeightHistory } from './weight-prefill';
 test('author, train, recover, correct history and inspect progress', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: /Back to/ })).toBeVisible();
@@ -119,7 +120,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await expect(page.getByText('Planned 6–8 reps', { exact: false })).toBeVisible();
   await page.getByLabel('Corrected weight').fill('24');
   await page.getByRole('combobox', { name: 'Set type', exact: true }).click();
-  await page.getByRole('option', { name: 'Dropset', exact: true }).click();
+  await page.getByRole('option', { name: 'Normal', exact: true }).click();
   await page.getByRole('button', { name: 'Save correction' }).click();
   await expect(page.getByText('24 kg × 9', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Progress', exact: true }).click();
@@ -194,9 +195,9 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   ).toHaveLength(1);
   expect(state.activeWorkout.rests).toHaveLength(1);
   expect(state.activeWorkout.exercises[0].sets[0].actual_grams).toBe(40000);
-  // The next set picks up the weight just performed in this workout.
+  // This set was skipped last workout, so today's result must not supply its weight.
   await page.getByRole('button', { name: 'Start set 2', exact: true }).click();
-  await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('40');
+  await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('');
   const nextState = await (await page.request.get('/api/state')).json();
   expect(nextState.activeWorkout.exercises[0].sets[1].actual_grams).toBeNull();
   const w = nextState.activeWorkout;
@@ -218,6 +219,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Abandon workout', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm abandon', exact: true }).click();
+  await verifyPerSetWeightHistory(page);
   await page.getByRole('button', { name: 'Account settings', exact: true }).click();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Back to/ })).toBeVisible();

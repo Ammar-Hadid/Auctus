@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "createdAt": "2026-10-18T19:22:00.180Z",
+        "reason": "user confirmed: Keep Arial for now, 18 October 2026"
+      }
+    ]
+  }
+}

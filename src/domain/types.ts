@@ -78,6 +78,7 @@ export interface ExerciseSession {
 }
 export interface SetSession {
   id: string;
+  template_set_id: string | null;
   workout_id: string;
   exercise_session_id: string;
   position: number;

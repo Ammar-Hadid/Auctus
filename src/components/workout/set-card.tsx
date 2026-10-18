@@ -127,8 +127,8 @@ export function SetCard({
           </div>
           <p className="muted">
             {set.prefill_grams !== null
-              ? `Last completed set: ${set.prefill_grams / 1000} kg. Weight is prefilled and editable.`
-              : 'No completed set yet. Enter the weight you use.'}
+              ? `This set in your previous workout: ${set.prefill_grams / 1000} kg. Change it as needed.`
+              : 'No matching completed set in your previous workout. Enter the weight you use.'}
           </p>
           <label>
             Set notes

@@ -139,10 +139,14 @@ October 19 target: finish remaining required editing/statistics/error paths, pro
 - Vibration support: https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API
 - Audio restrictions: https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay
 
-## Approved amendment — weight entry (18 October 2026)
+## Approved amendment — weight entry (18 October 2026; lookup rule superseded below)
 
 Remove prescribed kilograms from templates. Templates retain exercise order, set count/type, reps and planned rest. At set start, snapshot the actual load from the latest completed, non-removed set for the same exercise identity (including current-workout results and completed sets in abandoned workouts). Do not match by set number or prescribe a progression. No prior result means an empty weight field; zero is a valid recorded load. Local edits, including clearing the field, survive refresh and take precedence over the prefill. Only completion writes actual results. Legacy session load prescriptions remain archived in the database; existing actual results and training statistics are unchanged.
 
 ## Approved amendment — rep ranges (18 October 2026)
 
 Replace the single planned rep count with minimum and maximum reps per template set and session snapshot. Both are integers from 0–1000, with maximum at least minimum; equal bounds express an exact target. Migrate existing targets to equal bounds. Pending session prescriptions can be edited independently of templates. Training and history show the planned range, while completion and corrections record the exact reps performed, including results outside the range.
+
+## Approved correction — weight history per template set (18 October 2026)
+
+Keep Arial, with only its overused-font finding suppressed following user confirmation. Match weight suggestions to stable template-set identity, exercise identity and set type within the most recent finished run of the same template, including abandoned runs. Only completed, non-removed matches qualify; skipped/missing sets, changed types and session-only added sets remain empty without falling back to other sets or older workouts. Preserve set identities through template saves, reordering and new warm-ups. Freeze the suggestion at set start and preserve local drafts. Backfill legacy identities only when exercise occurrence and set structure agree; otherwise leave them empty. Correct active legacy suggestions without modifying actual results.
