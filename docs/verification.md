@@ -20,6 +20,10 @@ Templates no longer contain planned kilograms. Regression coverage verifies firs
 
 Templates and pending session sets accept minimum and maximum reps. Validation rejects inverted, fractional and out-of-bounds ranges. Workout snapshots retain their original range after template edits, while actual results remain exact counts and may fall outside the plan. Existing exact targets migrate to equal bounds without changing completed results. Browser coverage checks 6–8 rep authoring, invalid-range feedback, session editing, history display, and template layout from 320–1440px.
 
+## Exercise editor refinement
+
+Document-icon saves persist workout changes and collapse the selected exercise only after server confirmation. Coverage includes required-name validation, rejected saves retaining edits, committed-write/lost-response retry without duplicate templates, reopening after reload, adding/reordering exercises with stable collapsed state, keyboard access, and 320–1440px bounds. Focus uses a single inset highlight, with an additional underline on primary buttons for keyboard visibility.
+
 ## Review and corrections
 
 Independent review covered authentication/API boundaries, command receipts, scheduling, session transitions, timing and historical editing. Addressed findings:

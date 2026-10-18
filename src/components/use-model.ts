@@ -4,6 +4,7 @@ import type { State } from '@/domain/types';
 export type Send = (
   action: string,
   data: Record<string, unknown>,
+  onConfirmed?: (result: unknown) => void,
 ) => Promise<false | { result: unknown }>;
 type Pending = { requestId: string; action: string; data: Record<string, unknown> };
 export function useModel(initial: State) {
@@ -13,6 +14,10 @@ export function useModel(initial: State) {
     [offline, setOffline] = useState(false),
     [pending, setPending] = useState<Pending | null>(null);
   const lock = useRef(false);
+  // Keep the original editor's completion action when an uncertain write is retried.
+  const confirmation = useRef<{ requestId: string; callback: (result: unknown) => void } | null>(
+    null,
+  );
   const refreshSequence = useRef(0);
   const refresh = useCallback(async () => {
     const sequence = ++refreshSequence.current;
@@ -81,6 +86,7 @@ export function useModel(initial: State) {
           if (r.status !== 401 && r.status < 500) {
             localStorage.removeItem('auctus.pending');
             setPending(null);
+            confirmation.current = null;
           }
           if (r.status === 409) await refresh();
           throw new Error(body.error || 'Save failed.');
@@ -92,6 +98,10 @@ export function useModel(initial: State) {
         setOffline(false);
         localStorage.removeItem('auctus.pending');
         setPending(null);
+        const callback =
+          confirmation.current?.requestId === p.requestId ? confirmation.current.callback : null;
+        confirmation.current = null;
+        callback?.(body.result);
         return { result: body.result as unknown };
       } catch (e) {
         setError(
@@ -106,14 +116,17 @@ export function useModel(initial: State) {
     [refresh],
   );
   const send: Send = useCallback(
-    (action, data) => {
+    (action, data, onConfirmed) => {
       if (pending) {
         setError(
           'Resolve the unconfirmed action first: retry it or discard the local request after checking your records.',
         );
         return Promise.resolve(false);
       }
-      return execute({ requestId: crypto.randomUUID(), action, data });
+      if (lock.current) return Promise.resolve(false);
+      const requestId = crypto.randomUUID();
+      confirmation.current = onConfirmed ? { requestId, callback: onConfirmed } : null;
+      return execute({ requestId, action, data });
     },
     [execute, pending],
   );
@@ -127,6 +140,7 @@ export function useModel(initial: State) {
     send,
     retry: () => (pending ? execute(pending) : Promise.resolve(false)),
     discard: () => {
+      confirmation.current = null;
       localStorage.removeItem('auctus.pending');
       setPending(null);
       setError('');

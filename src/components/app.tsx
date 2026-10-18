@@ -136,7 +136,13 @@ export function App({ initial }: { initial: State }) {
                 back={() => navigate('library')}
               />
             )}
-            {view === 'programs' && <Programs state={model.state} send={model.send} />}
+            {view === 'programs' && (
+              <Programs
+                state={model.state}
+                send={model.send}
+                locked={model.busy || !!model.pending}
+              />
+            )}
             {view === 'workout' && model.state.activeWorkout && (
               <ActiveWorkout
                 state={model.state}

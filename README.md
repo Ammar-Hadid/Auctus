@@ -23,6 +23,7 @@ Your data lives at `data/auctus.db`, outside Git. Never delete this directory to
 1. Add exercises in **Library**.
 2. Create a program in **Programs** and open it.
 3. Add workouts, ordered exercises, set types, minimum/maximum reps and rest times. For 6–8 reps, enter minimum 6 and maximum 8; for an exact target, use the same number in both fields. Choose **+ Create exercise** inside an exercise picker to save and select a new exercise without leaving the editor; the same action is available during training.
+   Use the document icon on an exercise to save current workout changes and collapse its fields. Use the pencil icon to reopen it. **Save workout** saves and returns to the workout list.
 4. Select **Use this program** / **Apply to this week**.
 5. In **Overview**, start a workout. Start any exercise, then start a set.
 6. Starting a set prefills its own completed weight from the previous run of the same workout template. Warm-up and working sets keep separate weights, including separate working sets. New sets, changed set types and sets without a completed match in that previous workout start empty. Change it as needed, enter actual reps, and complete the set. Rest starts automatically; the next set or **End rest** ends it.

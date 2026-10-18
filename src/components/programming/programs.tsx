@@ -4,7 +4,7 @@ import { Plus, ArrowLeft, ArrowUpRight, Check } from 'lucide-react';
 import type { State, Program, Template } from '@/domain/types';
 import type { Send } from '../use-model';
 import { TemplateEditor } from './template-editor';
-export function Programs({ state, send }: { state: State; send: Send }) {
+export function Programs({ state, send, locked }: { state: State; send: Send; locked: boolean }) {
   const [selected, setSelected] = useState<string | null>(null),
     [edit, setEdit] = useState<Program | null | undefined>(undefined),
     [template, setTemplate] = useState<Template | null | undefined>(undefined),
@@ -23,6 +23,7 @@ export function Programs({ state, send }: { state: State; send: Send }) {
         programId={program.id}
         exercises={state.exercises}
         send={send}
+        locked={locked}
         close={() => setTemplate(undefined)}
       />
     );

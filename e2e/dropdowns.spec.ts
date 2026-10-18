@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { verifyExerciseSave } from './exercise-save';
 
 test('custom menus create exercises in place and preserve template and training context', async ({
   page,
@@ -119,6 +120,12 @@ test('custom menus create exercises in place and preserve template and training 
       .getByRole('combobox')
       .evaluateAll((nodes) => nodes.every((node) => node.tagName === 'BUTTON')),
   ).toBe(true);
+  await verifyExerciseSave(page, program);
+  await page.setViewportSize(test.info().project.use.viewport!);
+  await page.screenshot({
+    path: `test-results/exercise-collapsed-${test.info().project.name}.png`,
+    fullPage: true,
+  });
   await page.getByRole('button', { name: 'Save workout', exact: true }).click();
   await page.getByRole('button', { name: 'Use this program' }).click();
   await nav.getByRole('button', { name: 'Overview' }).click();

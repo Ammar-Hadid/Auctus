@@ -150,3 +150,7 @@ Replace the single planned rep count with minimum and maximum reps per template 
 ## Approved correction — weight history per template set (18 October 2026)
 
 Keep Arial, with only its overused-font finding suppressed following user confirmation. Match weight suggestions to stable template-set identity, exercise identity and set type within the most recent finished run of the same template, including abandoned runs. Only completed, non-removed matches qualify; skipped/missing sets, changed types and session-only added sets remain empty without falling back to other sets or older workouts. Preserve set identities through template saves, reordering and new warm-ups. Freeze the suggestion at set start and preserve local drafts. Backfill legacy identities only when exercise occurrence and set structure agree; otherwise leave them empty. Correct active legacy suggestions without modifying actual results.
+
+## Approved refinement — compact exercise editing (18 October 2026)
+
+Replace separated outer focus outlines with a single inset highlight while retaining visible keyboard focus. Add a borderless document icon to expanded exercise headers in the template editor. It saves current workout changes and collapses the selected exercise after server confirmation; rejected or uncertain saves retain the expanded fields. A confirmed retry completes the original editor action. Saved exercises open compactly and can be reopened with a pencil icon. Preserve exercise identity and collapsed state when reordering or adding rows.
