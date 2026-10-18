@@ -1,6 +1,6 @@
 # Verification — 18 October 2026
 
-Local implementation is ready for owner setup and deployment preparation. Production deployment and physical iPhone installation are not yet accepted. No VPS was accessed.
+Deployed to https://auctus.ammarhadid.com on `nexo-vps` on 18 October 2026 with a fresh owner account and empty training database. Physical iPhone installation, sound/haptics and APNs delivery still require device acceptance.
 
 ## Automated evidence
 
@@ -40,9 +40,9 @@ Additional regression coverage protects archived-program assignment history and 
 
 ## Outstanding acceptance
 
-- User runs `pnpm run owner` privately to establish personal credentials.
+- The VPS owner is provisioned. Other installations use `pnpm run owner` privately to establish their own credentials.
 - Real iPhone Safari/home-screen install, safe areas, suspend/resume, foreground sound and supported vibration. WebKit emulation is not physical iOS proof.
-- VPS OS/resources/architecture, existing proxy, DNS/subdomain, access and backup destination; then HTTPS/cookies, firewall, startup, deployment restart and off-host restore checks.
+- Off-host backup destination and failure alerting remain unconfigured. The current daily backups live on the same VPS; they do not protect against host loss.
 - Offline logging is deliberately excluded. The app requires connectivity to confirm writes and retains one uncertain command for manual retry. Local draft storage and recovery are not a replacement for server backups.
 - History is currently loaded for the single owner's dataset in one state response. Introduce pagination if real history size warrants it; no large-history performance benchmark is claimed.
 
@@ -60,4 +60,12 @@ Migration 0008 adds persisted countdown extensions and independent timer pause s
 
 Audio unit checks cover three-tone playback, mute, persisted preference, and suspended/blocked contexts. Browser tests instrument real AudioContext oscillator starts for the Test sound gesture and timer expiry in desktop Chromium and mobile WebKit. Push tests use simulated senders (no external notifications) for deadline handling, extensions, pauses, deduplication, retry, expired endpoints, session revocation, and invalid endpoint rejection. The service worker is checked for visible notification presentation and click focus. Push API unauthenticated and cross-origin calls are rejected.
 
-Actual speaker output, iPhone notification sound/haptics, and APNs delivery require physical-device testing at the future HTTPS deployment; those are not verified by headless tests. The current HTTP local instance intentionally does not offer active background notification enrollment.
+Actual speaker output, iPhone notification sound/haptics, and APNs delivery require physical-device testing at the live HTTPS deployment; those are not verified by headless tests. The separate HTTP local instance intentionally does not offer active background notification enrollment.
+
+## VPS deployment acceptance
+
+The Linux amd64 image passed all 42 tests, typecheck, lint and production build on the VPS. A disposable production-image drill on that host verified authenticated programming, set completion, live-rest persistence through restart, SQLite backup integrity and an identical recovered workout after restoring into a separate application instance. The drill containers and volume were removed; no synthetic workouts were written to the owner's production database.
+
+The public domain serves this app's login, manifest and push-capable service worker. HTTP redirects to HTTPS, HSTS is present, private APIs reject unauthenticated reads, and the old API subdomain redirects to the new same-origin API. Live Chromium and mobile WebKit checks verify login rendering, no horizontal overflow or page errors, owner sign-in with Secure/HttpOnly/SameSite cookies, empty training state, Settings, configured public VAPID key and logout. Desktop push enrollment is available; physical Home Screen installation and OS permission still need the user. The production container was restarted successfully; it has no published host port, persists its database through a bind mount, and has initialized the HTTPS push scheduler.
+
+Only the Auctus proxy blocks were replaced. Unrelated Docker containers kept their original IDs and remained running; the shared Caddy container was reloaded, not restarted. The old Auctus containers were removed after archiving source/config and validating BSON exports of seven MongoDB collections. Daily SQLite backups were installed and an initial backup verified. Retained legacy images and configuration provide a rollback path. See deployment.md for locations and remaining off-host backup work.

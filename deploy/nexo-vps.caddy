@@ -1,0 +1,13 @@
+# Replace only the existing Auctus blocks in /srv/apps/caddy/Caddyfile.
+auctus.ammarhadid.com {
+    request_body {
+        max_size 512KB
+    }
+    header Strict-Transport-Security "max-age=31536000"
+    reverse_proxy auctus:3000
+}
+
+# The replacement serves its API on the same origin as the app.
+api-auctus.ammarhadid.com {
+    redir https://auctus.ammarhadid.com{uri} 308
+}

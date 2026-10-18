@@ -1,0 +1,22 @@
+# Installed as /srv/apps/auctus/docker-compose.yml on nexo-vps.
+services:
+  auctus:
+    build: .
+    image: auctus:production
+    container_name: auctus
+    restart: unless-stopped
+    init: true
+    env_file: /srv/data/auctus/current/app.env
+    volumes:
+      - /srv/data/auctus/current/database:/app/data
+      - /srv/backups/auctus/sqlite:/app/backups
+    networks:
+      - auctus
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 30s
+networks:
+  auctus:
+    external: true

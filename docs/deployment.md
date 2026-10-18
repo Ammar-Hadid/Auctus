@@ -1,6 +1,38 @@
 # Deployment and recovery
 
-Status: deployment package prepared. No VPS has been accessed or changed. Confirm host OS, CPU architecture, RAM/disk, Docker/Compose, reverse proxy, subdomain/DNS, SSH access and backup destination before applying host-specific configuration.
+Status: deployed on `nexo-vps` at https://auctus.ammarhadid.com on 18 October 2026. The previous Auctus application was replaced with explicit owner authorization. The account and training database were created fresh; local data was not imported. Physical iPhone push, speaker and haptic acceptance remains outstanding.
+
+## Current VPS installation
+
+- Source and Compose: `/srv/apps/auctus`; use `docker-compose.yml` explicitly. The repository's generic `compose.yaml` is for other installations.
+- App image: `auctus:706b4b7`, also tagged `auctus:production`. Deployment-only configuration and these notes are newer than the application image.
+- Private configuration: `/srv/data/auctus/current/app.env` (mode 600).
+- SQLite and VAPID keys: `/srv/data/auctus/current/database/auctus.db` (parent mode 700).
+- Container: `auctus`, non-root, restart `unless-stopped`, no published host ports; existing external Docker network `auctus` connects it to Caddy.
+- Proxy: existing `/srv/apps/caddy/Caddyfile`, upstream `auctus:3000`. Only the two Auctus site blocks changed; Caddy was gracefully reloaded. The former API subdomain redirects to the main origin, which now serves `/api/*` itself. HTTPS, HTTP redirect, HSTS and 512 KB request limit are active.
+- Daily verified online backups: 03:40 UTC via ammar's crontab and `deploy/backup-nexo-vps.sh`; 14-day retention under `/srv/backups/auctus/sqlite`. Failures appear in `/srv/backups/auctus/backup.log`. These are same-host backups; off-host storage and external failure notifications are not configured.
+- Legacy recovery: `/srv/backups/auctus/legacy-2026-10-18`, containing source, configuration, container metadata, and verified BSON exports of seven MongoDB collections (82 documents). Legacy images remain tagged `auctus-frontend:legacy-2026-10-18` and `auctus-backend:legacy-2026-10-18`. Old containers were removed. The external legacy MongoDB database was not dropped.
+
+```sh
+ssh nexo-vps
+cd /srv/apps/auctus
+docker compose -f docker-compose.yml ps
+docker compose -f docker-compose.yml logs --tail=100 auctus
+docker compose -f docker-compose.yml restart auctus
+./deploy/backup-nexo-vps.sh
+# Private interactive credential reset, only when needed:
+docker compose -f docker-compose.yml exec auctus node --import tsx scripts/owner.ts
+```
+
+The owner account is provisioned; there is no need to run the owner command before signing in. Its password is not stored in deployment documentation or environment configuration. Resetting credentials revokes existing sessions and their push subscriptions.
+
+Before updates, run the backup, tag the existing image for rollback, and build from the updated source using `docker compose -f docker-compose.yml build auctus`. Then use `docker compose -f docker-compose.yml up -d --no-build auctus`. Avoid unqualified Compose commands here because both the generic and VPS-specific files are present.
+
+Legacy rollback is a deliberate whole-application rollback: first back up and stop the new Auctus container, preserve its database, restore the old source under `/srv/apps/auctus` and old configuration under `/srv/data/auctus/backend`, start its original Compose services with the retained images, and restore **only** the two legacy Auctus Caddy blocks. Validate and gracefully reload Caddy. Do not replace the shared Caddyfile wholesale if another service has changed since the backup. The MongoDB export is standard per-collection BSON plus metadata and a count manifest; the external original database is also retained.
+
+On iPhone, open the public HTTPS URL in Safari, Add to Home Screen, launch it there, sign in and use Settings → Rest alerts → Enable background alerts. Grant permission and use Test notification. Test sound enables foreground audio separately. Real APNs delivery and iOS sound/haptics require testing on the physical device.
+
+The remaining sections describe the generic deployment package; use the host paths and explicit Compose filename above on this VPS.
 
 ## Configuration
 
@@ -50,7 +82,7 @@ A consistent live backup must use SQLite's backup API, not a copy of only the ma
 docker compose exec -T auctus node --import tsx scripts/backup.ts /app/data/backups/daily.db
 ```
 
-Use unique timestamped filenames for retention. Schedule the command on the host after agreeing the backup destination; recommended initial policy is daily backups, a backup before every migration, seven daily and four weekly copies. Send an encrypted copy to a separate host/storage destination, and monitor failed backups. No backup schedule has been installed yet.
+Use unique timestamped filenames for retention. The current VPS has the daily schedule described above; other installations must configure their own. Take an additional backup before every migration. Send an encrypted copy to a separate host/storage destination, and monitor failed backups.
 
 Restore drill: restore a recent backup to a separate directory/database, run `PRAGMA integrity_check` and `PRAGMA foreign_key_check`, start a disposable app instance against it, and verify a known workout and set count. Never test a restore by overwriting the live database.
 

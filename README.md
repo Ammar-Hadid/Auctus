@@ -70,7 +70,7 @@ pnpm backup /path/to/private/backups/auctus.db
 
 Backups use SQLite's online backup API and verify database and foreign-key integrity. Store an encrypted copy off the VPS. A backup on the same disk alone does not protect against host loss.
 
-See [deployment and recovery](docs/deployment.md), the [approved architecture](tasks/plan.md), and [delivery checklist](tasks/todo.md). VPS configuration is intentionally pending host details; the app must not replace unrelated proxy/services.
+Production runs at [auctus.ammarhadid.com](https://auctus.ammarhadid.com) on `nexo-vps`, using the existing `/srv/apps`, `/srv/data` and shared Caddy layout. The VPS has a fresh owner account and database; local workouts were not copied. Daily verified backups run at 03:40 UTC. See [deployment and recovery](docs/deployment.md) for exact paths, update commands, backups and rollback, the [approved architecture](tasks/plan.md), and [delivery checklist](tasks/todo.md).
 
 The rest timer stays fixed at the top during training. Pause/Resume freezes only its countdown; +5s and +15s extend the current rest without changing the template. Timer controls persist across refreshes. Actual rest continues to measure recovery time, excluding workout pauses.
 

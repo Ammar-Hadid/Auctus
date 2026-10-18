@@ -1,6 +1,6 @@
 # Auctus execution checklist
 
-Status: M1–M5 implemented and verified locally. M6 local automation and deployment packaging verified; VPS deployment and physical iPhone acceptance await infrastructure details. Evidence: docs/verification.md.
+Status: M1–M5 implemented and verified. M6 deployment is live at https://auctus.ammarhadid.com with production container restart/restore checks and fresh owner sign-in verified. Physical iPhone acceptance and off-host backups remain outstanding. Evidence: docs/verification.md and docs/deployment.md.
 
 Each task must pass its listed checks plus typecheck/lint and production build where applicable. File paths below describe the original planned touch points; implemented modules are indexed in README.md and the verification notes. Split tasks further if implementation expands beyond a focused slice. At every milestone checkpoint, fix regressions, make a focused tested commit and report behavior verified and remaining work.
 
@@ -169,8 +169,9 @@ Verification: container startup/restart, migration and restore drill, integrity/
 Likely files: Dockerfile, compose config, backup utility, deployment documentation, smoke script.
 
 ### 22. VPS-specific deployment (M; depends on 21 and infrastructure details/access)
-- [ ] Adapt only Auctus configuration to existing proxy, DNS and host resources.
-- [ ] Verify HTTPS, authentication, persistence, backup scheduling and real-device installation.
+- [x] Adapt only Auctus configuration to existing proxy, DNS and host resources.
+- [x] Verify HTTPS, authentication, persistence and backup scheduling.
+- [ ] Verify real-device installation, push delivery and audio/haptics.
 Verification: final hostname acceptance checklist, restart and backup checks.
 Likely files: host-specific non-secret config examples, operations guide, verification checklist.
 
