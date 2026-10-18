@@ -5,7 +5,7 @@ if (existsSync('.env.local')) {
 } else {
   writeFileSync(
     '.env.local',
-    `DATABASE_PATH=./data/auctus.db\nBETTER_AUTH_URL=http://localhost:3000\nBETTER_AUTH_SECRET=${randomBytes(48).toString('base64url')}\n`,
+    `DATABASE_PATH=./data/auctus.db\nBETTER_AUTH_URL=http://127.0.0.1:3105\nBETTER_AUTH_SECRET=${randomBytes(48).toString('base64url')}\n`,
     { mode: 0o600 },
   );
   console.log('Created private .env.local with a random authentication secret.');

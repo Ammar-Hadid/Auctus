@@ -14,7 +14,7 @@ pnpm owner
 pnpm dev
 ```
 
-`pnpm setup` creates a private, ignored `.env.local` containing a random authentication secret. `pnpm owner` prompts for your email and a hidden password (12–128 characters). Re-running it changes the owner credentials and revokes all login sessions. No public signup exists. Open [localhost:3000](http://localhost:3000).
+`pnpm setup` creates a private, ignored `.env.local` containing a random authentication secret. `pnpm owner` prompts for your email and a hidden password (12–128 characters). Re-running it changes the owner credentials and revokes all login sessions. No public signup exists. Open [127.0.0.1:3105](http://127.0.0.1:3105).
 
 Your data lives at `data/auctus.db`, outside Git. Never delete this directory to update the app. Set `DATABASE_PATH` to another local persistent path if needed. The canonical `BETTER_AUTH_URL` must match the origin you open, including the port.
 

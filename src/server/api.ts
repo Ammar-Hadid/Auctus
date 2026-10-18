@@ -3,7 +3,7 @@ import { DomainError } from './errors';
 import { ZodError } from 'zod';
 export async function authorize(request: Request, write = false) {
   if (write) {
-    const expected = new URL(process.env.BETTER_AUTH_URL || 'http://localhost:3000').origin;
+    const expected = new URL(process.env.BETTER_AUTH_URL || 'http://127.0.0.1:3105').origin;
     if (request.headers.get('origin') !== expected)
       throw new DomainError('Request origin is not permitted.', 403);
     if (!request.headers.get('content-type')?.startsWith('application/json'))
