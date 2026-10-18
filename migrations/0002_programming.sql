@@ -1,0 +1,11 @@
+CREATE TABLE exercise (id TEXT PRIMARY KEY, name TEXT NOT NULL CHECK(length(trim(name)) BETWEEN 1 AND 120), details TEXT NOT NULL DEFAULT '', archived_at INTEGER, created_at INTEGER NOT NULL);
+CREATE TABLE program (id TEXT PRIMARY KEY, name TEXT NOT NULL CHECK(length(trim(name)) BETWEEN 1 AND 120), notes TEXT NOT NULL DEFAULT '', archived_at INTEGER, created_at INTEGER NOT NULL);
+CREATE TABLE workout_template (id TEXT PRIMARY KEY, program_id TEXT NOT NULL REFERENCES program(id), name TEXT NOT NULL CHECK(length(trim(name)) BETWEEN 1 AND 120), notes TEXT NOT NULL DEFAULT '', archived_at INTEGER, version INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL);
+CREATE INDEX templates_program ON workout_template(program_id);
+CREATE TABLE template_exercise (id TEXT PRIMARY KEY, template_id TEXT NOT NULL REFERENCES workout_template(id) ON DELETE CASCADE, exercise_id TEXT NOT NULL REFERENCES exercise(id), position INTEGER NOT NULL CHECK(position>=0));
+CREATE TABLE template_set (id TEXT PRIMARY KEY, template_exercise_id TEXT NOT NULL REFERENCES template_exercise(id) ON DELETE CASCADE, position INTEGER NOT NULL CHECK(position>=0), type TEXT NOT NULL CHECK(type IN ('normal','warmup','dropset','failure')), target_reps INTEGER NOT NULL CHECK(target_reps BETWEEN 0 AND 1000), target_grams INTEGER NOT NULL CHECK(target_grams BETWEEN 0 AND 2000000), rest_ms INTEGER NOT NULL CHECK(rest_ms BETWEEN 0 AND 3600000));
+CREATE TABLE training_week (id TEXT PRIMARY KEY, start_at INTEGER NOT NULL, end_at INTEGER NOT NULL CHECK(end_at>start_at));
+CREATE TABLE weekly_assignment (id TEXT PRIMARY KEY, week_id TEXT NOT NULL REFERENCES training_week(id), template_id TEXT NOT NULL REFERENCES workout_template(id), name TEXT NOT NULL, withdrawn_at INTEGER, UNIQUE(week_id,template_id));
+CREATE TABLE schedule_event (id TEXT PRIMARY KEY, effective_at INTEGER NOT NULL, template_ids TEXT NOT NULL);
+CREATE INDEX schedule_effective ON schedule_event(effective_at);
+CREATE TABLE mutation_receipt (id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, result TEXT NOT NULL, created_at INTEGER NOT NULL);
