@@ -14,6 +14,8 @@ Each task must pass its listed checks plus typecheck/lint and production build w
 
 ## M1 — Foundation
 
+Foundation verified: migrated disk database/reopen, private authentication/signup denial/revocation, production build. PWA assets created; physical install verification remains M6.
+
 ### 1. Runtime and application skeleton (M; depends on M0)
 - [ ] Pin compatible stable packages/runtime and establish a responsive app shell.
 - [ ] Set up build, typecheck, lint and test commands; ignore secrets and runtime data.
