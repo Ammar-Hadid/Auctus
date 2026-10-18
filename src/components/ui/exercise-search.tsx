@@ -12,6 +12,8 @@ export function ExerciseSearch({
   onCreate,
   inputRef,
   disabled,
+  searchQuery,
+  onSearchQueryChange,
 }: {
   label: string;
   options: { value: string; label: string }[];
@@ -20,6 +22,8 @@ export function ExerciseSearch({
   onCreate: (query: string) => void;
   inputRef: RefObject<HTMLInputElement | null>;
   disabled?: boolean;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -27,17 +31,22 @@ export function ExerciseSearch({
   const [active, setActive] = useState(-1);
   const menu = useRef<HTMLDivElement>(null);
   const selected = options.find((option) => option.value === value);
-  const matches = options.filter((option) =>
-    option.label.toLocaleLowerCase().includes((query ?? '').trim().toLocaleLowerCase()),
-  );
-  const activeIndex = active < matches.length + 1 ? active : -1;
+  const search = searchQuery ?? query ?? '';
+  const trimmed = search.trim();
+  const normalized = trimmed.toLocaleLowerCase();
+  const matches = options.filter((option) => option.label.toLocaleLowerCase().includes(normalized));
+  const canCreate =
+    !normalized ||
+    !options.some((option) => option.label.trim().toLocaleLowerCase() === normalized);
+  const optionCount = matches.length + (canCreate ? 1 : 0);
+  const activeIndex = active < optionCount ? active : -1;
   function close() {
     setOpen(false);
     setActive(-1);
   }
   function choose(index: number) {
     close();
-    if (index === matches.length) onCreate((query ?? '').trim());
+    if (canCreate && index === matches.length) onCreate(trimmed);
     else if (matches[index]) {
       onValueChange(matches[index].value);
       setQuery(null);
@@ -82,7 +91,7 @@ export function ExerciseSearch({
             }
             autoComplete="off"
             placeholder="Search exercises…"
-            value={query ?? selected?.label ?? ''}
+            value={searchQuery ?? query ?? selected?.label ?? ''}
             disabled={disabled}
             onFocus={() => setActive(-1)}
             onClick={() => setOpen(true)}
@@ -92,6 +101,7 @@ export function ExerciseSearch({
             }}
             onChange={(event) => {
               setQuery(event.target.value);
+              onSearchQueryChange?.(event.target.value);
               if (value) onValueChange('');
               setOpen(true);
               setActive(-1);
@@ -103,9 +113,9 @@ export function ExerciseSearch({
                 setOpen(true);
                 setActive(
                   event.key === 'ArrowDown'
-                    ? (open ? activeIndex + 1 : 0) % (matches.length + 1)
+                    ? (open ? activeIndex + 1 : 0) % optionCount
                     : activeIndex <= 0
-                      ? matches.length
+                      ? optionCount - 1
                       : activeIndex - 1,
                 );
               } else if (event.key === 'Enter') {
@@ -155,20 +165,22 @@ export function ExerciseSearch({
                   </div>
                 ))}
               </div>
-              <div className="exercise-search-create">
-                <div
-                  id={`${id}-option-${matches.length}`}
-                  role="option"
-                  aria-selected={false}
-                  data-highlighted={activeIndex === matches.length ? '' : undefined}
-                  className="select-option select-create"
-                  onPointerMove={() => setActive(matches.length)}
-                  onClick={() => choose(matches.length)}
-                >
-                  <Plus size={17} aria-hidden="true" />
-                  Create exercise
+              {canCreate && (
+                <div className="exercise-search-create">
+                  <div
+                    id={`${id}-option-${matches.length}`}
+                    role="option"
+                    aria-selected={false}
+                    data-highlighted={activeIndex === matches.length ? '' : undefined}
+                    className="select-option select-create"
+                    onPointerMove={() => setActive(matches.length)}
+                    onClick={() => choose(matches.length)}
+                  >
+                    <Plus size={17} aria-hidden="true" />
+                    <span>{trimmed ? `Add “${trimmed}”` : 'Create exercise'}</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <p className="sr-only" role="status">
               {matches.length} exercises found.

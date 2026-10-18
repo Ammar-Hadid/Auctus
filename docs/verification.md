@@ -49,3 +49,5 @@ Additional regression coverage protects archived-program assignment history and 
 ## Searchable exercise picker
 
 Exercise pickers in templates and active workouts use an editable combobox with the shared Auctus menu styling. Browser coverage checks case-insensitive, trimmed name filtering, no matches, keyboard selection, Escape/Tab dismissal, clearing an old selection while typing, reset after adding, and query-prefilled creation. Creating an exercise restores input focus without reopening the menu over the Add action. Desktop and mobile screenshots and 320–1440px bounds checks cover placement.
+
+Search-to-create uses the same menu and creation dialog in Library, templates, and active workouts. A nonblank name without an exact saved match offers **Add “name”**; exact matches ignore case and surrounding whitespace. Browser checks cover the dynamic label, prefilled name, cancel preserving the Library query, successful creation and filtering, and persistence after reload on desktop and mobile.

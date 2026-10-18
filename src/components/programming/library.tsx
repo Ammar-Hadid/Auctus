@@ -1,8 +1,10 @@
 'use client';
-import { useState } from 'react';
-import { Plus, Search, ArrowUpRight, Archive } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Plus, ArrowUpRight, Archive } from 'lucide-react';
 import type { Exercise } from '@/domain/types';
 import type { Send } from '../use-model';
+import { ExerciseSearch } from '../ui/exercise-search';
+import { CreateExerciseDialog } from './create-exercise-dialog';
 export function Library({
   exercises,
   send,
@@ -17,6 +19,8 @@ export function Library({
   const [query, setQuery] = useState(''),
     [editing, setEditing] = useState<Exercise | null | undefined>(undefined),
     [archiving, setArchiving] = useState<string | null>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const [createName, setCreateName] = useState<string | null>(null);
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -73,18 +77,37 @@ export function Library({
           <button className="primary">Save exercise</button>
         </form>
       )}
-      <label className="search">
-        <Search size={18} />
-        <input
-          aria-label="Search exercises"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Find an exercise…"
+      <div className="exercise-search">
+        <ExerciseSearch
+          label="Search exercises"
+          options={exercises
+            .filter((e) => !e.archived_at)
+            .map((e) => ({ value: e.id, label: e.name }))}
+          value=""
+          searchQuery={query}
+          onSearchQueryChange={setQuery}
+          onValueChange={(id) => setQuery(exercises.find((e) => e.id === id)?.name ?? '')}
+          onCreate={setCreateName}
+          inputRef={searchInput}
         />
-      </label>
+      </div>
+      {createName !== null && (
+        <CreateExerciseDialog
+          initialName={createName}
+          context="library"
+          send={send}
+          onCreated={(exercise) => setQuery(exercise.name)}
+          onClose={() => setCreateName(null)}
+          returnFocus={searchInput}
+        />
+      )}
       <div className="list">
         {exercises
-          .filter((e) => !e.archived_at && e.name.toLowerCase().includes(query.toLowerCase()))
+          .filter(
+            (e) =>
+              !e.archived_at &&
+              e.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
+          )
           .map((e) => (
             <div className="list-row" key={e.id}>
               <div className="grow">

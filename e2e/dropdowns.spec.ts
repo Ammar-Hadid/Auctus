@@ -67,6 +67,9 @@ test('custom menus create exercises in place and preserve template and training 
   await picker.fill('No matching exercise xyz');
   await expect(page.getByText('No exercises found.', { exact: true })).toBeVisible();
   await expect(page.getByRole('option')).toHaveCount(1);
+  await expect(
+    page.getByRole('option', { name: 'Add “No matching exercise xyz”', exact: true }),
+  ).toBeVisible();
   await picker.press('Enter');
   await expect(dialog).toBeHidden();
   await picker.press('ArrowDown');
@@ -109,7 +112,13 @@ test('custom menus create exercises in place and preserve template and training 
   await expect(dialog).toBeHidden();
   await expect(picker).toHaveValue('Incline dumbbell press');
   await expect(page.getByLabel('Workout name')).toHaveValue('Upper body strength');
+  await picker.fill('  INCLINE DUMBBELL PRESS  ');
+  await expect(page.getByRole('option', { name: /^Add / })).toHaveCount(0);
+  await expect(page.getByRole('option', { name: 'Create exercise', exact: true })).toHaveCount(0);
   await picker.fill('  INCLINE dumbbell  ');
+  await expect(
+    page.getByRole('option', { name: 'Add “INCLINE dumbbell”', exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole('option', { name: 'Incline dumbbell press', exact: true }).first(),
   ).toBeVisible();
@@ -169,8 +178,12 @@ test('custom menus create exercises in place and preserve template and training 
     .click();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   const activePicker = page.getByRole('combobox', { name: 'Exercise', exact: true });
-  await activePicker.click();
-  await page.getByRole('option', { name: 'Create exercise', exact: true }).click();
+  await activePicker.fill('Cable lateral raise');
+  // The mobile project shares fixtures, so use a new variation to test creation from search.
+  const trainingName = `Cable lateral raise ${test.info().project.name}`;
+  await activePicker.fill(trainingName);
+  await page.getByRole('option', { name: `Add “${trainingName}”`, exact: true }).click();
+  await expect(dialog.getByLabel('Exercise name')).toHaveValue(trainingName);
   await dialog.getByLabel('Exercise name').fill('Cable lateral raise');
   await dialog.getByRole('button', { name: 'Create and select' }).click();
   await expect(activePicker).toHaveValue('Cable lateral raise');
@@ -193,5 +206,44 @@ test('custom menus create exercises in place and preserve template and training 
   await expect(page.getByRole('button', { name: /^02 Cable lateral raise/ })).toBeVisible();
   await page.getByRole('button', { name: 'Abandon workout', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm abandon', exact: true }).click();
+  await nav.getByRole('button', { name: 'Library', exact: true }).click();
+  const librarySearch = page.getByRole('combobox', { name: 'Search exercises', exact: true });
+  const libraryName = `Lying leg curl ${test.info().project.name}`;
+  await librarySearch.fill(`  ${libraryName}  `);
+  const addFromSearch = page.getByRole('option', { name: `Add “${libraryName}”`, exact: true });
+  await expect(addFromSearch).toBeVisible();
+  await page.screenshot({
+    path: `test-results/library-search-add-${test.info().project.name}.png`,
+    fullPage: true,
+    animations: 'disabled',
+  });
+  await addFromSearch.click();
+  await expect(dialog.getByLabel('Exercise name')).toHaveValue(libraryName);
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(librarySearch).toHaveValue(`  ${libraryName}  `);
+  await expect(librarySearch).toBeFocused();
+  await librarySearch.click();
+  await librarySearch.press('ArrowDown');
+  await librarySearch.press('Enter');
+  await expect(dialog.getByLabel('Exercise name')).toHaveValue(libraryName);
+  await page.screenshot({
+    path: `test-results/library-search-dialog-${test.info().project.name}.png`,
+    fullPage: true,
+    animations: 'disabled',
+  });
+  await dialog.getByLabel('Details / technique notes').fill('Created from Library search.');
+  await dialog.getByRole('button', { name: 'Save exercise', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(librarySearch).toHaveValue(libraryName);
+  await expect(page.getByRole('heading', { name: libraryName, exact: true })).toBeVisible();
+  await librarySearch.fill(`  ${libraryName.toUpperCase()}  `);
+  await expect(page.getByRole('option', { name: libraryName, exact: true })).toBeVisible();
+  await expect(page.getByRole('option', { name: /^Add / })).toHaveCount(0);
+  await librarySearch.press('Escape');
+  await page.reload();
+  await nav.getByRole('button', { name: 'Library', exact: true }).click();
+  await librarySearch.fill(libraryName);
+  await librarySearch.press('Escape');
+  await expect(page.getByText('Created from Library search.', { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });

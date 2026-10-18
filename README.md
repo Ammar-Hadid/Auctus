@@ -22,7 +22,7 @@ Your data lives at `data/auctus.db`, outside Git. Never delete this directory to
 
 1. Add exercises in **Library**.
 2. Create a program in **Programs** and open it.
-3. Add workouts, ordered exercises, set types, minimum/maximum reps and rest times. For 6–8 reps, enter minimum 6 and maximum 8; for an exact target, use the same number in both fields. Type in **Search exercises** to filter the custom menu by name, then select a result and add it. Choose **+ Create exercise** inside the menu to save and select a new exercise without leaving the editor; the same action is available during training.
+3. Add workouts, ordered exercises, set types, minimum/maximum reps and rest times. For 6–8 reps, enter minimum 6 and maximum 8; for an exact target, use the same number in both fields. Type in **Search exercises** to filter the custom menu by name, then select a result and add it. For a new name, choose **+ Add “name”** to open the creation dialog with your search prefilled. This works in workout templates, during training, and in Library search. With an empty search, **+ Create exercise** opens a blank dialog.
    Use the document icon on an exercise to save current workout changes and collapse its fields. Use the pencil icon to reopen it. **Save workout** saves and returns to the workout list.
 4. Select **Use this program** / **Apply to this week**.
 5. In **Overview**, start a workout. Start any exercise, then start a set.
