@@ -5,7 +5,7 @@ Status: deployed on `nexo-vps` at https://auctus.ammarhadid.com on 18 October 20
 ## Current VPS installation
 
 - Source and Compose: `/srv/apps/auctus`; use `docker-compose.yml` explicitly. The repository's generic `compose.yaml` is for other installations.
-- App image: `auctus:production`; releases are additionally tagged with the deployed Git commit. `auctus:706b4b7` is the retained pre-multi-account image; it requires a pre-0010 database for rollback.
+- App image: `auctus:d83aac7`, also tagged `auctus:production` (accounts and passkeys, 19 October 2026). `auctus:706b4b7` is the retained pre-multi-account image; it requires a pre-0010 database for rollback.
 - Private configuration: `/srv/data/auctus/current/app.env` (mode 600).
 - SQLite and VAPID keys: `/srv/data/auctus/current/database/auctus.db` (parent mode 700).
 - Container: `auctus`, non-root, restart `unless-stopped`, no published host ports; existing external Docker network `auctus` connects it to Caddy.
@@ -134,3 +134,5 @@ docker compose -f docker-compose.yml exec auctus node --import tsx scripts/reset
 ```
 
 The command takes a database backup, requires the phrase `RESET MASTER PASSKEYS`, revokes master sessions and deletes master passkeys. Sign in with the existing password to enroll again. `scripts/owner.ts` resets only the master password and sessions, keeping passkeys. Neither recovery operation is exposed over HTTP. Backups contain account credentials and authentication material and must remain private.
+
+Account release acceptance: the final image passed all 47 tests, typecheck, lint, build and the disposable restart/backup/restore drill on Linux. The stopped pre-migration database is retained at `/srv/backups/auctus/sqlite/pre-accounts-final-2026-10-19.db`; the matching previous image is `auctus:before-accounts-2026-10-19`. Production had no training records at migration; local migration preserved all 69 existing training rows. Both master accounts were preserved. The dedicated member signs in locally and through public HTTPS in desktop Chromium and mobile WebKit, starts with empty training data, and receives 403 for account administration. The production master’s existing password was accepted, but all private APIs remained blocked pending passkey enrollment. No real master passkey was created by automation. The owner must complete that step on their own device. Unrelated container IDs remained unchanged.

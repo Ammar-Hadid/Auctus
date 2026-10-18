@@ -188,5 +188,5 @@ Likely files: host-specific non-secret config examples, operations guide, verifi
 - [x] Scope pending saves, drafts, schedules, active workouts, receipts and push delivery by account.
 - [x] Test migration preservation, authorization failures, WebAuthn registration/sign-in and account isolation.
 - [x] Rehearse migrations on verified local and VPS backups without changing live data.
-- [ ] Deploy the migration and create the same dedicated test credentials locally and on the VPS.
+- [x] Deploy the migration and create the same dedicated test credentials locally and on the VPS.
 - [ ] Owner enrolls a real passkey on the production domain (requires device interaction).
