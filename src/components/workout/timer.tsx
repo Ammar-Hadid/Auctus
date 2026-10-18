@@ -1,14 +1,21 @@
 'use client';
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Volume2, Timer, Pause, Play } from 'lucide-react';
+import { useRestSound } from '../use-rest-sound';
+import { testSound, muteSound, playRestSound, rememberRestSound } from '@/client/rest-sound';
 import type { WorkoutDetail } from '@/domain/types';
 import { restDuration, restRemaining, durationLabel } from '@/domain/timing';
 export function useNow(serverNow: number) {
   const [now, setNow] = useState(serverNow);
   useEffect(() => {
-    const start = performance.now();
-    const interval = setInterval(() => setNow(serverNow + performance.now() - start), 250);
-    return () => clearInterval(interval);
+    const offset = serverNow - Date.now();
+    const tick = () => setNow(Date.now() + offset);
+    const interval = setInterval(tick, 250);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [serverNow]);
   return now;
 }
@@ -24,8 +31,7 @@ export function RestTimer({
   act: (action: string, data: Record<string, unknown>) => unknown;
 }) {
   const rest = workout.rests.find((r) => r.ended_at === null);
-  const [enabled, setEnabled] = useState(false);
-  const audio = useRef<AudioContext | null>(null);
+  const sound = useRestSound();
   const alerted = useRef<string | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
@@ -69,23 +75,16 @@ export function RestTimer({
       alerted.current === rest.id
     )
       return;
-    alerted.current = rest.id;
-    if (enabled) {
-      const context = audio.current;
-      if (context?.state === 'running') {
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.connect(gain);
-        gain.connect(context.destination);
-        oscillator.frequency.value = 660;
-        gain.gain.setValueAtTime(0.12, context.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.4);
-        oscillator.start();
-        oscillator.stop(context.currentTime + 0.4);
-      }
-      navigator.vibrate?.([150, 80, 150]);
+    // Muted or suspended audio must not consume the completion alert.
+    if (playRestSound(`${rest.id}:${rest.added_ms}`)) alerted.current = rest.id;
+  }, [rest, remaining, workout.status, sound, timerPaused]);
+  async function previewSound() {
+    const played = await testSound();
+    if (played && rest && remaining <= 0) {
+      alerted.current = rest.id;
+      rememberRestSound(`${rest.id}:${rest.added_ms}`);
     }
-  }, [rest, remaining, workout.status, enabled, timerPaused]);
+  }
   if (!rest) return null;
   return (
     <div ref={anchor}>
@@ -136,20 +135,24 @@ export function RestTimer({
             +15s
           </button>
           <button
-            onClick={async () => {
-              audio.current ??= new AudioContext();
-              await audio.current.resume();
-              setEnabled(!enabled);
-            }}
+            onClick={() => (sound.enabled && sound.ready ? muteSound() : void previewSound())}
             className="ghost"
           >
             <Volume2 size={16} />
-            {enabled ? 'Sound on' : 'Enable sound'}
+            {sound.enabled && sound.ready ? 'Sound on' : 'Enable sound'}
+          </button>
+          <button className="ghost" onClick={() => void previewSound()}>
+            Test sound
           </button>
           <button onClick={end} disabled={workout.status === 'paused'}>
             End rest
           </button>
         </div>
+        {sound.error && (
+          <p role="alert" className="error">
+            {sound.error}
+          </p>
+        )}
       </section>
     </div>
   );

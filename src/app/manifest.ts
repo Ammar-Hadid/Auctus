@@ -4,6 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Auctus — Training journal',
     short_name: 'Auctus',
     description: 'Private workout management and performance tracking.',
+    id: '/',
     start_url: '/',
     scope: '/',
     display: 'standalone',

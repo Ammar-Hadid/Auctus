@@ -1,6 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { verifyPerSetWeightHistory } from './weight-prefill';
 test('author, train, recover, correct history and inspect progress', async ({ page }) => {
+  await page.addInitScript(() => {
+    const tracked = window as typeof window & { tonesStarted: number };
+    tracked.tonesStarted = 0;
+    const create = AudioContext.prototype.createOscillator;
+    AudioContext.prototype.createOscillator = function () {
+      const oscillator = create.call(this);
+      const start = oscillator.start.bind(oscillator);
+      oscillator.start = (when?: number) => {
+        tracked.tonesStarted++;
+        start(when);
+      };
+      return oscillator;
+    };
+  });
   await page.goto('/');
   await expect(page.getByRole('heading', { name: /Back to/ })).toBeVisible();
   await page.getByLabel('Email', { exact: true }).fill('athlete@example.test');
@@ -95,6 +109,14 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
   const restTimer = page.getByRole('region', { name: 'Rest timer' });
+  await restTimer.getByRole('button', { name: 'Test sound', exact: true }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => (window as typeof window & { tonesStarted: number }).tonesStarted),
+    )
+    .toBe(3);
+  await expect(restTimer.getByRole('button', { name: 'Sound on', exact: true })).toBeVisible();
+
   await restTimer.getByRole('button', { name: 'Pause rest timer', exact: true }).click();
   await expect(restTimer.getByText('Rest paused', { exact: true })).toBeVisible();
   const pausedTime = await restTimer.getByRole('timer').textContent();
@@ -124,6 +146,19 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   expect(timerBox!.y).toBeLessThanOrEqual(16);
   expect(timerBox!.x + timerBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
   await restTimer.getByRole('button', { name: 'Resume rest timer', exact: true }).click();
+  await expect(
+    restTimer.getByRole('button', { name: 'Pause rest timer', exact: true }),
+  ).toBeVisible();
+  const tonesBeforeExpiry = await page.evaluate(
+    () => (window as typeof window & { tonesStarted: number }).tonesStarted,
+  );
+  await page.clock.install();
+  await page.clock.fastForward(120000);
+  await expect
+    .poll(() =>
+      page.evaluate(() => (window as typeof window & { tonesStarted: number }).tonesStarted),
+    )
+    .toBe(tonesBeforeExpiry + 3);
 
   await page.screenshot({
     path: `test-results/active-${test.info().project.name}.png`,
@@ -252,6 +287,21 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('button', { name: 'Confirm abandon', exact: true }).click();
   await verifyPerSetWeightHistory(page);
   await page.getByRole('button', { name: 'Account settings', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Rest alerts', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Enable background alerts', exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText('Background alerts become available', { exact: false }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Test sound', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Mute timer sound', exact: true })).toBeVisible();
+  await page.screenshot({
+    path: `test-results/rest-alert-settings-${test.info().project.name}.png`,
+    fullPage: true,
+    animations: 'disabled',
+  });
+
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Back to/ })).toBeVisible();
   expect((await page.request.get('/api/state')).status()).toBe(401);
@@ -261,6 +311,15 @@ test('rejects unauthenticated reads, cross-origin writes and public signup', asy
   request,
 }) => {
   expect((await request.get('/api/state')).status()).toBe(401);
+  expect((await request.get('/api/push')).status()).toBe(401);
+  expect(
+    (
+      await request.post('/api/push', {
+        headers: { origin: 'https://attacker.example' },
+        data: { action: 'subscribe' },
+      })
+    ).status(),
+  ).toBe(403);
   expect(
     (
       await request.post('/api/command', {

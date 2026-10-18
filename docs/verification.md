@@ -4,7 +4,7 @@ Local implementation is ready for owner setup and deployment preparation. Produc
 
 ## Automated evidence
 
-- **34 tests, 10 files:** SQLite migrations/reopen, private authentication and credential reset revocation, Amsterdam Monday 03:00 boundaries including both DST directions and year crossover, programming/archive/weekly availability, session snapshots/transitions/modifications, pause/rest accounting, retries/version conflicts, historical corrections/metrics and disk backup integrity.
+- **42 tests, 13 files:** SQLite migrations/reopen, private authentication and credential reset revocation, Amsterdam Monday 03:00 boundaries including both DST directions and year crossover, programming/archive/weekly availability, session snapshots/transitions/modifications, pause/rest accounting, retries/version conflicts, historical corrections/metrics and disk backup integrity.
 - **6 Playwright cases:** complete author/train/recover/edit/progress flow and protected endpoint checks in Chromium and mobile WebKit. Includes persisted drafts across reload, rest/pause recovery, offline retry, committed-write/lost-response retry, failed state GET during workout start, competing commands (200/409), abandonment and logout. No duplicate completed set/rest after replay. Custom Auctus selectors also cover keyboard open/select/Escape/focus return, create-and-select in templates and active workouts, failed creation/cancel preserving unsaved template edits, persisted set types, and 320–1440px menu/dialog bounds.
 - Dashboard overflow assertions at 320, 768, 1024 and 1440 pixels. Desktop and mobile dashboard/progress/active-workout screenshots inspected. Screenshots generated under ignored `test-results/`.
 - TypeScript, ESLint and production build pass. Docker build repeats unit/integration checks, typecheck, lint and production build on Linux arm64.
@@ -55,3 +55,9 @@ Search-to-create uses the same menu and creation dialog in Library, templates, a
 ## Rest timer controls
 
 Migration 0008 adds persisted countdown extensions and independent timer pause state. Unit coverage checks overlapping workout/timer pauses, refresh from stored state, invalid adjustments, versioned commands, idempotent extension retries, overtime extension, and closing a paused rest when the next set starts. Browser checks on Chromium and mobile WebKit cover pause/resume, +5s/+15s, persistence after reload, and the timer staying at the viewport top after scrolling. Actual rest and template prescriptions remain unchanged by countdown adjustments.
+
+## Sound and background notifications
+
+Audio unit checks cover three-tone playback, mute, persisted preference, and suspended/blocked contexts. Browser tests instrument real AudioContext oscillator starts for the Test sound gesture and timer expiry in desktop Chromium and mobile WebKit. Push tests use simulated senders (no external notifications) for deadline handling, extensions, pauses, deduplication, retry, expired endpoints, session revocation, and invalid endpoint rejection. The service worker is checked for visible notification presentation and click focus. Push API unauthenticated and cross-origin calls are rejected.
+
+Actual speaker output, iPhone notification sound/haptics, and APNs delivery require physical-device testing at the future HTTPS deployment; those are not verified by headless tests. The current HTTP local instance intentionally does not offer active background notification enrollment.

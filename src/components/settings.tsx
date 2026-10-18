@@ -1,10 +1,12 @@
 'use client';
 import { useState } from 'react';
+import { NotificationSettings } from './notification-settings';
 export function Settings() {
   const [error, setError] = useState('');
   return (
     <div className="stack">
       <h1>Your space</h1>
+      <NotificationSettings />
       <section className="panel stack">
         <h2>Training conventions</h2>
         <p>

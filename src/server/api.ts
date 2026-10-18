@@ -12,6 +12,7 @@ export async function authorize(request: Request, write = false) {
   const session = await getAuth().api.getSession({ headers: request.headers });
   if (!session)
     throw new DomainError('Your sign-in expired. Sign in again; your draft is kept.', 401);
+  return session;
 }
 export function apiError(error: unknown) {
   if (error instanceof SyntaxError)
