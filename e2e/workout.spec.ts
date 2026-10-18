@@ -1,5 +1,5 @@
 import { test,expect } from '@playwright/test';
-test('author a program and apply it to the training week',async({page})=>{
+test('author, train, recover, correct history and inspect progress',async({page})=>{
  await page.goto('/');await expect(page.getByRole('heading',{name:/Back to/})).toBeVisible();
  await page.getByLabel('Email',{exact:true}).fill('athlete@example.test');await page.getByLabel('Password',{exact:true}).fill('test-only-training-password');await page.getByRole('button',{name:'Sign in',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Make today count.'})).toBeVisible();
@@ -12,4 +12,15 @@ test('author a program and apply it to the training week',async({page})=>{
  await page.getByLabel('Set 1 target kg').fill('20');await page.getByRole('button',{name:'Save workout',exact:true}).click();await page.getByRole('button',{name:'Use this program'}).click();
  await nav.getByRole('button',{name:'Overview'}).click();await expect(page.getByRole('heading',{name:'Full Body '+suffix})).toBeVisible();
  await page.reload();await expect(page.getByRole('heading',{name:'Full Body '+suffix})).toBeVisible();
+ await page.getByRole('button',{name:'Start workout',exact:true}).click();await page.getByRole('button',{name:'Start exercise',exact:true}).click();await page.getByRole('button',{name:'Start set 1',exact:true}).click();
+ await page.getByLabel('Set 1 actual kg').fill('22');await page.getByLabel('Set 1 actual reps').fill('9');
+ await page.reload();await page.getByRole('button',{name:'Continue workout'}).click();await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('22');await page.getByRole('button',{name:'Complete set',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Rest timer'})).toBeVisible();await page.getByRole('button',{name:'Pause',exact:true}).click();await expect(page.getByText('Rest paused',{exact:false})).toBeVisible();await page.reload();await page.getByRole('button',{name:'Continue workout'}).click();await page.getByRole('button',{name:'Resume',exact:true}).click();await page.getByRole('button',{name:'End rest',exact:true}).click();
+ await page.getByRole('button',{name:'Finish workout',exact:true}).click();await page.getByRole('button',{name:'Confirm finish'}).click();await expect(page.getByRole('button',{name:'Repeat',exact:true})).toBeVisible();
+ await nav.getByRole('button',{name:'History',exact:true}).click();await page.getByRole('heading',{name:'Full Body '+suffix,exact:true}).locator('..').locator('..').getByRole('button',{name:'View workout'}).click();
+ await page.getByRole('button',{name:'Edit set 1',exact:true}).click();await page.getByLabel('Corrected weight').fill('24');await page.getByRole('button',{name:'Save correction'}).click();await expect(page.getByText('24 kg × 9',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Progress',exact:true}).click();await expect(page.getByText('24',{exact:true})).toBeVisible();await expect(page.getByText('31.2',{exact:true})).toBeVisible();
+ await page.screenshot({path:`test-results/progress-${test.info().project.name}.png`,fullPage:true});
+ await nav.getByRole('button',{name:'Overview'}).click();await page.screenshot({path:`test-results/dashboard-${test.info().project.name}.png`,fullPage:true});
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth);expect(overflow).toBe(false);
 });

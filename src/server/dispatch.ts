@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { editHistory } from './history';
 import { Sessions } from './sessions';
 import { Programming } from './programming';
 import { command } from './commands';
@@ -9,6 +10,7 @@ export function dispatch(store:Store,body:unknown,now=Date.now()){
  return command(store,c.requestId,{action:c.action,data:c.data},now,()=>{
   const p=new Programming(store,()=>now);
   switch(c.action){
+   case 'history.edit':return editHistory(store,c.data);
    case 'workout.start':return new Sessions(store,()=>now).start(z.string().parse(c.data.assignment_id),c.data.repeat===true);
    case 'session.action':return new Sessions(store,()=>now).act(c.data);
    case 'exercise.save':return p.saveExercise(c.data);
