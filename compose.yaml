@@ -1,0 +1,21 @@
+services:
+  auctus:
+    build: .
+    image: auctus:local
+    restart: unless-stopped
+    init: true
+    ports:
+      - '127.0.0.1:3101:3000'
+    environment:
+      DATABASE_PATH: /app/data/auctus.db
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the canonical HTTPS application URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set a long random authentication secret}
+    volumes:
+      - auctus-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 30s
+volumes:
+  auctus-data:

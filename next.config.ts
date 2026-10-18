@@ -1,6 +1,5 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
-  output: 'standalone',
   outputFileTracingIncludes: { '/*': ['./migrations/*.sql'] },
   outputFileTracingExcludes: {
     '/*': ['./data/**/*', './.env*', './tests/**/*', './test-results/**/*'],

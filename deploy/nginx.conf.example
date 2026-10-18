@@ -1,0 +1,24 @@
+# Merge ONLY this application's virtual host into your existing HTTPS setup.
+# Replace auctus.example.com and certificate paths after VPS/DNS discovery.
+server {
+    listen 443 ssl;
+    server_name auctus.example.com;
+    ssl_certificate /etc/letsencrypt/live/auctus.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/auctus.example.com/privkey.pem;
+    client_max_body_size 512k;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    location / {
+        proxy_pass http://127.0.0.1:3101;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_buffering off;
+    }
+}
+server {
+    listen 80;
+    server_name auctus.example.com;
+    return 301 https://$host$request_uri;
+}

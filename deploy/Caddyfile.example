@@ -1,0 +1,8 @@
+# Add this one site to an existing Caddy config; do not replace other sites.
+auctus.example.com {
+    request_body {
+        max_size 512KB
+    }
+    reverse_proxy 127.0.0.1:3101
+    header Strict-Transport-Security "max-age=31536000"
+}
