@@ -270,7 +270,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   const requests = await Promise.all(
     [1, 2].map(() =>
       page.request.post('/api/command', {
-        headers: { origin: 'http://127.0.0.1:3100' },
+        headers: { 'x-auctus-account': nextState.account.id, origin: 'http://localhost:3100' },
         data: {
           requestId: crypto.randomUUID(),
           action: 'session.action',

@@ -1,5 +1,6 @@
-import type { Store } from './db/connection';
+import { accountId, type Store } from './db/connection';
 import type { State } from '../domain/types';
+import { profile } from './accounts';
 import { Programming } from './programming';
 import { Sessions } from './sessions';
 import { summarize } from '../domain/metrics';
@@ -8,13 +9,16 @@ export function readState(store: Store, now = Date.now()): State {
   const p = new Programming(store, () => now);
   const { week, assignments } = p.availability();
   const all = new Sessions(store).all();
-  const mapping = store.sqlite.prepare('SELECT id,week_id FROM weekly_assignment').all() as {
+  const mapping = store.sqlite
+    .prepare('SELECT id,week_id FROM weekly_assignment WHERE user_id=?')
+    .all(accountId(store)) as {
     id: string;
     week_id: string;
   }[];
   const weekFor = (id: string) => mapping.find((a) => a.id === id)?.week_id;
   const previousWeek = trainingWeek(week.start - 1);
   return {
+    account: profile(store, accountId(store)),
     serverNow: now,
     exercises: p.exercises(),
     programs: p.programs(),

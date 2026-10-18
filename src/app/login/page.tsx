@@ -1,9 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 export default function Login() {
-  const router = useRouter();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -23,8 +21,7 @@ export default function Login() {
             ? 'Too many attempts. Try again in a minute.'
             : 'Sign-in failed. Check your email and password.',
         );
-      router.push('/');
-      router.refresh();
+      location.replace(new URL('/', location.origin).href);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unable to connect. Please retry.');
     } finally {
@@ -63,7 +60,7 @@ export default function Login() {
         </button>
       </form>
       <p style={{ fontSize: 13 }}>
-        Private account. Account recovery is available through the server owner command.
+        Accounts are created by the master administrator. Public signup is disabled.
       </p>
     </main>
   );

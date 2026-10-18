@@ -7,8 +7,14 @@ export async function verifyExerciseSave(page: Page, programName: string) {
   });
   const edit = page.getByRole('button', { name: 'Edit Incline dumbbell press', exact: true });
   await expect(save).toBeVisible();
-  await save.focus();
-  expect(await save.evaluate((el) => getComputedStyle(el).outlineOffset)).toBe('-2px');
+  // Safari on iPhone does not tab-focus buttons; check keyboard styling on desktop.
+  if (!test.info().project.use.isMobile) {
+    await save.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(save).toBeFocused();
+    expect(await save.evaluate((el) => getComputedStyle(el).outlineOffset)).toBe('-2px');
+  }
   await page.getByLabel('Workout name').fill('');
   await save.click();
   await expect(page.getByLabel('Workout name')).toBeFocused();

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import type { Store } from './db/connection';
+import { accountId, type Store } from './db/connection';
 import type {
   Exercise,
   Program,
@@ -17,24 +17,30 @@ export class Programming {
   constructor(
     public store: Store,
     public clock = Date.now,
-  ) {}
+  ) {
+    accountId(store);
+  }
+  get userId() {
+    return accountId(this.store);
+  }
   get sql() {
     return this.store.sqlite;
   }
   exercises() {
     return this.sql
-      .prepare('SELECT * FROM exercise ORDER BY name COLLATE NOCASE')
-      .all() as Exercise[];
+      .prepare('SELECT * FROM exercise WHERE user_id=? ORDER BY name COLLATE NOCASE')
+      .all(this.userId) as Exercise[];
   }
   programs() {
-    return this.sql.prepare('SELECT * FROM program ORDER BY created_at').all() as Program[];
+    return this.sql
+      .prepare('SELECT * FROM program WHERE user_id=? ORDER BY created_at')
+      .all(this.userId) as Program[];
   }
   templates() {
     return (
-      this.sql.prepare('SELECT * FROM workout_template ORDER BY created_at').all() as Omit<
-        Template,
-        'exercises'
-      >[]
+      this.sql
+        .prepare('SELECT * FROM workout_template WHERE user_id=? ORDER BY created_at')
+        .all(this.userId) as Omit<Template, 'exercises'>[]
     ).map((t) => ({
       ...t,
       exercises: (
@@ -52,8 +58,9 @@ export class Programming {
   selected() {
     return (
       (
-        this.sql.prepare('SELECT selected_program_id FROM settings WHERE id=1').get() as
-          { selected_program_id: string | null } | undefined
+        this.sql
+          .prepare('SELECT selected_program_id FROM settings WHERE user_id=?')
+          .get(this.userId) as { selected_program_id: string | null } | undefined
       )?.selected_program_id ?? null
     );
   }
@@ -71,8 +78,10 @@ export class Programming {
         .run(v.name, v.details, key);
     } else
       this.sql
-        .prepare('INSERT INTO exercise VALUES (?,?,?,NULL,?)')
-        .run(key, v.name, v.details, this.clock());
+        .prepare(
+          'INSERT INTO exercise (id,name,details,archived_at,created_at,user_id) VALUES (?,?,?,NULL,?,?)',
+        )
+        .run(key, v.name, v.details, this.clock(), this.userId);
     return this.exercises().find((e) => e.id === key)!;
   }
   saveProgram(input: unknown) {
@@ -87,8 +96,10 @@ export class Programming {
       this.sql.prepare('UPDATE program SET name=?,notes=? WHERE id=?').run(v.name, v.notes, key);
     } else
       this.sql
-        .prepare('INSERT INTO program VALUES (?,?,?,NULL,?)')
-        .run(key, v.name, v.notes, this.clock());
+        .prepare(
+          'INSERT INTO program (id,name,notes,archived_at,created_at,user_id) VALUES (?,?,?,NULL,?,?)',
+        )
+        .run(key, v.name, v.notes, this.clock(), this.userId);
     return this.programs().find((p) => p.id === key)!;
   }
   saveTemplate(input: unknown) {
@@ -115,8 +126,10 @@ export class Programming {
           this.sql.prepare('DELETE FROM template_exercise WHERE template_id=?').run(key);
         } else
           this.sql
-            .prepare('INSERT INTO workout_template VALUES (?,?,?,?,NULL,0,?)')
-            .run(key, v.program_id, v.name, v.notes, this.clock());
+            .prepare(
+              'INSERT INTO workout_template (id,program_id,name,notes,archived_at,version,created_at,user_id) VALUES (?,?,?,?,NULL,0,?,?)',
+            )
+            .run(key, v.program_id, v.name, v.notes, this.clock(), this.userId);
         const usedIds = new Set<string>();
         v.exercises.forEach((e, position) => {
           requireCondition(
@@ -161,9 +174,9 @@ export class Programming {
       .transaction(() => {
         this.sql
           .prepare(
-            'INSERT INTO settings (id,selected_program_id) VALUES (1,?) ON CONFLICT(id) DO UPDATE SET selected_program_id=excluded.selected_program_id',
+            'INSERT INTO settings (user_id,selected_program_id) VALUES (?,?) ON CONFLICT(user_id) DO UPDATE SET selected_program_id=excluded.selected_program_id',
           )
-          .run(programId);
+          .run(this.userId, programId);
         this.applySchedule();
       })
       .immediate();
@@ -175,8 +188,8 @@ export class Programming {
       .filter((t) => t.program_id === selected && !t.archived_at)
       .map((t) => t.id);
     this.sql
-      .prepare('INSERT INTO schedule_event VALUES (?,?,?)')
-      .run(randomUUID(), this.clock(), JSON.stringify(ids));
+      .prepare('INSERT INTO schedule_event (id,effective_at,template_ids,user_id) VALUES (?,?,?,?)')
+      .run(randomUUID(), this.clock(), JSON.stringify(ids), this.userId);
     return this.availability();
   }
   archive(kind: 'exercise' | 'program' | 'template', key: string) {
@@ -185,8 +198,8 @@ export class Programming {
     return this.sql
       .transaction(() => {
         const result = this.sql
-          .prepare(`UPDATE ${table} SET archived_at=? WHERE id=?`)
-          .run(this.clock(), key);
+          .prepare(`UPDATE ${table} SET archived_at=? WHERE id=? AND user_id=?`)
+          .run(this.clock(), key, this.userId);
         requireCondition(result.changes, 'Record not found.', 404);
         if (kind === 'program' && this.selected() === key) this.selectProgram(null);
         if (kind === 'template') this.applySchedule();
@@ -203,23 +216,24 @@ export class Programming {
           .run(week.id, week.start, week.end);
         const events = this.sql
           .prepare(
-            'SELECT template_ids FROM schedule_event WHERE effective_at<? ORDER BY effective_at DESC,rowid DESC LIMIT 1',
+            'SELECT template_ids FROM schedule_event WHERE user_id=? AND effective_at<? ORDER BY effective_at DESC,rowid DESC LIMIT 1',
           )
-          .get(Math.min(at + 1, week.end)) as { template_ids: string } | undefined;
+          .get(this.userId, Math.min(at + 1, week.end)) as { template_ids: string } | undefined;
         const ids: string[] = events ? JSON.parse(events.template_ids) : [];
         for (const key of ids) {
-          const t = this.sql.prepare('SELECT name FROM workout_template WHERE id=?').get(key) as
-            { name: string } | undefined;
+          const t = this.sql
+            .prepare('SELECT name FROM workout_template WHERE id=? AND user_id=?')
+            .get(key, this.userId) as { name: string } | undefined;
           if (t)
             this.sql
               .prepare(
-                'INSERT INTO weekly_assignment VALUES (?,?,?,?,NULL) ON CONFLICT(week_id,template_id) DO UPDATE SET withdrawn_at=NULL',
+                'INSERT INTO weekly_assignment (id,week_id,template_id,name,withdrawn_at,user_id) VALUES (?,?,?,?,NULL,?) ON CONFLICT(week_id,template_id) DO UPDATE SET withdrawn_at=NULL',
               )
-              .run(randomUUID(), week.id, key, t.name);
+              .run(randomUUID(), week.id, key, t.name, this.userId);
         }
         const assignments = this.sql
-          .prepare('SELECT *,0 AS completed FROM weekly_assignment WHERE week_id=?')
-          .all(week.id) as Assignment[];
+          .prepare('SELECT *,0 AS completed FROM weekly_assignment WHERE week_id=? AND user_id=?')
+          .all(week.id, this.userId) as Assignment[];
         for (const a of assignments)
           if (
             !ids.includes(a.template_id) &&
@@ -235,9 +249,9 @@ export class Programming {
           week,
           assignments: this.sql
             .prepare(
-              'SELECT *,0 AS completed FROM weekly_assignment WHERE week_id=? ORDER BY rowid',
+              'SELECT *,0 AS completed FROM weekly_assignment WHERE week_id=? AND user_id=? ORDER BY rowid',
             )
-            .all(week.id) as Assignment[],
+            .all(week.id, this.userId) as Assignment[],
         };
       })
       .immediate();

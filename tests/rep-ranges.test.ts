@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { prescription } from '../src/domain/validation';
-import { openDatabase } from '../src/server/db/connection';
+import { openDatabase } from './test-store';
 import { Programming } from '../src/server/programming';
 import { Sessions } from '../src/server/sessions';
 import { repRangeLabel } from '../src/domain/reps';

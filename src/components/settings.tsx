@@ -1,12 +1,19 @@
 'use client';
 import { useState } from 'react';
+import type { State } from '@/domain/types';
+import { AccountManagement } from './account-management';
 import { NotificationSettings } from './notification-settings';
-export function Settings() {
+export function Settings({ account }: { account: State['account'] }) {
   const [error, setError] = useState('');
   return (
     <div className="stack">
       <h1>Your space</h1>
+      <p>
+        Signed in as {account.email} ·{' '}
+        {account.role === 'master' ? 'Master account' : 'Private account'}
+      </p>
       <NotificationSettings />
+      {account.role === 'master' && <AccountManagement />}
       <section className="panel stack">
         <h2>Training conventions</h2>
         <p>
@@ -32,8 +39,9 @@ export function Settings() {
       <section className="panel stack">
         <h2>Private account</h2>
         <p>
-          To reset your password, run the owner command on the server. This also revokes existing
-          sessions.
+          {account.role === 'master'
+            ? 'Your master account requires a password and passkey. The server owner command can reset your password; it does not remove your passkey.'
+            : 'Your training data belongs only to this account. Contact the master administrator for account recovery.'}
         </p>
         {error && <p className="error">{error}</p>}
         <button

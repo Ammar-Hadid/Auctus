@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { openDatabase } from '../src/server/db/connection';
+import { openDatabase } from './test-store';
 import { Programming } from '../src/server/programming';
 import { Sessions } from '../src/server/sessions';
 import { editHistory } from '../src/server/history';

@@ -1,6 +1,6 @@
 # Auctus
 
-A private, single-user workout journal: manually authored programs, weekly assignments, persistent live workouts, planned/actual rest, editable history and exercise progression. Built with Next.js, strict TypeScript, SQLite/Drizzle and Better Auth.
+A private workout journal with master-managed accounts: manually authored programs, weekly assignments, persistent live workouts, planned/actual rest, editable history and exercise progression. Built with Next.js, strict TypeScript, SQLite/Drizzle and Better Auth.
 
 ## Local setup
 
@@ -14,9 +14,23 @@ pnpm run owner
 pnpm dev
 ```
 
-`pnpm run setup` creates a private, ignored `.env.local` containing a random authentication secret. `pnpm run owner` prompts for your email and a hidden password (12–128 characters). Re-running it changes the owner credentials and revokes all login sessions. Use the explicit `run`: `pnpm owner` is pnpm’s registry-owner command, not this application’s setup script. No public signup exists. Open [127.0.0.1:3105](http://127.0.0.1:3105).
+`pnpm run setup` creates a private, ignored `.env.local` containing a random authentication secret. `pnpm run owner` prompts for your email and a hidden password (12–128 characters). Re-running it changes the master credentials and revokes that account’s sessions; member accounts and enrolled passkeys are preserved. Use the explicit `run`: `pnpm owner` is pnpm’s registry-owner command, not this application’s setup script. No public signup exists. Open [localhost:3105](http://localhost:3105). Use this hostname for local passkeys; an IP address is not a supported passkey relying-party ID.
 
 Your data lives at `data/auctus.db`, outside Git. Never delete this directory to update the app. Set `DATABASE_PATH` to another local persistent path if needed. The canonical `BETTER_AUTH_URL` must match the origin you open, including the port.
+
+## Accounts and master passkey
+
+The existing owner becomes the single master account. Sign in with its email and password, then choose **Create passkey** and confirm on your device (Face ID, Touch ID, device PIN, or a security key). First enrollment requires a password login from the last five minutes. Training data and administration remain locked until enrollment succeeds. Later sign-ins require the password **and** an enrolled passkey. Localhost and the production domain have separate passkeys.
+
+After unlocking, use **Settings → Manage accounts** to create member accounts. Creating an account also requires your current master password. Members cannot create accounts, assign roles, access master controls, or read another account’s exercises, programs, sessions or history. There is no public signup. Drafts, pending saves, scheduling, command receipts, active workouts and push delivery are account-scoped.
+
+Use **Add a backup passkey** while signed in and verified to enroll another device/key. If all master passkeys are lost, recovery requires trusted terminal/SSH access:
+
+```sh
+node --env-file-if-exists=.env.local --import tsx scripts/reset-passkeys.ts
+```
+
+This interactive command backs up the database, requires an explicit confirmation phrase, removes master passkeys and revokes master sessions. It does not change passwords or member accounts. There is no web reset endpoint. The ordinary owner command resets the password without removing passkeys.
 
 ## First workout
 
@@ -30,7 +44,7 @@ Your data lives at `data/auctus.db`, outside Git. Never delete this directory to
 7. Complete exercises, or explicitly skip unused sets. Finish the workout to add it to history.
 8. Correct recorded results in **History**; view exercise records via **Progress**.
 
-A paused or active workout can always be recovered from Overview after reloading. Only one unfinished workout is allowed. One exercise and one set can be active at a time; finish/skip a running set before switching exercises.
+A paused or active workout can always be recovered from Overview after reloading. Only one unfinished workout is allowed per account. One exercise and one set can be active at a time; finish/skip a running set before switching exercises.
 
 ## Timing and statistics
 

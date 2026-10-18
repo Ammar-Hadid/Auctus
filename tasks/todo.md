@@ -179,3 +179,14 @@ Likely files: host-specific non-secret config examples, operations guide, verifi
 - [ ] All required definition-of-done paths demonstrated; production build and tests pass.
 - [x] Tested changes committed; working tree clean apart from explicitly documented local runtime files.
 - [ ] Report deployed URL, operational steps, evidence and any remaining real limitations. Do not call MVP complete with required features outstanding.
+
+## Master-managed accounts and passkeys — 19 October 2026
+
+- [x] Migrate existing training data to the existing master account; keep accounts isolated.
+- [x] Disable public signup; allow member creation only from verified master settings with password confirmation.
+- [x] Require password plus passkey for master access, including server-rendered data and every private API.
+- [x] Scope pending saves, drafts, schedules, active workouts, receipts and push delivery by account.
+- [x] Test migration preservation, authorization failures, WebAuthn registration/sign-in and account isolation.
+- [x] Rehearse migrations on verified local and VPS backups without changing live data.
+- [ ] Deploy the migration and create the same dedicated test credentials locally and on the VPS.
+- [ ] Owner enrolls a real passkey on the production domain (requires device interaction).

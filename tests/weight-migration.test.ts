@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { openDatabase } from '../src/server/db/connection';
+import { openDatabase } from './test-store';
 import { Sessions } from '../src/server/sessions';
 it('upgrades populated databases without changing actual results or legacy session snapshots', () => {
   const dir = mkdtempSync(join(tmpdir(), 'auctus-weight-migration-'));

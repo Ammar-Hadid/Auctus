@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import type { Store } from './db/connection';
+import { accountId, type Store } from './db/connection';
 import { requireCondition } from './errors';
 export function command<T>(
   store: Store,
@@ -13,8 +13,9 @@ export function command<T>(
   const fingerprint = createHash('sha256').update(JSON.stringify(payload)).digest('hex');
   return store.sqlite
     .transaction(() => {
-      const prior = store.sqlite.prepare('SELECT * FROM mutation_receipt WHERE id=?').get(id) as
-        { fingerprint: string; result: string } | undefined;
+      const prior = store.sqlite
+        .prepare('SELECT * FROM mutation_receipt WHERE user_id=? AND id=?')
+        .get(accountId(store), id) as { fingerprint: string; result: string } | undefined;
       if (prior) {
         requireCondition(
           prior.fingerprint === fingerprint,
@@ -25,8 +26,8 @@ export function command<T>(
       }
       const result = perform();
       store.sqlite
-        .prepare('INSERT INTO mutation_receipt VALUES (?,?,?,?)')
-        .run(id, fingerprint, JSON.stringify(result), now);
+        .prepare('INSERT INTO mutation_receipt VALUES (?,?,?,?,?)')
+        .run(accountId(store), id, fingerprint, JSON.stringify(result), now);
       return result;
     })
     .immediate();

@@ -18,6 +18,7 @@ const docker = (args, input) =>
     stdio: ['pipe', 'pipe', 'pipe'],
   }).trim();
 let cookie;
+let accountId;
 async function ready() {
   for (let i = 0; i < 60; i++) {
     try {
@@ -30,7 +31,12 @@ async function ready() {
 async function request(path, data) {
   const response = await fetch(origin + path, {
     method: data ? 'POST' : 'GET',
-    headers: { origin, 'content-type': 'application/json', ...(cookie ? { cookie } : {}) },
+    headers: {
+      origin,
+      'content-type': 'application/json',
+      ...(cookie ? { cookie } : {}),
+      ...(accountId ? { 'x-auctus-account': accountId } : {}),
+    },
     ...(data ? { body: JSON.stringify(data) } : {}),
   });
   const result = await response.json();
@@ -64,12 +70,13 @@ try {
   assert.equal((await fetch(origin + '/api/state')).status, 401);
   docker(
     ['exec', '-i', name, 'node', '--import', 'tsx', '--input-type=module'],
-    "import {getStore} from './src/server/db/connection.ts'; import {provisionOwner} from './src/server/owner.ts'; await provisionOwner(getStore(),'drill@example.test','test-only-container-password');",
+    "import {getStore} from './src/server/db/connection.ts'; import {provisionOwner} from './src/server/owner.ts'; import {createMember} from './src/server/accounts.ts'; const store=getStore(); await provisionOwner(store,'master@example.test','test-only-master-password'); const master=store.sqlite.prepare(`SELECT user_id AS id FROM account_access WHERE role='master'`).get(); await createMember(store,master.id,{name:'Drill',email:'drill@example.test',password:'test-only-container-password'});",
   );
   await request('/api/auth/sign-in/email', {
     email: 'drill@example.test',
     password: 'test-only-container-password',
   });
+  accountId = (await request('/api/state')).account.id;
   const exercise = (await command('exercise.save', { name: 'Container row' })).result;
   const program = (await command('program.save', { name: 'Container drill' })).result;
   await command('template.save', {

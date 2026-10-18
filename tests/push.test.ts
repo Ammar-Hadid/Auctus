@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { openDatabase } from '../src/server/db/connection';
+import { openDatabase, forUser } from '../src/server/db/connection';
 import { Programming } from '../src/server/programming';
 import { Sessions } from '../src/server/sessions';
 import {
@@ -8,25 +8,26 @@ import {
   pushKeys,
   subscriptionSchema,
 } from '../src/server/push';
-function setup() {
-  const store = openDatabase(':memory:');
+function setup(shared?: ReturnType<typeof openDatabase>, userId = 'u') {
+  const store = forUser(shared ?? openDatabase(':memory:'), userId);
   let now = Date.parse('2026-10-18T12:00Z');
   store.sqlite
     .prepare(
-      "INSERT INTO user (id,name,email,email_verified,created_at,updated_at) VALUES ('u','Owner','push@example.test',1,?,?)",
+      "INSERT INTO user (id,name,email,email_verified,created_at,updated_at) VALUES (?,'Owner',?,1,?,?)",
     )
-    .run(now, now);
+    .run(userId, userId + '@example.test', now, now);
   store.sqlite
     .prepare(
-      "INSERT INTO session (id,expires_at,token,created_at,updated_at,user_id) VALUES ('s',?,'test-token',?,?,'u')",
+      'INSERT INTO session (id,expires_at,token,created_at,updated_at,user_id) VALUES (?,?,?,?,?,?)',
     )
-    .run(now + 86400000, now, now);
+    .run('s-' + userId, now + 86400000, 'token-' + userId, now, now, userId);
+  store.sqlite.prepare("INSERT INTO account_access VALUES (?,'member',NULL)").run(userId);
   const keys = pushKeys(store);
   const subscription = {
-    endpoint: 'https://web.push.apple.com/test',
+    endpoint: 'https://web.push.apple.com/test-' + userId,
     keys: { p256dh: keys.public_key, auth: Buffer.alloc(16, 1).toString('base64url') },
   };
-  const id = saveSubscription(store, 's', subscription, now);
+  const id = saveSubscription(store, 's-' + userId, subscription, now);
   const programming = new Programming(store, () => now);
   const exercise = programming.saveExercise({ name: 'Row' });
   const program = programming.saveProgram({ name: 'Strength' });
@@ -117,7 +118,7 @@ describe('background rest notifications', () => {
     x.tick(32000);
     await deliverDueRests(x.store, send, x.now());
     expect(send).not.toHaveBeenCalled();
-    x.store.sqlite.prepare("DELETE FROM session WHERE id='s'").run();
+    x.store.sqlite.prepare("DELETE FROM session WHERE id='s-u'").run();
     expect(x.store.sqlite.prepare('SELECT * FROM push_subscription').all()).toEqual([]);
     x.store.sqlite.close();
   });
@@ -146,4 +147,22 @@ describe('background rest notifications', () => {
     expect(send).not.toHaveBeenCalled();
     x.store.sqlite.close();
   });
+});
+
+it('delivers simultaneous rests only to each account’s own verified devices', async () => {
+  const a = setup(),
+    b = setup(a.store, 'other');
+  const send = vi.fn().mockResolvedValue({});
+  a.store.sqlite.prepare("UPDATE account_access SET role='master' WHERE user_id='u'").run();
+  a.tick(1000);
+  await deliverDueRests(a.store, send, a.now());
+  expect(send).toHaveBeenCalledTimes(1);
+  expect(send.mock.calls[0][0].endpoint).toBe(b.subscription.endpoint);
+  expect(send.mock.calls[0][1].tag).toBe('rest-' + b.restId);
+  a.store.sqlite.prepare("INSERT INTO session_verification VALUES ('s-u',?)").run(a.now());
+  await deliverDueRests(a.store, send, a.now());
+  expect(send).toHaveBeenCalledTimes(2);
+  expect(send.mock.calls[1][0].endpoint).toBe(a.subscription.endpoint);
+  expect(send.mock.calls[1][1].tag).toBe('rest-' + a.restId);
+  a.store.sqlite.close();
 });

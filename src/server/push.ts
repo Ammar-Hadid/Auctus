@@ -1,7 +1,7 @@
 import webpush from 'web-push';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import type { Store } from './db/connection';
+import { forUser, type Store } from './db/connection';
 import { Sessions } from './sessions';
 import { restRemaining } from '../domain/timing';
 import { requireCondition } from './errors';
@@ -102,10 +102,13 @@ export function sender(store: Store, subject: string): PushSender {
     });
 }
 export async function deliverDueRests(store: Store, send: PushSender, now = Date.now()) {
-  const row = store.sqlite.prepare("SELECT id FROM workout_session WHERE status='active'").get() as
-    { id: string } | undefined;
-  if (!row) return;
-  const workout = new Sessions(store).get(row.id);
+  const rows = store.sqlite
+    .prepare("SELECT id,user_id FROM workout_session WHERE status='active'")
+    .all() as { id: string; user_id: string }[];
+  for (const row of rows) await deliverWorkoutRest(forUser(store, row.user_id), send, now, row.id);
+}
+async function deliverWorkoutRest(store: Store, send: PushSender, now: number, workoutId: string) {
+  const workout = new Sessions(store).get(workoutId);
   const rest = workout.rests.find((r) => r.ended_at === null && r.timer_paused_at === null);
   if (!rest) return;
   const remaining = restRemaining(rest, workout.pauses, now);
@@ -114,9 +117,9 @@ export async function deliverDueRests(store: Store, send: PushSender, now = Date
   const deadline = Math.round(now + remaining);
   const subscriptions = store.sqlite
     .prepare(
-      'SELECT p.id,p.subscription FROM push_subscription p JOIN session s ON s.id=p.session_id WHERE s.expires_at>? AND p.created_at<=?',
+      "SELECT p.id,p.subscription FROM push_subscription p JOIN session s ON s.id=p.session_id JOIN account_access a ON a.user_id=s.user_id WHERE s.user_id=? AND a.disabled_at IS NULL AND (a.role='member' OR EXISTS(SELECT 1 FROM session_verification v WHERE v.session_id=s.id)) AND s.expires_at>? AND p.created_at<=?",
     )
-    .all(now, deadline) as { id: string; subscription: string }[];
+    .all(store.userId, now, deadline) as { id: string; subscription: string }[];
   for (const subscription of subscriptions) {
     // Recheck after each awaited network request: pause, extension, or ending rest cancels unsent work.
     const current = new Sessions(store).get(workout.id);

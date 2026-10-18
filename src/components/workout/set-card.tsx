@@ -1,4 +1,5 @@
 'use client';
+import { useAccount } from '../account-context';
 import { AuctusSelect, setTypeOptions } from '../ui/select';
 import { useState } from 'react';
 import { Check, Play, SkipForward, Trash2 } from 'lucide-react';
@@ -18,7 +19,8 @@ export function SetCard({
   parentActive: boolean;
   send: Send;
 }) {
-  const key = 'auctus.set-draft.' + set.id;
+  const account = useAccount();
+  const key = `auctus.set-draft.${account.id}.${set.id}`;
   const [draft, setDraft] = useState<{ kg: string; reps: string; notes: string } | null>(() => {
     if (typeof window !== 'undefined') {
       try {

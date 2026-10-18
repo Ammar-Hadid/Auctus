@@ -5,7 +5,7 @@ Status: deployed on `nexo-vps` at https://auctus.ammarhadid.com on 18 October 20
 ## Current VPS installation
 
 - Source and Compose: `/srv/apps/auctus`; use `docker-compose.yml` explicitly. The repository's generic `compose.yaml` is for other installations.
-- App image: `auctus:706b4b7`, also tagged `auctus:production`. Deployment-only configuration and these notes are newer than the application image.
+- App image: `auctus:production`; releases are additionally tagged with the deployed Git commit. `auctus:706b4b7` is the retained pre-multi-account image; it requires a pre-0010 database for rollback.
 - Private configuration: `/srv/data/auctus/current/app.env` (mode 600).
 - SQLite and VAPID keys: `/srv/data/auctus/current/database/auctus.db` (parent mode 700).
 - Container: `auctus`, non-root, restart `unless-stopped`, no published host ports; existing external Docker network `auctus` connects it to Caddy.
@@ -24,7 +24,7 @@ docker compose -f docker-compose.yml restart auctus
 docker compose -f docker-compose.yml exec auctus node --import tsx scripts/owner.ts
 ```
 
-The owner account is provisioned; there is no need to run the owner command before signing in. Its password is not stored in deployment documentation or environment configuration. Resetting credentials revokes existing sessions and their push subscriptions.
+The owner account is provisioned; there is no need to run the owner command before signing in. Its password is not stored in deployment documentation or environment configuration. Resetting credentials revokes the master’s sessions and push subscriptions, preserves enrolled passkeys and does not change member accounts.
 
 Before updates, run the backup, tag the existing image for rollback, and build from the updated source using `docker compose -f docker-compose.yml build auctus`. Then use `docker compose -f docker-compose.yml up -d --no-build auctus`. Avoid unqualified Compose commands here because both the generic and VPS-specific files are present.
 
@@ -119,3 +119,18 @@ The restart policy recovers the process after Docker/host restart. Ensure Docker
 - [ ] Install on a real iPhone; test standalone safe areas, reload/background recovery and audio opt-in.
 - [ ] Verify a Monday 03:00 transition with deterministic tests; no destructive weekly reset exists.
 - [ ] Confirm backup schedule/destination and document the deployed commit/image.
+
+## Master passkey and member provisioning
+
+Migration 0010 converts the existing owner to the single master and assigns all existing records to that account. Migration 0011 adds passkeys and per-session verification. Pre-update master sessions cannot access private data until passkey verification; first enrollment requires a fresh password sign-in. The production passkey is bound to `auctus.ammarhadid.com`. The local development instance uses `localhost:3105` and needs separate enrollment.
+
+After the master completes device enrollment, Settings → Manage accounts permits member creation with a fresh password confirmation. No public signup or role promotion endpoint exists. The master can list accounts but cannot browse another account’s workouts. The dedicated test member has the same separately stored credentials on local and VPS databases; its training data remains independent in each database.
+
+Lost-passkey recovery requires SSH and an interactive command:
+
+```sh
+cd /srv/apps/auctus
+docker compose -f docker-compose.yml exec auctus node --import tsx scripts/reset-passkeys.ts
+```
+
+The command takes a database backup, requires the phrase `RESET MASTER PASSKEYS`, revokes master sessions and deletes master passkeys. Sign in with the existing password to enroll again. `scripts/owner.ts` resets only the master password and sessions, keeping passkeys. Neither recovery operation is exposed over HTTP. Backups contain account credentials and authentication material and must remain private.

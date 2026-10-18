@@ -38,7 +38,15 @@ export function openDatabase(path = process.env.DATABASE_PATH || './data/auctus.
   }
   return { sqlite, orm: drizzle(sqlite) };
 }
-export type Store = ReturnType<typeof openDatabase>;
+export type Store = ReturnType<typeof openDatabase> & { userId?: string };
+export function forUser(store: Store, userId: string): Store {
+  if (!userId) throw new Error('Account scope is required.');
+  return { ...store, userId };
+}
+export function accountId(store: Store): string {
+  if (!store.userId) throw new Error('Account scope is required.');
+  return store.userId;
+}
 const globalStore = globalThis as typeof globalThis & { auctusStore?: Store };
 export function getStore() {
   return (globalStore.auctusStore ??= openDatabase());

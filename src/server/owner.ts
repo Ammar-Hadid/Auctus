@@ -10,7 +10,9 @@ export async function provisionOwner(store: Store, email: string, password: stri
   const now = Date.now();
   store.sqlite
     .transaction(() => {
-      const prior = store.sqlite.prepare('SELECT id FROM user').get() as { id: string } | undefined;
+      const prior = store.sqlite
+        .prepare("SELECT user_id AS id FROM account_access WHERE role='master'")
+        .get() as { id: string } | undefined;
       const id = prior?.id ?? randomUUID();
       if (!prior) {
         store.sqlite
@@ -23,6 +25,16 @@ export async function provisionOwner(store: Store, email: string, password: stri
             'INSERT INTO account (id,account_id,provider_id,user_id,password,created_at,updated_at) VALUES (?,?,?,?,?,?,?)',
           )
           .run(randomUUID(), id, 'credential', id, hash, now, now);
+        store.sqlite.prepare("INSERT INTO account_access VALUES (?,'master',NULL)").run(id);
+        for (const table of [
+          'exercise',
+          'program',
+          'workout_template',
+          'schedule_event',
+          'weekly_assignment',
+          'workout_session',
+        ])
+          store.sqlite.prepare(`UPDATE ${table} SET user_id=? WHERE user_id IS NULL`).run(id);
       } else {
         store.sqlite.prepare('UPDATE user SET email=?,updated_at=? WHERE id=?').run(email, now, id);
         store.sqlite

@@ -126,6 +126,7 @@ export interface Metrics {
   duration: number;
 }
 export interface State {
+  account: { id: string; name: string; email: string; role: 'master' | 'member' };
   serverNow: number;
   exercises: Exercise[];
   programs: Program[];

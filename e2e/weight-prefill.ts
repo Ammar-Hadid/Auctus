@@ -2,8 +2,9 @@ import { expect, type Page } from '@playwright/test';
 
 export async function verifyPerSetWeightHistory(page: Page) {
   async function command(action: string, data: Record<string, unknown>) {
+    const account = (await (await page.request.get('/api/state')).json()).account;
     const response = await page.request.post('/api/command', {
-      headers: { origin: 'http://127.0.0.1:3100' },
+      headers: { 'x-auctus-account': account.id, origin: 'http://localhost:3100' },
       data: { requestId: crypto.randomUUID(), action, data },
     });
     const body = await response.json();

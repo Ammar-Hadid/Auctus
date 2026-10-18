@@ -1,7 +1,7 @@
 import { elapsed } from '../domain/timing';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import type { Store } from './db/connection';
+import { accountId, type Store } from './db/connection';
 import type {
   Workout,
   WorkoutDetail,
@@ -19,13 +19,19 @@ export class Sessions {
   constructor(
     public store: Store,
     public clock = Date.now,
-  ) {}
+  ) {
+    accountId(store);
+  }
+  get userId() {
+    return accountId(this.store);
+  }
   get sql() {
     return this.store.sqlite;
   }
   get(id: string): WorkoutDetail {
-    const w = this.sql.prepare('SELECT * FROM workout_session WHERE id=?').get(id) as
-      Workout | undefined;
+    const w = this.sql
+      .prepare('SELECT * FROM workout_session WHERE id=? AND user_id=?')
+      .get(id, this.userId) as Workout | undefined;
     requireCondition(w, 'Workout not found.', 404);
     const exercises = (
       this.sql
@@ -52,7 +58,9 @@ export class Sessions {
   }
   all() {
     return (
-      this.sql.prepare('SELECT id FROM workout_session ORDER BY started_at DESC').all() as {
+      this.sql
+        .prepare('SELECT id FROM workout_session WHERE user_id=? ORDER BY started_at DESC')
+        .all(this.userId) as {
         id: string;
       }[]
     ).map((w) => this.get(w.id));
@@ -65,14 +73,16 @@ export class Sessions {
         const { week } = p.availability();
         requireCondition(
           !this.sql
-            .prepare("SELECT id FROM workout_session WHERE status IN ('active','paused')")
-            .get(),
+            .prepare(
+              "SELECT id FROM workout_session WHERE user_id=? AND status IN ('active','paused')",
+            )
+            .get(this.userId),
           'Resume or abandon your unfinished workout first.',
           409,
         );
         const a = this.sql
-          .prepare('SELECT * FROM weekly_assignment WHERE id=?')
-          .get(assignmentId) as Assignment | undefined;
+          .prepare('SELECT * FROM weekly_assignment WHERE id=? AND user_id=?')
+          .get(assignmentId, this.userId) as Assignment | undefined;
         requireCondition(
           a && !a.withdrawn_at && a.week_id === week.id,
           'This workout is not available in the current training week.',
@@ -97,9 +107,9 @@ export class Sessions {
         const id = randomUUID();
         this.sql
           .prepare(
-            "INSERT INTO workout_session (id,assignment_id,template_id,name,notes,status,started_at) VALUES (?,?,?,?,?,'active',?)",
+            "INSERT INTO workout_session (id,assignment_id,template_id,name,notes,status,started_at,user_id) VALUES (?,?,?,?,?,'active',?,?)",
           )
-          .run(id, a.id, t.id, t.name, t.notes, now);
+          .run(id, a.id, t.id, t.name, t.notes, now, this.userId);
         t.exercises.forEach((e, i) => {
           const source = p.exercises().find((x) => x.id === e.exercise_id)!;
           const eid = randomUUID();

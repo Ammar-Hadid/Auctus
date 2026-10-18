@@ -1,9 +1,12 @@
+import { getStore } from './db/connection';
+import { profile } from './accounts';
+import { passkeyVerified } from './passkeys';
 import { getAuth } from './auth';
 import { DomainError } from './errors';
 import { ZodError } from 'zod';
-export async function authorize(request: Request, write = false) {
+export async function authorize(request: Request, write = false, allowPendingPasskey = false) {
   if (write) {
-    const expected = new URL(process.env.BETTER_AUTH_URL || 'http://127.0.0.1:3105').origin;
+    const expected = new URL(process.env.BETTER_AUTH_URL || 'http://localhost:3105').origin;
     if (request.headers.get('origin') !== expected)
       throw new DomainError('Request origin is not permitted.', 403);
     if (!request.headers.get('content-type')?.startsWith('application/json'))
@@ -12,6 +15,9 @@ export async function authorize(request: Request, write = false) {
   const session = await getAuth().api.getSession({ headers: request.headers });
   if (!session)
     throw new DomainError('Your sign-in expired. Sign in again; your draft is kept.', 401);
+  profile(getStore(), session.user.id);
+  if (!allowPendingPasskey && !passkeyVerified(getStore(), session.session.id, session.user.id))
+    throw new DomainError('Verify your passkey to unlock the master account.', 403);
   return session;
 }
 export function apiError(error: unknown) {

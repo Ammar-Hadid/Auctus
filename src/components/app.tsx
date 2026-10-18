@@ -16,6 +16,7 @@ import { ActiveWorkout } from './workout/active-workout';
 import { Dashboard } from './dashboard';
 import { Library } from './programming/library';
 import { Programs } from './programming/programs';
+import { AccountContext } from './account-context';
 import { Settings } from './settings';
 const nav = [
   { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -32,148 +33,150 @@ export function App({ initial }: { initial: State }) {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <button className="brand" onClick={() => navigate('dashboard')}>
-          AUCTUS<span>/</span>
-        </button>
-        <p className="brand-caption">A little stronger, every day.</p>
-        <nav aria-label="Main navigation">
+    <AccountContext.Provider value={model.state.account}>
+      <div className="app-shell">
+        <aside className="sidebar">
+          <button className="brand" onClick={() => navigate('dashboard')}>
+            AUCTUS<span>/</span>
+          </button>
+          <p className="brand-caption">A little stronger, every day.</p>
+          <nav aria-label="Main navigation">
+            {nav.map((n) => (
+              <button
+                key={n.id}
+                className={view === n.id ? 'nav-item selected' : 'nav-item'}
+                onClick={() => navigate(n.id)}
+              >
+                <n.icon size={19} />
+                {n.label}
+              </button>
+            ))}
+          </nav>
+          <div className="sidebar-bottom">
+            <div className="private-label">
+              <span />
+              Your private training space
+            </div>
+            <button
+              className={view === 'settings' ? 'nav-item selected' : 'nav-item'}
+              onClick={() => navigate('settings')}
+            >
+              <SettingsIcon size={19} />
+              Settings
+            </button>
+          </div>
+        </aside>
+        <div className="app-content">
+          <header className="topbar">
+            <span>
+              TRAINING JOURNAL <span className="muted">/</span> {view.toUpperCase()}
+            </span>
+            <button
+              className="small ghost"
+              onClick={() => navigate('settings')}
+              aria-label="Account settings"
+            >
+              {model.state.account.name}
+              <ArrowUpRight size={14} />
+            </button>
+          </header>
+          <main>
+            {model.offline && (
+              <div className="notice" role="status">
+                Offline · Changes cannot be confirmed saved. Reconnect to continue.
+              </div>
+            )}
+            {model.error && (
+              <div className="error" role="alert">
+                {model.error}{' '}
+                <a href="/login" target="_blank" rel="noreferrer">
+                  Sign in
+                </a>
+              </div>
+            )}
+            {model.pending && !model.busy && (
+              <div className="notice stack">
+                <p>
+                  One action has an unconfirmed result. Retrying the same request cannot save it
+                  twice.
+                </p>
+                <div className="row">
+                  <button onClick={model.retry}>Retry save</button>
+                  <button onClick={model.discard}>Discard local request & refresh</button>
+                </div>
+              </div>
+            )}
+            <fieldset disabled={model.busy} className="app-fields" aria-busy={model.busy}>
+              {view === 'dashboard' && (
+                <Dashboard state={model.state} send={model.send} navigate={navigate} />
+              )}
+              {view === 'library' && (
+                <Library
+                  exercises={model.state.exercises}
+                  send={model.send}
+                  onPrograms={() => navigate('programs')}
+                  onProgress={(id) => {
+                    setProgressId(id);
+                    navigate('progress');
+                  }}
+                />
+              )}
+              {view === 'history' && (
+                <HistoryView
+                  workouts={model.state.history}
+                  send={model.send}
+                  onProgress={(id) => {
+                    setProgressId(id);
+                    navigate('progress');
+                  }}
+                />
+              )}
+              {view === 'progress' && progressId && (
+                <ProgressView
+                  exercise={model.state.exercises.find((e) => e.id === progressId)!}
+                  workouts={model.state.history}
+                  back={() => navigate('library')}
+                />
+              )}
+              {view === 'programs' && (
+                <Programs
+                  state={model.state}
+                  send={model.send}
+                  locked={model.busy || !!model.pending}
+                />
+              )}
+              {view === 'workout' && model.state.activeWorkout && (
+                <ActiveWorkout
+                  state={model.state}
+                  send={model.send}
+                  finished={() => navigate('dashboard')}
+                />
+              )}
+              {view === 'settings' && <Settings account={model.state.account} />}
+            </fieldset>
+            {model.busy && (
+              <div className="save-indicator" role="status">
+                Saving to your journal…
+              </div>
+            )}
+          </main>
+          <footer className="app-footer">
+            AUCTUS <span>Consistency compounds.</span>
+          </footer>
+        </div>
+        <nav className="mobile-nav" aria-label="Mobile navigation">
           {nav.map((n) => (
             <button
               key={n.id}
-              className={view === n.id ? 'nav-item selected' : 'nav-item'}
+              className={view === n.id ? 'selected' : ''}
               onClick={() => navigate(n.id)}
             >
-              <n.icon size={19} />
-              {n.label}
+              <n.icon size={20} />
+              <span>{n.label}</span>
             </button>
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          <div className="private-label">
-            <span />
-            Your private training space
-          </div>
-          <button
-            className={view === 'settings' ? 'nav-item selected' : 'nav-item'}
-            onClick={() => navigate('settings')}
-          >
-            <SettingsIcon size={19} />
-            Settings
-          </button>
-        </div>
-      </aside>
-      <div className="app-content">
-        <header className="topbar">
-          <span>
-            TRAINING JOURNAL <span className="muted">/</span> {view.toUpperCase()}
-          </span>
-          <button
-            className="small ghost"
-            onClick={() => navigate('settings')}
-            aria-label="Account settings"
-          >
-            Personal
-            <ArrowUpRight size={14} />
-          </button>
-        </header>
-        <main>
-          {model.offline && (
-            <div className="notice" role="status">
-              Offline · Changes cannot be confirmed saved. Reconnect to continue.
-            </div>
-          )}
-          {model.error && (
-            <div className="error" role="alert">
-              {model.error}{' '}
-              <a href="/login" target="_blank" rel="noreferrer">
-                Sign in
-              </a>
-            </div>
-          )}
-          {model.pending && !model.busy && (
-            <div className="notice stack">
-              <p>
-                One action has an unconfirmed result. Retrying the same request cannot save it
-                twice.
-              </p>
-              <div className="row">
-                <button onClick={model.retry}>Retry save</button>
-                <button onClick={model.discard}>Discard local request & refresh</button>
-              </div>
-            </div>
-          )}
-          <fieldset disabled={model.busy} className="app-fields" aria-busy={model.busy}>
-            {view === 'dashboard' && (
-              <Dashboard state={model.state} send={model.send} navigate={navigate} />
-            )}
-            {view === 'library' && (
-              <Library
-                exercises={model.state.exercises}
-                send={model.send}
-                onPrograms={() => navigate('programs')}
-                onProgress={(id) => {
-                  setProgressId(id);
-                  navigate('progress');
-                }}
-              />
-            )}
-            {view === 'history' && (
-              <HistoryView
-                workouts={model.state.history}
-                send={model.send}
-                onProgress={(id) => {
-                  setProgressId(id);
-                  navigate('progress');
-                }}
-              />
-            )}
-            {view === 'progress' && progressId && (
-              <ProgressView
-                exercise={model.state.exercises.find((e) => e.id === progressId)!}
-                workouts={model.state.history}
-                back={() => navigate('library')}
-              />
-            )}
-            {view === 'programs' && (
-              <Programs
-                state={model.state}
-                send={model.send}
-                locked={model.busy || !!model.pending}
-              />
-            )}
-            {view === 'workout' && model.state.activeWorkout && (
-              <ActiveWorkout
-                state={model.state}
-                send={model.send}
-                finished={() => navigate('dashboard')}
-              />
-            )}
-            {view === 'settings' && <Settings />}
-          </fieldset>
-          {model.busy && (
-            <div className="save-indicator" role="status">
-              Saving to your journal…
-            </div>
-          )}
-        </main>
-        <footer className="app-footer">
-          AUCTUS <span>Consistency compounds.</span>
-        </footer>
       </div>
-      <nav className="mobile-nav" aria-label="Mobile navigation">
-        {nav.map((n) => (
-          <button
-            key={n.id}
-            className={view === n.id ? 'selected' : ''}
-            onClick={() => navigate(n.id)}
-          >
-            <n.icon size={20} />
-            <span>{n.label}</span>
-          </button>
-        ))}
-      </nav>
-    </div>
+    </AccountContext.Provider>
   );
 }

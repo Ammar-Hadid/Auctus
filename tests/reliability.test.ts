@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
-import { openDatabase } from '../src/server/db/connection';
+import { openDatabase } from './test-store';
 import { Programming } from '../src/server/programming';
 import { Sessions } from '../src/server/sessions';
 import { restDuration } from '../src/domain/timing';
@@ -112,11 +112,13 @@ describe('recovery and database invariants', () => {
     const store = openDatabase(':memory:');
     expect(() =>
       store.sqlite
-        .prepare("INSERT INTO workout_template VALUES ('missing','no-program','A','',NULL,0,0)")
+        .prepare(
+          "INSERT INTO workout_template (id,program_id,name,notes,archived_at,version,created_at,user_id) VALUES ('missing','no-program','A','',NULL,0,0,'test-owner')",
+        )
         .run(),
     ).toThrow('FOREIGN KEY');
     expect(() =>
-      store.sqlite.prepare("INSERT INTO settings VALUES (1,'no-program')").run(),
+      store.sqlite.prepare("INSERT INTO settings VALUES ('test-owner','no-program')").run(),
     ).toThrow('FOREIGN KEY');
     store.sqlite.close();
   });

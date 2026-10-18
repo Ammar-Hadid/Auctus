@@ -13,6 +13,7 @@ export function useModel(initial: State) {
     [busy, setBusy] = useState(false),
     [offline, setOffline] = useState(false),
     [pending, setPending] = useState<Pending | null>(null);
+  const pendingKey = `auctus.pending.${initial.account.id}`;
   const lock = useRef(false);
   // Keep the original editor's completion action when an uncertain write is retried.
   const confirmation = useRef<{ requestId: string; callback: (result: unknown) => void } | null>(
@@ -29,6 +30,10 @@ export function useModel(initial: State) {
         return;
       }
       const next: State = await r.json();
+      if (next.account.id !== initial.account.id) {
+        location.replace(new URL('/', location.origin).href);
+        return;
+      }
       if (sequence === refreshSequence.current) {
         setState(next);
         setOffline(false);
@@ -36,15 +41,15 @@ export function useModel(initial: State) {
     } catch {
       setOffline(true);
     }
-  }, []);
+  }, [initial.account.id]);
   useEffect(() => {
     const recover = () => {
-      const raw = localStorage.getItem('auctus.pending');
+      const raw = localStorage.getItem(pendingKey);
       if (raw) {
         try {
           setPending(JSON.parse(raw));
         } catch {
-          localStorage.removeItem('auctus.pending');
+          localStorage.removeItem(pendingKey);
         }
       }
       void refresh();
@@ -66,7 +71,7 @@ export function useModel(initial: State) {
       window.removeEventListener('offline', onOffline);
       document.removeEventListener('visibilitychange', visible);
     };
-  }, [refresh]);
+  }, [refresh, pendingKey]);
   const execute = useCallback(
     async (p: Pending) => {
       if (lock.current) return false;
@@ -75,16 +80,16 @@ export function useModel(initial: State) {
       setError('');
       setPending(p);
       try {
-        localStorage.setItem('auctus.pending', JSON.stringify(p));
+        localStorage.setItem(pendingKey, JSON.stringify(p));
         const r = await fetch('/api/command', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-auctus-account': initial.account.id },
           body: JSON.stringify(p),
         });
         const body = await r.json();
         if (!r.ok) {
           if (r.status !== 401 && r.status < 500) {
-            localStorage.removeItem('auctus.pending');
+            localStorage.removeItem(pendingKey);
             setPending(null);
             confirmation.current = null;
           }
@@ -96,7 +101,7 @@ export function useModel(initial: State) {
         ++refreshSequence.current;
         setState(body.state);
         setOffline(false);
-        localStorage.removeItem('auctus.pending');
+        localStorage.removeItem(pendingKey);
         setPending(null);
         const callback =
           confirmation.current?.requestId === p.requestId ? confirmation.current.callback : null;
@@ -113,7 +118,7 @@ export function useModel(initial: State) {
         setBusy(false);
       }
     },
-    [refresh],
+    [refresh, pendingKey, initial.account.id],
   );
   const send: Send = useCallback(
     (action, data, onConfirmed) => {
@@ -141,7 +146,7 @@ export function useModel(initial: State) {
     retry: () => (pending ? execute(pending) : Promise.resolve(false)),
     discard: () => {
       confirmation.current = null;
-      localStorage.removeItem('auctus.pending');
+      localStorage.removeItem(pendingKey);
       setPending(null);
       setError('');
       void refresh();
