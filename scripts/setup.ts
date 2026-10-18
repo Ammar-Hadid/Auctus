@@ -10,4 +10,4 @@ if (existsSync('.env.local')) {
   );
   console.log('Created private .env.local with a random authentication secret.');
 }
-console.log('Next: pnpm db:migrate, then pnpm owner to create your private account.');
+console.log('Next: pnpm db:migrate, then pnpm run owner to create your private account.');

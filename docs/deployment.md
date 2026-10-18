@@ -11,7 +11,7 @@ Status: deployment package prepared. No VPS has been accessed or changed. Confir
 | `BETTER_AUTH_SECRET` | At least 32 random characters; generate with `openssl rand -base64 48` |
 | `PORT` | Application port; container uses 3000 |
 
-Use a private `.env` file for Compose (mode 600) or a host secret manager. Do not commit it. `pnpm setup` generates `.env.local` for local development only; its HTTP origin is not a production setting. Keep the auth secret stable across restarts and do not put it in browser-visible variables.
+Use a private `.env` file for Compose (mode 600) or a host secret manager. Do not commit it. `pnpm run setup` generates `.env.local` for local development only; its HTTP origin is not a production setting. Keep the auth secret stable across restarts and do not put it in browser-visible variables.
 
 ## Build and boot
 

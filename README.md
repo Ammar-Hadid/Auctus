@@ -8,13 +8,13 @@ Use Node **24 LTS** and pnpm **11.25.0**. With nvm, run `nvm install && nvm use`
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm setup
+pnpm run setup
 pnpm db:migrate
-pnpm owner
+pnpm run owner
 pnpm dev
 ```
 
-`pnpm setup` creates a private, ignored `.env.local` containing a random authentication secret. `pnpm owner` prompts for your email and a hidden password (12–128 characters). Re-running it changes the owner credentials and revokes all login sessions. No public signup exists. Open [127.0.0.1:3105](http://127.0.0.1:3105).
+`pnpm run setup` creates a private, ignored `.env.local` containing a random authentication secret. `pnpm run owner` prompts for your email and a hidden password (12–128 characters). Re-running it changes the owner credentials and revokes all login sessions. Use the explicit `run`: `pnpm owner` is pnpm’s registry-owner command, not this application’s setup script. No public signup exists. Open [127.0.0.1:3105](http://127.0.0.1:3105).
 
 Your data lives at `data/auctus.db`, outside Git. Never delete this directory to update the app. Set `DATABASE_PATH` to another local persistent path if needed. The canonical `BETTER_AUTH_URL` must match the origin you open, including the port.
 

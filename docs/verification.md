@@ -28,7 +28,7 @@ Additional regression coverage protects archived-program assignment history and 
 
 ## Outstanding acceptance
 
-- User runs `pnpm owner` privately to establish personal credentials.
+- User runs `pnpm run owner` privately to establish personal credentials.
 - Real iPhone Safari/home-screen install, safe areas, suspend/resume, foreground sound and supported vibration. WebKit emulation is not physical iOS proof.
 - VPS OS/resources/architecture, existing proxy, DNS/subdomain, access and backup destination; then HTTPS/cookies, firewall, startup, deployment restart and off-host restore checks.
 - Offline logging is deliberately excluded. The app requires connectivity to confirm writes and retains one uncertain command for manual retry. Local draft storage and recovery are not a replacement for server backups.
