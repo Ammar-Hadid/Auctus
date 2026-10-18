@@ -30,11 +30,12 @@ function requireEnrollment(store: Store, sessionId: string, userId: string) {
     .prepare('SELECT created_at FROM session WHERE id=? AND user_id=? AND expires_at>?')
     .get(sessionId, userId, Date.now()) as { created_at: number } | undefined;
   requireCondition(row, 'Sign in again.', 401);
+  const enrolled = hasPasskey(store, userId);
   requireCondition(
-    hasPasskey(store, userId)
-      ? passkeyVerified(store, sessionId, userId)
-      : Date.now() - row.created_at < 300000,
-    'Sign in again and verify your existing passkey before adding a passkey.',
+    enrolled ? passkeyVerified(store, sessionId, userId) : Date.now() - row.created_at < 300000,
+    enrolled
+      ? 'Sign in again and verify your existing passkey before adding a passkey.'
+      : 'Sign in again to create your first passkey. Enrollment requires a password login from the last five minutes.',
     403,
   );
 }
