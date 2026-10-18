@@ -1,3 +1,57 @@
 'use client';
 import { useState } from 'react';
-export function Settings(){const [error,setError]=useState('');return <div className="stack"><h1>Your space</h1><section className="panel stack"><h2>Training conventions</h2><p>Weights are kilograms. Dumbbell loads are per dumbbell; unilateral repetitions are per side. Volume uses entered load × reps without doubling.</p><p>The training week starts Monday at 03:00 in Europe/Amsterdam. A workout crossing the boundary stays in its original week.</p></section><section className="panel stack"><h2>Install Auctus</h2><p>On iPhone: open this site in Safari, tap Share, then Add to Home Screen. HTTPS is required in production.</p><p>Confirmed records live on your server. An internet connection is required to save changes. Timers recover when you return, but background sound and vibration are not guaranteed.</p></section><section className="panel stack"><h2>Private account</h2><p>To reset your password, run the owner command on the server. This also revokes existing sessions.</p>{error&&<p className="error">{error}</p>}<button onClick={async()=>{try{const r=await fetch('/api/auth/sign-out',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});if(!r.ok)throw new Error('Sign out failed.');location.reload();}catch{setError('Unable to sign out. Reconnect and retry.');}}}>Sign out</button></section></div>;}
+export function Settings() {
+  const [error, setError] = useState('');
+  return (
+    <div className="stack">
+      <h1>Your space</h1>
+      <section className="panel stack">
+        <h2>Training conventions</h2>
+        <p>
+          Weights are kilograms. Dumbbell loads are per dumbbell; unilateral repetitions are per
+          side. Volume uses entered load × reps without doubling.
+        </p>
+        <p>
+          The training week starts Monday at 03:00 in Europe/Amsterdam. A workout crossing the
+          boundary stays in its original week.
+        </p>
+      </section>
+      <section className="panel stack">
+        <h2>Install Auctus</h2>
+        <p>
+          On iPhone: open this site in Safari, tap Share, then Add to Home Screen. HTTPS is required
+          in production.
+        </p>
+        <p>
+          Confirmed records live on your server. An internet connection is required to save changes.
+          Timers recover when you return, but background sound and vibration are not guaranteed.
+        </p>
+      </section>
+      <section className="panel stack">
+        <h2>Private account</h2>
+        <p>
+          To reset your password, run the owner command on the server. This also revokes existing
+          sessions.
+        </p>
+        {error && <p className="error">{error}</p>}
+        <button
+          onClick={async () => {
+            try {
+              const r = await fetch('/api/auth/sign-out', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: '{}',
+              });
+              if (!r.ok) throw new Error('Sign out failed.');
+              location.reload();
+            } catch {
+              setError('Unable to sign out. Reconnect and retry.');
+            }
+          }}
+        >
+          Sign out
+        </button>
+      </section>
+    </div>
+  );
+}

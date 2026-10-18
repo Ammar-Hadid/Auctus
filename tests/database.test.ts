@@ -10,13 +10,15 @@ describe('persistent foundation', () => {
     const file = join(dir, 'test.db');
     try {
       const first = openDatabase(file);
-      first.sqlite.prepare("INSERT INTO settings (id, selected_program_id) VALUES (1, NULL)").run();
+      first.sqlite.prepare('INSERT INTO settings (id, selected_program_id) VALUES (1, NULL)').run();
       expect(first.sqlite.pragma('foreign_keys', { simple: true })).toBe(1);
       first.sqlite.close();
       const reopened = openDatabase(file);
       expect(reopened.sqlite.prepare('SELECT id FROM settings').get()).toEqual({ id: 1 });
       expect(reopened.sqlite.pragma('integrity_check', { simple: true })).toBe('ok');
       reopened.sqlite.close();
-    } finally { rmSync(dir, { recursive: true, force: true }); }
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

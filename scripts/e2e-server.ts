@@ -4,9 +4,26 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { openDatabase } from '../src/server/db/connection';
 import { provisionOwner } from '../src/server/owner';
-const dir=mkdtempSync(join(tmpdir(),'auctus-e2e-'));
-const file=join(dir,'training.db');const store=openDatabase(file);
-await provisionOwner(store,'athlete@example.test','test-only-training-password');store.sqlite.close();
-const child=spawn('node',['node_modules/next/dist/bin/next','dev','--hostname','127.0.0.1','--port','3100'],{stdio:'inherit',env:{...process.env,DATABASE_PATH:file,BETTER_AUTH_URL:'http://127.0.0.1:3100',BETTER_AUTH_SECRET:'e2e-only-secret-never-use-in-production-123456789'}});
-for(const signal of ['SIGTERM','SIGINT'] as const)process.on(signal,()=>child.kill(signal));
-child.on('exit',code=>{rmSync(dir,{recursive:true,force:true});process.exit(code??0);});
+const dir = mkdtempSync(join(tmpdir(), 'auctus-e2e-'));
+const file = join(dir, 'training.db');
+const store = openDatabase(file);
+await provisionOwner(store, 'athlete@example.test', 'test-only-training-password');
+store.sqlite.close();
+const child = spawn(
+  'node',
+  ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3100'],
+  {
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      DATABASE_PATH: file,
+      BETTER_AUTH_URL: 'http://127.0.0.1:3100',
+      BETTER_AUTH_SECRET: 'e2e-only-secret-never-use-in-production-123456789',
+    },
+  },
+);
+for (const signal of ['SIGTERM', 'SIGINT'] as const) process.on(signal, () => child.kill(signal));
+child.on('exit', (code) => {
+  rmSync(dir, { recursive: true, force: true });
+  process.exit(code ?? 0);
+});
