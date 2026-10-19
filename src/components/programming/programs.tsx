@@ -1,4 +1,5 @@
 'use client';
+import { WorkoutRequirement } from '../ui/workout-requirement';
 import { useState } from 'react';
 import { Plus, ArrowLeft, ArrowUpRight, Check } from 'lucide-react';
 import type { State, Program, Template } from '@/domain/types';
@@ -102,6 +103,7 @@ export function Programs({ state, send, locked }: { state: State; send: Send; lo
                   <span className="ordinal">{String(i + 1).padStart(2, '0')}</span>
                   <div className="grow">
                     <h2>{t.name}</h2>
+                    <WorkoutRequirement mandatory={t.mandatory} />
                     <p>
                       {t.exercises.length} exercises ·{' '}
                       {t.exercises.reduce((n, e) => n + e.sets.length, 0)} sets

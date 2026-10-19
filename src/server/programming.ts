@@ -44,6 +44,7 @@ export class Programming {
         .all(this.userId) as Omit<Template, 'exercises'>[]
     ).map((t) => ({
       ...t,
+      mandatory: Boolean(t.mandatory),
       exercises: (
         this.sql
           .prepare('SELECT * FROM template_exercise WHERE template_id=? ORDER BY position')
@@ -136,15 +137,25 @@ export class Programming {
           );
           requireCondition(!prior.archived_at, 'Archived workouts cannot be edited.');
           this.sql
-            .prepare('UPDATE workout_template SET name=?,notes=?,version=version+1 WHERE id=?')
-            .run(v.name, v.notes, key);
+            .prepare(
+              'UPDATE workout_template SET name=?,notes=?,mandatory=?,version=version+1 WHERE id=?',
+            )
+            .run(v.name, v.notes, Number(v.mandatory ?? prior.mandatory), key);
           this.sql.prepare('DELETE FROM template_exercise WHERE template_id=?').run(key);
         } else
           this.sql
             .prepare(
-              'INSERT INTO workout_template (id,program_id,name,notes,archived_at,version,created_at,user_id) VALUES (?,?,?,?,NULL,0,?,?)',
+              'INSERT INTO workout_template (id,program_id,name,notes,archived_at,version,created_at,user_id,mandatory) VALUES (?,?,?,?,NULL,0,?,?,?)',
             )
-            .run(key, v.program_id, v.name, v.notes, this.clock(), this.userId);
+            .run(
+              key,
+              v.program_id,
+              v.name,
+              v.notes,
+              this.clock(),
+              this.userId,
+              Number(v.mandatory ?? true),
+            );
         const usedIds = new Set<string>();
         v.exercises.forEach((e, position) => {
           requireCondition(
@@ -262,11 +273,13 @@ export class Programming {
               .run(at, a.id);
         return {
           week,
-          assignments: this.sql
-            .prepare(
-              'SELECT *,0 AS completed FROM weekly_assignment WHERE week_id=? AND user_id=? ORDER BY rowid',
-            )
-            .all(week.id, this.userId) as Assignment[],
+          assignments: (
+            this.sql
+              .prepare(
+                'SELECT a.*,t.mandatory,0 AS completed FROM weekly_assignment a JOIN workout_template t ON t.id=a.template_id WHERE a.week_id=? AND a.user_id=? ORDER BY a.rowid',
+              )
+              .all(week.id, this.userId) as Assignment[]
+          ).map((a) => ({ ...a, mandatory: Boolean(a.mandatory) })),
         };
       })
       .immediate();

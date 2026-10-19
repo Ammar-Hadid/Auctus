@@ -54,6 +54,10 @@ it('upgrades populated databases without changing actual results or legacy sessi
       equipment: null,
     });
     expect(new Sessions(migrated).get('w').exercises[0].equipment).toBeNull();
+    expect(new Sessions(migrated).get('w').mandatory).toBe(true);
+    expect(
+      migrated.sqlite.prepare('SELECT mandatory FROM workout_template WHERE id=?').get('t'),
+    ).toEqual({ mandatory: 1 });
     const active = new Sessions(migrated).get('w').exercises[0].sets[1];
     // Exact targets are preserved as equal bounds by the subsequent rep-range migration.
     expect(active).toMatchObject({ min_reps: 8, max_reps: 8 });

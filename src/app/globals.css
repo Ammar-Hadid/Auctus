@@ -1677,3 +1677,24 @@ main:not(.login):has(.rest-panel) {
   font-weight: 400;
   margin-top: 2px;
 }
+
+.workout-requirement {
+  display: inline-block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.workout-requirement.mandatory {
+  font-weight: 600;
+}
+.workout-requirement.optional {
+  font-weight: 400;
+  font-style: italic;
+}
+.workout-requirement-field {
+  gap: 8px;
+}
+.workout-requirement-field p,
+.weekly-goal-summary {
+  font-size: 12px;
+}

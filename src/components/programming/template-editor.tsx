@@ -77,6 +77,7 @@ export function TemplateEditor({
           program_id: programId,
           name: f.get('name'),
           notes: f.get('notes'),
+          mandatory: f.get('mandatory') === 'true',
           exercises: snapshot.map((e) => ({ id: e.id, exercise_id: e.exercise_id, sets: e.sets })),
         },
         (result) => {
@@ -133,6 +134,23 @@ export function TemplateEditor({
               placeholder="e.g. Full Body A"
             />
           </label>
+          <div className="stack workout-requirement-field">
+            <label htmlFor="workout-mandatory">Mandatory</label>
+            <AuctusSelect
+              id="workout-mandatory"
+              label="Mandatory"
+              name="mandatory"
+              defaultValue={String(template?.mandatory ?? true)}
+              required
+              options={[
+                { value: 'true', label: 'Yes — mandatory' },
+                { value: 'false', label: 'No — optional' },
+              ]}
+            />
+            <p className="muted">
+              Mandatory workouts count toward your weekly goal. Optional workouts are extra.
+            </p>
+          </div>
           <label>
             Workout notes
             <textarea name="notes" defaultValue={template?.notes} />

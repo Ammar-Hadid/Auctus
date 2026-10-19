@@ -16,6 +16,7 @@ export const prescription = z
     path: ['max_reps'],
   });
 export const templateInput = z.object({
+  mandatory: z.boolean().optional(),
   id: id.optional(),
   version: z.number().int().nonnegative().optional(),
   program_id: id,

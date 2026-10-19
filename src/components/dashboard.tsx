@@ -1,3 +1,5 @@
+import { weeklyGoal } from '@/domain/weekly-goal';
+import { WorkoutRequirement } from './ui/workout-requirement';
 import { ActivityStatusLabel } from './ui/activity-status';
 import { ArrowUpRight, Check, Play } from 'lucide-react';
 import type { State } from '@/domain/types';
@@ -13,7 +15,7 @@ export function Dashboard({
 }) {
   const program = state.programs.find((p) => p.id === state.selectedProgramId);
   const available = state.assignments.filter((a) => !a.withdrawn_at);
-  const completed = available.filter((a) => a.completed > 0).length;
+  const goal = weeklyGoal(state.assignments);
   const weekLabel = new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
     month: 'short',
@@ -51,6 +53,7 @@ export function Dashboard({
           <div>
             <ActivityStatusLabel status={state.activeWorkout.status} />
             <h2>{state.activeWorkout.name}</h2>
+            <WorkoutRequirement mandatory={state.activeWorkout.mandatory} />
             <p>Your session is saved. Pick up where you left off.</p>
           </div>
           <button className="primary" onClick={() => navigate('workout')}>
@@ -79,13 +82,22 @@ export function Dashboard({
           <p>{program?.name ?? 'Select a program to get started'}</p>
         </div>
         <span className="completion-count">
-          {completed}
-          <span> / {available.length}</span>
+          {goal.completed}
+          <span> / {goal.total} mandatory</span>
         </span>
       </div>
       <div className="progress-track">
-        <div style={{ width: `${available.length ? (completed / available.length) * 100 : 0}%` }} />
+        <div style={{ width: `${goal.total ? (goal.completed / goal.total) * 100 : 0}%` }} />
       </div>
+      {available.length > 0 && (
+        <p className="muted weekly-goal-summary">
+          {goal.total === 0
+            ? 'No mandatory workouts this week.'
+            : `${goal.completed} of ${goal.total} mandatory workouts completed.`}
+          {goal.optionalTotal > 0 &&
+            ` ${goal.optionalCompleted} of ${goal.optionalTotal} optional workouts completed.`}
+        </p>
+      )}
       {available.length ? (
         <div className="list">
           {available.map((a, i) => {
@@ -105,6 +117,7 @@ export function Dashboard({
                     )}
                   </span>
                   <h2>{a.name}</h2>
+                  <WorkoutRequirement mandatory={a.mandatory} />
                   <p>
                     {t?.exercises.length ?? 0} exercises ·{' '}
                     {t?.exercises.reduce((n, e) => n + e.sets.length, 0) ?? 0} sets

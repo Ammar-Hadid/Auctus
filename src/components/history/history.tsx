@@ -1,4 +1,5 @@
 'use client';
+import { WorkoutRequirement } from '../ui/workout-requirement';
 import { EquipmentLabel } from '../ui/equipment';
 import { ActivityStatusLabel } from '../ui/activity-status';
 import { AuctusSelect } from '../ui/select';
@@ -52,6 +53,7 @@ export function HistoryView({
               <ActivityStatusLabel status={w.status} /> · {date(w.started_at)}
             </span>
             <h1>{w.name}</h1>
+            <WorkoutRequirement mandatory={w.mandatory} />
           </div>
           <button onClick={() => setEditing({ kind: 'workout' })}>
             <Edit3 size={15} />
@@ -210,6 +212,7 @@ export function HistoryView({
                     {date(w.started_at)} · <ActivityStatusLabel status={w.status} />
                   </span>
                   <h2>{w.name}</h2>
+                  <WorkoutRequirement mandatory={w.mandatory} />
                   <p>
                     {
                       w.exercises.flatMap((e) => e.sets).filter((s) => s.status === 'completed')

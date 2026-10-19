@@ -30,6 +30,7 @@ export interface TemplateExercise {
   sets: Prescription[];
 }
 export interface Template {
+  mandatory: boolean;
   id: string;
   program_id: string;
   name: string;
@@ -40,6 +41,7 @@ export interface Template {
   exercises: TemplateExercise[];
 }
 export interface Assignment {
+  mandatory: boolean;
   id: string;
   week_id: string;
   template_id: string;
@@ -53,6 +55,7 @@ export interface Week {
   end: number;
 }
 export interface Workout {
+  mandatory: boolean;
   week_id?: string;
   id: string;
   assignment_id: string;

@@ -47,6 +47,7 @@ export class Sessions {
     }));
     return {
       ...w,
+      mandatory: Boolean(w.mandatory),
       exercises,
       pauses: this.sql
         .prepare('SELECT * FROM workout_pause WHERE workout_id=? ORDER BY started_at')
@@ -107,9 +108,9 @@ export class Sessions {
         const id = randomUUID();
         this.sql
           .prepare(
-            "INSERT INTO workout_session (id,assignment_id,template_id,name,notes,status,started_at,user_id) VALUES (?,?,?,?,?,'active',?,?)",
+            "INSERT INTO workout_session (id,assignment_id,template_id,name,notes,status,started_at,user_id,mandatory) VALUES (?,?,?,?,?,'active',?,?,?)",
           )
-          .run(id, a.id, t.id, t.name, t.notes, now, this.userId);
+          .run(id, a.id, t.id, t.name, t.notes, now, this.userId, Number(t.mandatory));
         t.exercises.forEach((e, i) => {
           const source = p.exercises().find((x) => x.id === e.exercise_id)!;
           const eid = randomUUID();

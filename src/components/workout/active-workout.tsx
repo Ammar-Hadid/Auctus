@@ -1,4 +1,5 @@
 'use client';
+import { WorkoutRequirement } from '../ui/workout-requirement';
 import { EquipmentLabel } from '../ui/equipment';
 import { ActivityIcon, ActivityStatusLabel, activityLabels } from '../ui/activity-status';
 import { ExercisePicker } from '../programming/exercise-picker';
@@ -51,6 +52,7 @@ export function ActiveWorkout({
             {w.status === 'paused' ? 'Workout paused' : 'Session in progress'}
           </span>
           <h1>{w.name}</h1>
+          <WorkoutRequirement mandatory={w.mandatory} />
         </div>
         <div className="session-time number">
           {durationLabel(activeDuration(w, now))}
