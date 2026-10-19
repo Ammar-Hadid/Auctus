@@ -297,3 +297,14 @@ member login/logout plus client-intercepted sign-in errors: fixed overlay, uncha
 height and dismissal. No real failed authentication or training-data writes were needed.
 Other service container IDs are unchanged. Backup: `auctus-2026-10-19T11-44-31Z.db`;
 rollback image: `auctus:before-fixed-toasts-2026-10-19`. Local port 3105 also serves the update.
+
+### Automatic toast expiry
+
+Transient notifications, including errors and warnings, now inherit a five-second timeout.
+Hover/focus still pauses expiry; manual dismissal remains available. Saving, offline and
+unconfirmed-write notices persist until resolved so recovery controls are not lost.
+Four Chromium/mobile WebKit notification checks pass, including automatic expiry, repeat
+errors and dialog retry controls. Typecheck, lint, local/Docker builds and 51 unit/integration
+tests pass. Public HTTPS tests confirm automatic expiry in both browsers.
+Image `auctus:9fbd906` is healthy; unrelated service IDs are unchanged. Backup:
+`auctus-2026-10-19T11-53-17Z.db`; rollback: `auctus:before-toast-expiry-2026-10-19`.
