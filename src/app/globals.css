@@ -26,8 +26,7 @@
 }
 html {
   scroll-padding-bottom: calc(
-    var(--mobile-nav-height, 0px) + var(--rest-panel-height, 0px) +
-      var(--viewport-bottom-offset, 0px) + 24px
+    var(--bottom-dock-height, 0px) + var(--viewport-bottom-offset, 0px) + 24px
   );
 }
 body {
@@ -617,7 +616,6 @@ main:not(.login) {
   }
   .app-content {
     margin-left: 0;
-    padding-bottom: var(--mobile-nav-height, 80px);
   }
   input,
   select,
@@ -660,15 +658,10 @@ main:not(.login) {
   }
   .mobile-nav {
     display: flex;
-    position: fixed;
-    bottom: var(--viewport-bottom-offset, 0px);
-    left: 0;
-    right: 0;
     justify-content: space-around;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-    background: #111417f5;
+    background: transparent;
     border-top: 1px solid var(--line);
-    backdrop-filter: blur(12px);
     z-index: 30;
   }
   .mobile-nav button {
@@ -982,12 +975,7 @@ main:not(.login) {
   padding: 0 8px;
 }
 .rest-panel {
-  position: fixed;
-  bottom: calc(
-    var(--mobile-nav-height, 0px) + var(--viewport-bottom-offset, 0px) +
-      max(12px, env(safe-area-inset-bottom))
-  );
-  z-index: 40;
+  position: relative;
   flex-wrap: wrap;
   display: flex;
   justify-content: space-between;
@@ -998,7 +986,7 @@ main:not(.login) {
   border-radius: 12px;
   background: #1b2416;
   max-height: calc(
-    100dvh - var(--mobile-nav-height, 0px) - var(--viewport-bottom-offset, 0px) - 24px
+    100dvh - var(--viewport-bottom-offset, 0px) - 100px - env(safe-area-inset-bottom)
   );
   overflow-y: auto;
 }
@@ -1014,6 +1002,12 @@ main:not(.login) {
 .rest-panel.collapsed {
   padding: 8px 60px 8px 18px;
   min-height: 60px;
+  flex-wrap: nowrap;
+}
+.rest-panel.collapsed .rest-controls {
+  width: auto;
+  margin-left: auto;
+  flex-wrap: nowrap;
 }
 .rest-panel.collapsed .rest-clock {
   font-size: 28px;
@@ -1446,12 +1440,61 @@ td:nth-child(2) {
   border-top: 1px solid var(--line);
 }
 
-/* Reserve space after the footer so every part of the page clears the dock. */
-.app-content:has(.rest-panel) {
-  padding-bottom: calc(
-    var(--mobile-nav-height, 0px) + var(--rest-panel-height, 220px) +
-      var(--viewport-bottom-offset, 0px) + max(24px, env(safe-area-inset-bottom))
-  );
+/* Timer and mobile navigation share one fixed surface and one measured spacer. */
+.bottom-dock {
+  display: none;
+  position: fixed;
+  z-index: 40;
+  left: 244px;
+  right: 0;
+  bottom: var(--viewport-bottom-offset, 0px);
+  padding: 0 48px max(12px, env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.bottom-dock:has(.rest-panel) {
+  display: block;
+}
+.bottom-dock-inner {
+  max-width: 1104px;
+  margin: 0 auto;
+  pointer-events: auto;
+}
+.dock-fields {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.app-content {
+  padding-bottom: calc(var(--bottom-dock-height, 0px) + var(--viewport-bottom-offset, 0px) + 12px);
+}
+@media (max-width: 1100px) {
+  .bottom-dock {
+    left: 210px;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+}
+@media (max-width: 760px) {
+  .bottom-dock {
+    display: block;
+    left: 0;
+    padding: 0;
+  }
+  .bottom-dock-inner {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+  .bottom-dock .rest-panel {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(60px, env(safe-area-inset-right));
+  }
+  .bottom-dock:not(:has(.rest-panel)) .mobile-nav {
+    border-top: 0;
+  }
 }
 
 /* Activity states share colors across the workout, overview and history. */
@@ -1589,7 +1632,7 @@ td:nth-child(2) {
   z-index: 200;
   right: max(20px, env(safe-area-inset-right));
   bottom: calc(
-    var(--rest-panel-height, 0px) + var(--viewport-bottom-offset, 0px) +
+    var(--bottom-dock-height, 0px) + var(--viewport-bottom-offset, 0px) +
       max(24px, env(safe-area-inset-bottom))
   );
   display: flex;
@@ -1679,10 +1722,7 @@ td:nth-child(2) {
 @media (max-width: 760px) {
   .toast-viewport {
     right: 16px;
-    bottom: calc(
-      var(--mobile-nav-height, 80px) + var(--rest-panel-height, 0px) +
-        var(--viewport-bottom-offset, 0px) + 24px
-    );
+    bottom: calc(var(--bottom-dock-height, 80px) + var(--viewport-bottom-offset, 0px) + 24px);
     max-height: 50dvh;
   }
   body:has(.login) .toast-viewport {

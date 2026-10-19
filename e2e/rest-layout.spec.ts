@@ -69,7 +69,7 @@ test('bottom timer collapses, preserves scrolling and follows the mobile viewpor
         const edge = mobile ? (await nav.boundingBox())!.y : page.viewportSize()!.height;
         return Math.round(edge - t.y - t.height);
       })
-      .toBe(12);
+      .toBe(mobile ? 0 : 12);
     if (mobile) {
       await expect
         .poll(async () => {
@@ -95,10 +95,23 @@ test('bottom timer collapses, preserves scrolling and follows the mobile viewpor
       return last.y + last.height <= (await timer.boundingBox())!.y;
     })
     .toBe(true);
-  await page.screenshot({ path: `/tmp/auctus-bottom-expanded-${test.info().project.name}.png` });
+  await page.screenshot({
+    path: `/tmp/auctus-unified-expanded-${test.info().project.name}.png`,
+    scale: 'css',
+  });
   const expanded = (await timer.boundingBox())!.height;
   await timer.getByRole('button', { name: 'Collapse rest timer' }).click();
-  await expect(timer.getByRole('button')).toHaveCount(1);
+  await expect(timer.getByRole('button')).toHaveCount(2);
+  await expect(timer.getByRole('button', { name: 'End rest', exact: true })).toBeVisible();
+  expect(
+    await page.evaluate(
+      (id) => localStorage.getItem(`auctus.rest-collapsed.${id}`),
+      state.account.id,
+    ),
+  ).toBe('true');
+  await page.reload();
+  await expect(timer.getByRole('button', { name: 'Expand rest timer' })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
   await expect(timer.getByRole('button', { name: 'Expand rest timer' })).toHaveAttribute(
     'aria-expanded',
     'false',
@@ -113,7 +126,10 @@ test('bottom timer collapses, preserves scrolling and follows the mobile viewpor
       return last.y + last.height <= (await timer.boundingBox())!.y;
     })
     .toBe(true);
-  await page.screenshot({ path: `/tmp/auctus-bottom-collapsed-${test.info().project.name}.png` });
+  await page.screenshot({
+    path: `/tmp/auctus-unified-collapsed-${test.info().project.name}.png`,
+    scale: 'css',
+  });
   await timer.getByRole('button', { name: 'Expand rest timer' }).click();
   await timer.getByRole('button', { name: 'Pause rest timer' }).click();
   const paused = await timer.getByRole('timer').textContent();
@@ -147,13 +163,27 @@ test('bottom timer collapses, preserves scrolling and follows the mobile viewpor
     });
     await checkDock();
   }
+  await timer.getByRole('button', { name: 'Collapse rest timer' }).click();
   await timer.getByRole('button', { name: 'End rest', exact: true }).click();
   await expect(timer).toHaveCount(0);
   await expect
-    .poll(() =>
-      page.evaluate(() => document.documentElement.style.getPropertyValue('--rest-panel-height')),
-    )
-    .toBe('');
+    .poll(async () => {
+      const dock = await page.locator('.bottom-dock').boundingBox();
+      return mobile
+        ? Math.round(dock!.height) === Math.round((await nav.boundingBox())!.height + 1)
+        : dock === null;
+    })
+    .toBe(true);
+  await page.getByRole('button', { name: 'Start set 2', exact: true }).click();
+  await page.getByLabel('Set 2 actual kg').fill('15');
+  await page.getByLabel('Set 2 actual reps').fill('8');
+  await page.getByRole('button', { name: 'Complete set', exact: true }).click();
+  await expect(timer.getByRole('button', { name: 'Expand rest timer' })).toBeVisible();
+  await timer.getByRole('button', { name: 'Expand rest timer' }).click();
+  await page.reload();
+  await expect(timer.getByRole('button', { name: 'Collapse rest timer' })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
+  await timer.getByRole('button', { name: 'End rest', exact: true }).click();
   await abandon.click();
   await page.getByRole('button', { name: 'Confirm abandon', exact: true }).click();
   expect(errors).toEqual([]);

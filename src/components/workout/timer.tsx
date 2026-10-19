@@ -1,11 +1,20 @@
 'use client';
 import { Notification } from '@/components/ui/notification';
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useAccount } from '../account-context';
 import { Volume2, Timer, Pause, Play, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRestSound } from '../use-rest-sound';
 import { enableSound, muteSound, playRestSound, stopAlarm } from '@/client/rest-sound';
 import type { WorkoutDetail } from '@/domain/types';
 import { restDuration, restRemaining, durationLabel } from '@/domain/timing';
+function subscribePreference(callback: () => void) {
+  window.addEventListener('storage', callback);
+  window.addEventListener('auctus-rest-layout', callback);
+  return () => {
+    window.removeEventListener('storage', callback);
+    window.removeEventListener('auctus-rest-layout', callback);
+  };
+}
 export function useNow(serverNow: number) {
   const [now, setNow] = useState(serverNow);
   useEffect(() => {
@@ -33,35 +42,31 @@ export function RestTimer({
 }) {
   const rest = workout.rests.find((r) => r.ended_at === null);
   const sound = useRestSound();
-  const [collapsed, setCollapsed] = useState(false);
-  const anchor = useRef<HTMLDivElement>(null);
-  const panel = useRef<HTMLElement>(null);
-  const [position, setPosition] = useState({ left: 12, width: 0 });
-  const restId = rest?.id;
-  useLayoutEffect(() => {
-    if (!restId || !anchor.current || !panel.current) return;
-    const root = document.documentElement;
-    function measure() {
-      const box = anchor.current!.getBoundingClientRect();
-      const height = panel.current!.getBoundingClientRect().height;
-      root.style.setProperty('--rest-panel-height', `${height}px`);
-      setPosition((previous) =>
-        previous.left === box.left && previous.width === box.width
-          ? previous
-          : { left: box.left, width: box.width },
-      );
+  const account = useAccount();
+  const preferenceKey = `auctus.rest-collapsed.${account.id}`;
+  const [fallback, setFallback] = useState<boolean | null>(null);
+  const stored = useSyncExternalStore(
+    subscribePreference,
+    () => {
+      try {
+        return localStorage.getItem(preferenceKey) === 'true';
+      } catch {
+        return false;
+      }
+    },
+    () => false,
+  );
+  const collapsed = fallback ?? stored;
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    try {
+      localStorage.setItem(preferenceKey, String(next));
+      window.dispatchEvent(new Event('auctus-rest-layout'));
+    } catch {
+      // Storage restrictions must not prevent using the timer.
+      setFallback(next);
     }
-    const observer = new ResizeObserver(measure);
-    observer.observe(anchor.current);
-    observer.observe(panel.current);
-    window.addEventListener('resize', measure);
-    measure();
-    return () => {
-      observer.disconnect();
-      root.style.removeProperty('--rest-panel-height');
-      window.removeEventListener('resize', measure);
-    };
-  }, [restId]);
+  };
   const elapsed = rest ? restDuration(rest, workout.pauses, now) : 0;
   const remaining = rest ? restRemaining(rest, workout.pauses, now) : 0;
   const timerPaused = rest?.timer_paused_at != null;
@@ -80,55 +85,49 @@ export function RestTimer({
   }, [rest, remaining, workout.status, sound, timerPaused]);
   if (!rest) return null;
   return (
-    <div ref={anchor}>
-      <section
-        ref={panel}
-        style={{ left: position.left, width: position.width || undefined }}
-        className={
-          'rest-panel ' +
-          (collapsed ? 'collapsed ' : '') +
-          (workout.status === 'paused' || timerPaused ? 'paused' : remaining <= 0 ? 'overtime' : '')
-        }
-        aria-label="Rest timer"
+    <section
+      className={
+        'rest-panel ' +
+        (collapsed ? 'collapsed ' : '') +
+        (workout.status === 'paused' || timerPaused ? 'paused' : remaining <= 0 ? 'overtime' : '')
+      }
+      aria-label="Rest timer"
+    >
+      <button
+        type="button"
+        className="rest-collapse ghost"
+        aria-label={collapsed ? 'Expand rest timer' : 'Collapse rest timer'}
+        aria-expanded={!collapsed}
+        onClick={toggleCollapsed}
       >
-        <button
-          type="button"
-          className="rest-collapse ghost"
-          aria-label={collapsed ? 'Expand rest timer' : 'Collapse rest timer'}
-          aria-expanded={!collapsed}
-          onClick={() => setCollapsed((value) => !value)}
-        >
-          {collapsed ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-        </button>
-        <div>
-          {!collapsed && (
-            <span className="eyeline">
-              {workout.status === 'paused' || timerPaused ? (
-                <Pause size={16} />
-              ) : (
-                <Timer size={16} />
-              )}{' '}
-              {workout.status === 'paused' || timerPaused
-                ? 'Rest paused'
-                : remaining > 0
-                  ? 'Recover. Breathe.'
-                  : 'Rest overtime'}
-            </span>
-          )}
-          <div className="rest-clock number" role="timer" aria-label="Rest remaining">
-            {remaining < 0 ? '+' : ''}
-            {durationLabel(Math.abs(remaining))}
-          </div>
-          {!collapsed && (
-            <p>
-              Planned {durationLabel(rest.planned_ms)}
-              {rest.added_ms > 0 && ` + ${durationLabel(rest.added_ms)}`} · Actual{' '}
-              {durationLabel(elapsed)}
-            </p>
-          )}
+        {collapsed ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+      </button>
+      <div>
+        {!collapsed && (
+          <span className="eyeline">
+            {workout.status === 'paused' || timerPaused ? <Pause size={16} /> : <Timer size={16} />}{' '}
+            {workout.status === 'paused' || timerPaused
+              ? 'Rest paused'
+              : remaining > 0
+                ? 'Recover. Breathe.'
+                : 'Rest overtime'}
+          </span>
+        )}
+        <div className="rest-clock number" role="timer" aria-label="Rest remaining">
+          {remaining < 0 ? '+' : ''}
+          {durationLabel(Math.abs(remaining))}
         </div>
         {!collapsed && (
-          <div className="rest-controls">
+          <p>
+            Planned {durationLabel(rest.planned_ms)}
+            {rest.added_ms > 0 && ` + ${durationLabel(rest.added_ms)}`} · Actual{' '}
+            {durationLabel(elapsed)}
+          </p>
+        )}
+      </div>
+      <div className="rest-controls">
+        {!collapsed && (
+          <>
             <button
               aria-label={timerPaused ? 'Resume rest timer' : 'Pause rest timer'}
               disabled={workout.status === 'paused'}
@@ -157,20 +156,20 @@ export function RestTimer({
               <Volume2 size={16} />
               {sound.enabled && sound.ready ? 'Sound on' : 'Enable sound'}
             </button>
-            <button
-              className="primary"
-              onClick={() => {
-                stopAlarm();
-                end();
-              }}
-              disabled={workout.status === 'paused'}
-            >
-              End rest
-            </button>
-          </div>
+          </>
         )}
-        {sound.error && <Notification key={sound.error}>{sound.error}</Notification>}
-      </section>
-    </div>
+        <button
+          className="primary"
+          onClick={() => {
+            stopAlarm();
+            end();
+          }}
+          disabled={workout.status === 'paused'}
+        >
+          End rest
+        </button>
+      </div>
+      {sound.error && <Notification key={sound.error}>{sound.error}</Notification>}
+    </section>
   );
 }

@@ -70,6 +70,8 @@ test('expired rest rings until End rest and stays ended after reload', async ({ 
   await expect(timer.getByRole('button', { name: 'Stop alarm', exact: true })).toHaveCount(0);
   await expect(timer.getByRole('button', { name: 'Test alarm', exact: true })).toHaveCount(0);
   await timer.getByRole('button', { name: 'Enable sound', exact: true }).click();
+  await timer.getByRole('button', { name: 'Collapse rest timer' }).click();
+  await expect(timer.getByRole('button', { name: 'End rest', exact: true })).toBeVisible();
   const audio = () =>
     page.evaluate(
       () =>

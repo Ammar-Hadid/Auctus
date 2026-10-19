@@ -8,7 +8,7 @@ import { Play, Pause, Check, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import type { State } from '@/domain/types';
 import type { Send } from '../use-model';
 import { activeDuration, durationLabel } from '@/domain/timing';
-import { useNow, RestTimer } from './timer';
+import { useNow } from './timer';
 import { SetCard } from './set-card';
 import { defaultSet, move } from '../programming/template-editor';
 
@@ -44,7 +44,6 @@ export function ActiveWorkout({
     : null;
   return (
     <div className="stack">
-      <RestTimer workout={w} now={now} end={() => act('rest.end')} act={act} />
       <div className="row between">
         <div>
           <span className={`activity-status ${w.status}`}>
