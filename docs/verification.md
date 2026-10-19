@@ -216,3 +216,14 @@ Image `auctus:879fced` is healthy on nexo-vps. Public HTTPS checks in Chromium/m
 WebKit confirm the new stylesheet, member sign-in, sound controls and sign-out. Other service
 container IDs remain unchanged. Backup: `auctus-2026-10-19T09-50-40Z.db` in the standard VPS
 SQLite backup directory. Rollback image: `auctus:before-exercise-hierarchy-2026-10-19`.
+
+### Border refinement
+
+Resolved all three design-hook findings by removing the thick side borders on exercise/active
+set cards and the accent bottom border on the rounded exercise heading. Completion icons,
+labels, filled surfaces, selected-state outlines and full mobile rows remain. No ignores were
+added; one Impeccable detector pass returned no findings. Desktop/mobile screenshots and
+responsive checks passed, as did the standard Docker checks (51 tests, typecheck, lint, build).
+Image `auctus:fc11352` is healthy. Public Chromium/mobile WebKit checks confirm the removed
+border declarations in the served stylesheet, login, sound controls and logout. Backup:
+`auctus-2026-10-19T09-54-30Z.db`; rollback: `auctus:before-border-refinement-2026-10-19`.
