@@ -196,3 +196,23 @@ is healthy on the VPS. Public HTTPS checks in both browsers confirm the updated 
 absence of preview controls, silent enable/mute, sign-in and sign-out. Unrelated service
 container IDs remain unchanged. Backup: `auctus-2026-10-19T00-08-44Z.db` in the standard
 VPS SQLite backup directory. Rollback image: `auctus:before-remove-previews-2026-10-19`.
+
+## Exercise and set hierarchy — 19 October 2026
+
+Mobile exercises now occupy one full row each. Exercise rows have a filled surface,
+square exercise/check icons, explicit status labels and recorded-set counts. Completed
+exercises have a green-tinted surface, accent checkmark and Completed label. The selected
+exercise has a distinct heading; its numbered sets sit in an indented Sets section with
+quieter outlined cards. Selection exposes aria-current; Arial and workout actions are retained.
+
+Validation used a disposable local fixture with completed, active and pending exercises,
+including long names. Chromium and mobile WebKit checks covered 320, 390, 768, 1024 and
+1440px layouts, full mobile row widths, no horizontal overflow, completion rendering,
+keyboard selection, console errors and the existing workout/API flow. All six cases passed;
+mobile and desktop screenshots were inspected. Typecheck, lint, production builds and the
+51 Docker unit/integration tests pass. The fixture was not added to production data.
+
+Image `auctus:879fced` is healthy on nexo-vps. Public HTTPS checks in Chromium/mobile
+WebKit confirm the new stylesheet, member sign-in, sound controls and sign-out. Other service
+container IDs remain unchanged. Backup: `auctus-2026-10-19T09-50-40Z.db` in the standard VPS
+SQLite backup directory. Rollback image: `auctus:before-exercise-hierarchy-2026-10-19`.
