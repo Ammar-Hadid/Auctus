@@ -1,4 +1,5 @@
 'use client';
+import { Notification } from '@/components/ui/notification';
 import { useEffect, useState } from 'react';
 import type { State } from '@/domain/types';
 export function AccountManagement() {
@@ -90,11 +91,15 @@ export function AccountManagement() {
           />
         </label>
         {error && (
-          <p role="alert" className="error">
+          <Notification key={error} onDismiss={() => setError('')}>
             {error}
-          </p>
+          </Notification>
         )}
-        {message && <p role="status">{message}</p>}
+        {message && (
+          <Notification key={message} tone="success" onDismiss={() => setMessage('')}>
+            {message}
+          </Notification>
+        )}
         <button className="primary" disabled={busy}>
           {busy ? 'Creating account…' : 'Create account'}
         </button>

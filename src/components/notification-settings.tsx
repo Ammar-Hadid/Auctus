@@ -1,4 +1,5 @@
 'use client';
+import { Notification as ToastNotification } from '@/components/ui/notification';
 import { useEffect, useState } from 'react';
 import { useRestSound } from './use-rest-sound';
 import { enableSound, muteSound } from '@/client/rest-sound';
@@ -19,6 +20,7 @@ export function NotificationSettings() {
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState<'success' | 'error'>('success');
   useEffect(() => {
     let mounted = true;
     const supported =
@@ -44,7 +46,10 @@ export function NotificationSettings() {
           }
         }
       } catch (error) {
-        if (mounted) setMessage((error as Error).message);
+        if (mounted) {
+          setMessageTone('error');
+          setMessage((error as Error).message);
+        }
       }
     })();
     return () => {
@@ -54,6 +59,7 @@ export function NotificationSettings() {
   async function enable() {
     setBusy(true);
     setMessage('');
+    setMessageTone('success');
     try {
       // This permission request must be directly triggered by the user's tap on iOS.
       const permission = await Notification.requestPermission();
@@ -77,6 +83,7 @@ export function NotificationSettings() {
       setEnabled(true);
       setMessage('Background rest notifications enabled on this device.');
     } catch (error) {
+      setMessageTone('error');
       setMessage((error as Error).message);
     } finally {
       setBusy(false);
@@ -85,6 +92,7 @@ export function NotificationSettings() {
   async function disable() {
     setBusy(true);
     setMessage('');
+    setMessageTone('success');
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
@@ -94,6 +102,7 @@ export function NotificationSettings() {
       setEnabled(false);
       setMessage('Background notifications disabled.');
     } catch (error) {
+      setMessageTone('error');
       setMessage((error as Error).message);
     } finally {
       setBusy(false);
@@ -114,11 +123,7 @@ export function NotificationSettings() {
           {sound.enabled && sound.ready ? 'Mute timer sound' : 'Enable sound'}
         </button>
       </div>
-      {sound.error && (
-        <p role="alert" className="error">
-          {sound.error}
-        </p>
-      )}
+      {sound.error && <ToastNotification key={sound.error}>{sound.error}</ToastNotification>}
       <h3>When Auctus is in the background</h3>
       <p>
         On iPhone, add Auctus to your Home Screen, open it there, then allow notifications. Alerts
@@ -154,7 +159,11 @@ export function NotificationSettings() {
           </button>
         )}
       </div>
-      {message && <p role="status">{message}</p>}
+      {message && (
+        <ToastNotification key={message} tone={messageTone} onDismiss={() => setMessage('')}>
+          {message}
+        </ToastNotification>
+      )}
     </section>
   );
 }

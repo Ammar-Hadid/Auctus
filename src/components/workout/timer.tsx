@@ -1,4 +1,5 @@
 'use client';
+import { Notification } from '@/components/ui/notification';
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Volume2, Timer, Pause, Play } from 'lucide-react';
 import { useRestSound } from '../use-rest-sound';
@@ -147,11 +148,7 @@ export function RestTimer({
             End rest
           </button>
         </div>
-        {sound.error && (
-          <p role="alert" className="error">
-            {sound.error}
-          </p>
-        )}
+        {sound.error && <Notification key={sound.error}>{sound.error}</Notification>}
       </section>
     </div>
   );

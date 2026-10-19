@@ -32,14 +32,15 @@ test('device cancellation stays locked, explains the stage, and allows a fresh a
   await page.goto('/unlock');
   const verify = page.getByRole('button', { name: 'Verify passkey', exact: true });
   await verify.click();
-  await expect(page.getByRole('main').getByRole('alert')).toContainText(
+  await expect(page.locator('.toast.error')).toContainText(
     'Your device did not return a passkey',
   );
-  await expect(page.getByRole('main').getByRole('alert')).toContainText('Device: NotAllowedError');
+  await expect(page.locator('.toast.error')).toContainText('Device: NotAllowedError');
   await expect(verify).toBeEnabled();
   await expect(page).toHaveURL(/\/unlock$/);
   expect(verifications).toBe(0);
   expect(attempts).toBe(1);
+  await page.getByRole('button', { name: 'Dismiss notification' }).click();
   await verify.click();
   await expect(verify).toBeEnabled();
   await expect.poll(() => attempts).toBe(2);

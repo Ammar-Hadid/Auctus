@@ -138,6 +138,7 @@ export function useModel(initial: State) {
   return {
     state,
     error,
+    clearError: () => setError(''),
     busy,
     offline,
     pending,

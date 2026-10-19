@@ -203,13 +203,6 @@ p {
   border-radius: var(--radius);
   padding: 24px;
 }
-.error {
-  border: 1px solid #723f3d;
-  background: #2d1c1c;
-  color: var(--danger);
-  padding: 14px;
-  border-radius: 8px;
-}
 .notice {
   padding: 14px;
   background: var(--raised);
@@ -374,10 +367,6 @@ main:not(.login) {
   max-width: 1200px;
   margin: 0 auto;
   padding: 46px 48px 30px;
-}
-main > .error,
-main > .notice {
-  margin-bottom: 20px;
 }
 .app-fields {
   border: 0;
@@ -594,17 +583,6 @@ main > .notice {
 .resume-banner p {
   font-size: 12px;
 }
-.save-indicator {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--accent);
-  color: #17200b;
-  padding: 12px 18px;
-  border-radius: 8px;
-  z-index: 50;
-  font-size: 13px;
-}
 @media (max-width: 1100px) {
   .sidebar {
     width: 210px;
@@ -740,12 +718,6 @@ main > .notice {
   }
   .sticky-actions button {
     flex: 1;
-  }
-  .save-indicator {
-    bottom: 90px;
-    left: 20px;
-    right: 20px;
-    text-align: center;
   }
   .list-row {
     gap: 12px;
@@ -1571,4 +1543,105 @@ main:not(.login):has(.rest-panel) {
 }
 .rest-panel.paused p {
   color: var(--paused-muted);
+}
+
+/* Notifications never participate in the page's layout. */
+.toast-viewport {
+  position: fixed;
+  z-index: 200;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  max-height: min(60dvh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+.toast {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--text);
+  pointer-events: auto;
+}
+.toast.error {
+  background: var(--skipped-surface);
+  border-color: var(--skipped);
+  color: var(--skipped);
+}
+.toast.warning {
+  background: var(--paused-surface);
+  border-color: var(--paused);
+  color: var(--paused);
+}
+.toast.success {
+  background: var(--completed-surface);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.toast.info {
+  background: var(--in-progress-surface);
+  border-color: var(--in-progress);
+  color: var(--in-progress);
+}
+.toast-icon {
+  margin-top: 3px;
+}
+.toast-content {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.toast-content p {
+  margin: 0;
+  color: inherit;
+}
+.toast-content a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.toast-content .row {
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.toast-content button {
+  white-space: normal;
+}
+.toast-close {
+  min-height: 44px;
+  width: 44px;
+  padding: 10px;
+  margin: -10px -10px -10px 0;
+  color: inherit;
+  border-color: transparent;
+}
+.exercise-dialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 111;
+  pointer-events: none;
+}
+.exercise-dialog-layer .exercise-dialog {
+  pointer-events: auto;
+}
+@media (max-width: 760px) {
+  .toast-viewport {
+    right: 16px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    max-height: 50dvh;
+  }
+  body:has(.login) .toast-viewport {
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
 }

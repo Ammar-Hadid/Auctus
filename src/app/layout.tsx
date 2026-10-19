@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { Notifications } from '@/components/ui/notification';
 import { Pwa } from '@/components/pwa';
 export const metadata: Metadata = {
   title: 'Auctus · Training, recorded.',
@@ -17,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        {children}
+        <Notifications>{children}</Notifications>
         <Pwa />
       </body>
     </html>

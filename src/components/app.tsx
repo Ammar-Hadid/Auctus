@@ -1,4 +1,5 @@
 'use client';
+import { Notification } from './ui/notification';
 import { useState } from 'react';
 import {
   LayoutDashboard,
@@ -82,20 +83,20 @@ export function App({ initial }: { initial: State }) {
           </header>
           <main>
             {model.offline && (
-              <div className="notice" role="status">
+              <Notification tone="warning" persistent>
                 Offline · Changes cannot be confirmed saved. Reconnect to continue.
-              </div>
+              </Notification>
             )}
             {model.error && (
-              <div className="error" role="alert">
+              <Notification key={model.error} onDismiss={model.clearError}>
                 {model.error}{' '}
                 <a href="/login" target="_blank" rel="noreferrer">
                   Sign in
                 </a>
-              </div>
+              </Notification>
             )}
             {model.pending && !model.busy && (
-              <div className="notice stack">
+              <Notification tone="warning" persistent>
                 <p>
                   One action has an unconfirmed result. Retrying the same request cannot save it
                   twice.
@@ -104,7 +105,7 @@ export function App({ initial }: { initial: State }) {
                   <button onClick={model.retry}>Retry save</button>
                   <button onClick={model.discard}>Discard local request & refresh</button>
                 </div>
-              </div>
+              </Notification>
             )}
             <fieldset disabled={model.busy} className="app-fields" aria-busy={model.busy}>
               {view === 'dashboard' && (
@@ -155,9 +156,9 @@ export function App({ initial }: { initial: State }) {
               {view === 'settings' && <Settings account={model.state.account} />}
             </fieldset>
             {model.busy && (
-              <div className="save-indicator" role="status">
+              <Notification tone="info" persistent>
                 Saving to your journal…
-              </div>
+              </Notification>
             )}
           </main>
           <footer className="app-footer">

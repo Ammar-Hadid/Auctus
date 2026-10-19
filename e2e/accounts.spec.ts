@@ -58,9 +58,10 @@ test('master password plus passkey, master-only provisioning, and isolated membe
   await expect(
     page.getByText('Your current password is incorrect.', { exact: true }),
   ).toBeVisible();
+  await page.getByRole('button', { name: 'Dismiss notification' }).click();
   await page.getByLabel('Your master password', { exact: true }).fill('test-only-master-password');
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Account created');
+  await expect(page.locator('.toast.success')).toContainText('Account created');
   await page.screenshot({ path: 'test-results/master-accounts.png', fullPage: true });
   const other = await page.context().browser()!.newContext({ baseURL: origin });
   try {

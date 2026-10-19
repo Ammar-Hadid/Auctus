@@ -1,4 +1,5 @@
 'use client';
+import { Notification } from '@/components/ui/notification';
 import { useState } from 'react';
 import type { State } from '@/domain/types';
 import { AccountManagement } from './account-management';
@@ -43,7 +44,11 @@ export function Settings({ account }: { account: State['account'] }) {
             ? 'Your master account requires a password and passkey. The server owner command can reset your password; it does not remove your passkey.'
             : 'Your training data belongs only to this account. Contact the master administrator for account recovery.'}
         </p>
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <Notification key={error} onDismiss={() => setError('')}>
+            {error}
+          </Notification>
+        )}
         <button
           onClick={async () => {
             try {

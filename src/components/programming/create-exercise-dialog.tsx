@@ -1,4 +1,5 @@
 'use client';
+import { NotificationHost } from '../ui/notification';
 import { useRef, useState, type RefObject } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Plus, X } from 'lucide-react';
@@ -21,7 +22,6 @@ export function CreateExerciseDialog({
   context?: 'workout' | 'library';
 }) {
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const savingLock = useRef(false);
   const nameInput = useRef<HTMLInputElement>(null);
   async function create(event: React.FormEvent<HTMLFormElement>) {
@@ -30,7 +30,6 @@ export function CreateExerciseDialog({
     if (savingLock.current) return;
     savingLock.current = true;
     setSaving(true);
-    setError('');
     const form = new FormData(event.currentTarget);
     try {
       const saved = await send('exercise.save', {
@@ -46,10 +45,6 @@ export function CreateExerciseDialog({
       ) {
         onCreated(saved.result as Exercise);
         onClose();
-      } else {
-        setError(
-          'Creation could not be confirmed. Your details are kept here. Close this dialog to check the page error or retry an unconfirmed save.',
-        );
       }
     } finally {
       savingLock.current = false;
@@ -66,7 +61,7 @@ export function CreateExerciseDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="exercise-dialog-overlay" />
         <Dialog.Content
-          className="exercise-dialog stack"
+          className="exercise-dialog-layer"
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             nameInput.current?.focus();
@@ -80,70 +75,68 @@ export function CreateExerciseDialog({
             if (saving) event.preventDefault();
           }}
         >
-          <div className="row between">
-            <div>
-              <span className="eyeline accent">Exercise library</span>
-              <Dialog.Title>Create exercise</Dialog.Title>
-            </div>
-            <Dialog.Close asChild>
-              <button
-                type="button"
-                className="small ghost"
-                aria-label="Close create exercise"
-                disabled={saving}
-              >
-                <X size={18} />
-              </button>
-            </Dialog.Close>
-          </div>
-          <Dialog.Description className="muted">
-            {context === 'library'
-              ? 'Save the exercise name and technique notes. You can add it to a workout later to set its sets, reps and rest.'
-              : 'Save the exercise name and technique notes here. Then add it to this workout to set its sets, reps and rest. Your workout edits are kept.'}
-          </Dialog.Description>
-          <form className="stack" onSubmit={create}>
-            <label>
-              Exercise name
-              <input
-                ref={nameInput}
-                name="exercise-name"
-                defaultValue={initialName}
-                placeholder="e.g. Incline dumbbell press"
-                required
-                maxLength={120}
-                disabled={saving}
-              />
-            </label>
-            <label>
-              Details / technique notes
-              <textarea
-                name="exercise-details"
-                maxLength={5000}
-                placeholder="Equipment, setup or cues (optional)"
-                disabled={saving}
-              />
-            </label>
-            {error && (
-              <p className="error" role="alert">
-                {error}
-              </p>
-            )}
-            <div className="row dialog-actions">
+          <NotificationHost />
+          <div className="exercise-dialog stack">
+            <div className="row between">
+              <div>
+                <span className="eyeline accent">Exercise library</span>
+                <Dialog.Title>Create exercise</Dialog.Title>
+              </div>
               <Dialog.Close asChild>
-                <button type="button" disabled={saving}>
-                  Cancel
+                <button
+                  type="button"
+                  className="small ghost"
+                  aria-label="Close create exercise"
+                  disabled={saving}
+                >
+                  <X size={18} />
                 </button>
               </Dialog.Close>
-              <button className="primary" disabled={saving}>
-                <Plus size={17} />
-                {saving
-                  ? 'Creating…'
-                  : context === 'library'
-                    ? 'Save exercise'
-                    : 'Create and select'}
-              </button>
             </div>
-          </form>
+            <Dialog.Description className="muted">
+              {context === 'library'
+                ? 'Save the exercise name and technique notes. You can add it to a workout later to set its sets, reps and rest.'
+                : 'Save the exercise name and technique notes here. Then add it to this workout to set its sets, reps and rest. Your workout edits are kept.'}
+            </Dialog.Description>
+            <form className="stack" onSubmit={create}>
+              <label>
+                Exercise name
+                <input
+                  ref={nameInput}
+                  name="exercise-name"
+                  defaultValue={initialName}
+                  placeholder="e.g. Incline dumbbell press"
+                  required
+                  maxLength={120}
+                  disabled={saving}
+                />
+              </label>
+              <label>
+                Details / technique notes
+                <textarea
+                  name="exercise-details"
+                  maxLength={5000}
+                  placeholder="Equipment, setup or cues (optional)"
+                  disabled={saving}
+                />
+              </label>
+              <div className="row dialog-actions">
+                <Dialog.Close asChild>
+                  <button type="button" disabled={saving}>
+                    Cancel
+                  </button>
+                </Dialog.Close>
+                <button className="primary" disabled={saving}>
+                  <Plus size={17} />
+                  {saving
+                    ? 'Creating…'
+                    : context === 'library'
+                      ? 'Save exercise'
+                      : 'Create and select'}
+                </button>
+              </div>
+            </form>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

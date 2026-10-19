@@ -1,4 +1,5 @@
 'use client';
+import { Notification } from '@/components/ui/notification';
 import Link from 'next/link';
 import { useState } from 'react';
 export default function Login() {
@@ -51,9 +52,9 @@ export default function Login() {
           <input name="password" type="password" autoComplete="current-password" required />
         </label>
         {error && (
-          <p role="alert" className="error">
+          <Notification key={error} onDismiss={() => setError('')}>
             {error}
-          </p>
+          </Notification>
         )}
         <button className="primary" disabled={busy}>
           {busy ? 'Signing in…' : 'Sign in'}

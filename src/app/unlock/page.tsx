@@ -1,4 +1,5 @@
 'use client';
+import { Notification } from '@/components/ui/notification';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
@@ -70,9 +71,9 @@ export default function Unlock() {
       </p>
       <p>Your training data and account controls stay locked until verification succeeds.</p>
       {error && (
-        <p role="alert" className="error">
+        <Notification key={error} onDismiss={() => setError('')}>
           {error}
-        </p>
+        </Notification>
       )}
       <button
         className="primary"

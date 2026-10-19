@@ -105,8 +105,11 @@ test('custom menus create exercises in place and preserve template and training 
     { times: 1 },
   );
   await dialog.getByRole('button', { name: 'Create and select' }).click();
-  await expect(dialog.getByRole('alert')).toBeVisible();
+  await expect(dialog.locator('.toast.error')).toContainText(
+    'Please retry this test validation failure.',
+  );
   await expect(dialog.getByLabel('Exercise name')).toHaveValue('Incline dumbbell press');
+  await dialog.getByRole('button', { name: 'Dismiss notification' }).click();
 
   await dialog.getByRole('button', { name: 'Create and select' }).click();
   await expect(dialog).toBeHidden();
@@ -203,7 +206,7 @@ test('custom menus create exercises in place and preserve template and training 
   );
   await page.reload();
   await page.getByRole('button', { name: 'Continue workout' }).click();
-  await expect(page.getByRole('button', { name: /^02 Cable lateral raise/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Exercise 02 Cable lateral raise/ })).toBeVisible();
   await page.getByRole('button', { name: 'Abandon workout', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm abandon', exact: true }).click();
   await nav.getByRole('button', { name: 'Library', exact: true }).click();
