@@ -1,9 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { State } from '../src/domain/types';
 
-test('expired rest rings until End rest and stays ended after reload', async ({
-  page,
-}) => {
+test('expired rest rings until End rest and stays ended after reload', async ({ page }) => {
   await page.addInitScript(() => {
     const tracker = { starts: 0, stops: 0, looping: false };
     Object.assign(window, { alarmAudio: tracker });
@@ -70,9 +68,8 @@ test('expired rest rings until End rest and stays ended after reload', async ({
   const timer = page.getByRole('region', { name: 'Rest timer' });
   const end = timer.getByRole('button', { name: 'End rest', exact: true });
   await expect(timer.getByRole('button', { name: 'Stop alarm', exact: true })).toHaveCount(0);
-  await timer.getByRole('button', { name: 'Test alarm', exact: true }).click();
-  await timer.getByRole('button', { name: 'Pause rest timer', exact: true }).click();
-  await timer.getByRole('button', { name: 'Resume rest timer', exact: true }).click();
+  await expect(timer.getByRole('button', { name: 'Test alarm', exact: true })).toHaveCount(0);
+  await timer.getByRole('button', { name: 'Enable sound', exact: true }).click();
   const audio = () =>
     page.evaluate(
       () =>
@@ -82,17 +79,18 @@ test('expired rest rings until End rest and stays ended after reload', async ({
           }
         ).alarmAudio,
     );
-  await expect.poll(audio, { timeout: 8000 }).toEqual({ starts: 2, stops: 1, looping: true });
+  expect(await audio()).toEqual({ starts: 0, stops: 0, looping: false });
+  await expect.poll(audio, { timeout: 8000 }).toEqual({ starts: 1, stops: 0, looping: true });
   // More than a full two-second cycle passes without an automatic stop.
   await expect(timer.getByRole('timer')).toHaveText('+00:03', { timeout: 6000 });
-  expect((await audio()).stops).toBe(1);
+  expect((await audio()).stops).toBe(0);
   await page.screenshot({
     path: `test-results/alarm-${test.info().project.name}.png`,
     fullPage: true,
   });
   await end.click();
   await expect(timer).toHaveCount(0);
-  expect(await audio()).toEqual({ starts: 2, stops: 2, looping: true });
+  expect(await audio()).toEqual({ starts: 1, stops: 1, looping: true });
   await page.reload();
   await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
   await expect(timer).toHaveCount(0);

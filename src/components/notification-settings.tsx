@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRestSound } from './use-rest-sound';
-import { testSound, muteSound, stopAlarm } from '@/client/rest-sound';
+import { enableSound, muteSound } from '@/client/rest-sound';
 type PushConfig = { configured: boolean; publicKey: string | null };
 async function command(data: Record<string, unknown>) {
   const response = await fetch('/api/push', {
@@ -82,19 +82,17 @@ export function NotificationSettings() {
       setBusy(false);
     }
   }
-  async function manage(action: 'test' | 'unsubscribe') {
+  async function disable() {
     setBusy(true);
     setMessage('');
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       if (!subscription) throw new Error('Enable notifications on this device first.');
-      await command({ action, endpoint: subscription.endpoint });
-      if (action === 'unsubscribe') {
-        await subscription.unsubscribe();
-        setEnabled(false);
-        setMessage('Background notifications disabled.');
-      } else setMessage('Test notification sent. Check your device notifications.');
+      await command({ action: 'unsubscribe', endpoint: subscription.endpoint });
+      await subscription.unsubscribe();
+      setEnabled(false);
+      setMessage('Background notifications disabled.');
     } catch (error) {
       setMessage((error as Error).message);
     } finally {
@@ -105,18 +103,13 @@ export function NotificationSettings() {
     <section className="panel stack">
       <h2>Rest alerts</h2>
       <p>
-        While Auctus is open, the rest alarm repeats until you tap End rest. Tap Test alarm to
-        enable and hear a preview, then Stop alarm to silence the preview. Check your device volume
-        if you cannot hear it.
+        While Auctus is open, the rest alarm repeats until you tap End rest. Enable sound on this
+        device to hear it when your rest finishes.
       </p>
       <div className="row">
-        <button onClick={() => void testSound()}>Test alarm</button>
-        {sound.activeKey && (
-          <button className="primary" onClick={() => stopAlarm()}>
-            Stop alarm
-          </button>
-        )}
-        {sound.enabled && <button onClick={muteSound}>Mute timer sound</button>}
+        <button onClick={() => (sound.enabled && sound.ready ? muteSound() : void enableSound())}>
+          {sound.enabled && sound.ready ? 'Mute timer sound' : 'Enable sound'}
+        </button>
       </div>
       {sound.error && (
         <p role="alert" className="error">
@@ -153,14 +146,9 @@ export function NotificationSettings() {
             Enable background alerts
           </button>
         ) : (
-          <>
-            <button disabled={busy} onClick={() => void manage('test')}>
-              Test notification
-            </button>
-            <button disabled={busy} onClick={() => void manage('unsubscribe')}>
-              Disable background alerts
-            </button>
-          </>
+          <button disabled={busy} onClick={() => void disable()}>
+            Disable background alerts
+          </button>
         )}
       </div>
       {message && <p role="status">{message}</p>}

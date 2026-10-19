@@ -2,7 +2,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Volume2, Timer, Pause, Play } from 'lucide-react';
 import { useRestSound } from '../use-rest-sound';
-import { testSound, muteSound, playRestSound, stopAlarm } from '@/client/rest-sound';
+import { enableSound, muteSound, playRestSound, stopAlarm } from '@/client/rest-sound';
 import type { WorkoutDetail } from '@/domain/types';
 import { restDuration, restRemaining, durationLabel } from '@/domain/timing';
 export function useNow(serverNow: number) {
@@ -69,16 +69,13 @@ export function RestTimer({
       return;
     }
     if (remaining > 0) {
-      if (sound.activeKey && sound.activeKey !== 'preview') stopAlarm(false);
+      if (sound.activeKey) stopAlarm(false);
       return;
     }
     if (document.visibilityState !== 'visible') return;
     // Muted or suspended audio must not consume the completion alert.
     playRestSound(`${rest.id}:${rest.added_ms}`);
   }, [rest, remaining, workout.status, sound, timerPaused]);
-  function previewSound() {
-    void testSound(rest && remaining <= 0 ? `${rest.id}:${rest.added_ms}` : 'preview');
-  }
   if (!rest) return null;
   return (
     <div ref={anchor}>
@@ -129,14 +126,11 @@ export function RestTimer({
             +15s
           </button>
           <button
-            onClick={() => (sound.enabled && sound.ready ? muteSound() : void previewSound())}
+            onClick={() => (sound.enabled && sound.ready ? muteSound() : void enableSound())}
             className="ghost"
           >
             <Volume2 size={16} />
             {sound.enabled && sound.ready ? 'Sound on' : 'Enable sound'}
-          </button>
-          <button className="ghost" onClick={previewSound}>
-            Test alarm
           </button>
           <button
             className="primary"

@@ -59,7 +59,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 it('loops audible clock beeps until stopped, without muting the next rest', async () => {
   const sound = await import('../src/client/rest-sound');
-  await sound.testSound('rest-1:0');
+  await sound.enableSound();
+  expect(sources).toHaveLength(0);
+  expect(sound.soundSnapshot()).toMatchObject({ enabled: true, ready: true, activeKey: null });
+  sound.playRestSound('rest-1:0');
   expect(sources[0].loop).toBe(true);
   expect(sources[0].stop).not.toHaveBeenCalled();
   expect(samples.some((value) => Math.abs(value) > 0.1)).toBe(true);
@@ -81,7 +84,8 @@ it('loops audible clock beeps until stopped, without muting the next rest', asyn
 
 it('remembers dismissal across reload but re-arms an extended rest', async () => {
   let sound = await import('../src/client/rest-sound');
-  await sound.testSound('rest:0');
+  await sound.enableSound();
+  sound.playRestSound('rest:0');
   sound.stopAlarm();
   vi.resetModules();
   sound = await import('../src/client/rest-sound');
@@ -97,7 +101,8 @@ it('remembers dismissal across reload but re-arms an extended rest', async () =>
 it('stops when controls unmount and can resume an undismissed rest', async () => {
   const sound = await import('../src/client/rest-sound');
   const unsubscribe = sound.subscribeSound(() => {});
-  await sound.testSound('rest:0');
+  await sound.enableSound();
+  sound.playRestSound('rest:0');
   unsubscribe();
   expect(sources[0].stop).toHaveBeenCalledOnce();
   expect(sound.soundSnapshot().activeKey).toBeNull();
@@ -106,14 +111,14 @@ it('stops when controls unmount and can resume an undismissed rest', async () =>
   sound.stopAlarm();
 });
 
-it('cannot start a delayed preview after mute or leaving the screen', async () => {
+it('cannot enable sound after a pending request is muted', async () => {
   let resolve!: () => void;
   resume = () =>
     new Promise<void>((done) => {
       resolve = done;
     });
   const sound = await import('../src/client/rest-sound');
-  const pending = sound.testSound();
+  const pending = sound.enableSound();
   sound.muteSound();
   resolve();
   expect(await pending).toBe(false);
@@ -126,11 +131,11 @@ it('reports blocked audio and retries an undismissed rest after suspension', asy
   resume = async () => {
     throw Error('blocked');
   };
-  expect(await sound.testSound()).toBe(false);
+  expect(await sound.enableSound()).toBe(false);
   expect(sound.soundSnapshot()).toMatchObject({ enabled: false, ready: false, activeKey: null });
   expect(sound.soundSnapshot().error).toContain('Sound could not start');
   resume = async () => {};
-  await sound.testSound();
+  await sound.enableSound();
   sound.stopAlarm();
   contexts[0].state = 'suspended';
   contexts[0].onstatechange?.();

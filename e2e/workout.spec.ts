@@ -109,12 +109,12 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
   const restTimer = page.getByRole('region', { name: 'Rest timer' });
-  await restTimer.getByRole('button', { name: 'Test alarm', exact: true }).click();
+  await restTimer.getByRole('button', { name: 'Enable sound', exact: true }).click();
   await expect
     .poll(() =>
       page.evaluate(() => (window as typeof window & { tonesStarted: number }).tonesStarted),
     )
-    .toBe(1);
+    .toBe(0);
   await expect(restTimer.getByRole('button', { name: 'Sound on', exact: true })).toBeVisible();
   await expect(restTimer.getByRole('button', { name: 'Stop alarm', exact: true })).toHaveCount(0);
 
@@ -295,7 +295,11 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await expect(
     page.getByText('Background alerts become available', { exact: false }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Test alarm', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: /Test alarm|Test notification|Stop alarm/ }),
+  ).toHaveCount(0);
+  await page.getByRole('button', { name: 'Mute timer sound', exact: true }).click();
+  await page.getByRole('button', { name: 'Enable sound', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Mute timer sound', exact: true })).toBeVisible();
   await page.screenshot({
     path: `test-results/rest-alert-settings-${test.info().project.name}.png`,

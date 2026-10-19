@@ -50,7 +50,7 @@ function alarmBuffer(audio: AudioContext) {
 }
 export function stopAlarm(dismiss = true) {
   generation++;
-  if (dismiss && state.activeKey && state.activeKey !== 'preview') {
+  if (dismiss && state.activeKey) {
     dismissedKey = state.activeKey;
     try {
       sessionStorage.setItem('auctus.rest-dismissed', dismissedKey);
@@ -84,7 +84,7 @@ function startAlarm(key: string) {
     return true;
   } catch {
     stopAlarm(false);
-    update({ error: 'The alarm could not play. Tap Test alarm to try again.' });
+    update({ error: 'The alarm could not play. Tap Enable sound to try again.' });
     return false;
   }
 }
@@ -99,19 +99,20 @@ export async function prepareSound() {
   } catch {
     update({
       ready: false,
-      error: 'Sound could not start. Tap Test alarm and check your device volume and silent mode.',
+      error:
+        'Sound could not start. Tap Enable sound and check your device volume and silent mode.',
     });
     return false;
   }
 }
-export async function testSound(key = 'preview') {
+export async function enableSound() {
   const attempt = ++generation;
   if (!(await prepareSound()) || attempt !== generation) return false;
   update({ enabled: true });
   try {
     localStorage.setItem('auctus.rest-sound', 'on');
   } catch {}
-  return startAlarm(key);
+  return true;
 }
 export function muteSound() {
   stopAlarm();
