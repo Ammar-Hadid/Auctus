@@ -227,3 +227,23 @@ responsive checks passed, as did the standard Docker checks (51 tests, typecheck
 Image `auctus:fc11352` is healthy. Public Chromium/mobile WebKit checks confirm the removed
 border declarations in the served stylesheet, login, sound controls and logout. Backup:
 `auctus-2026-10-19T09-54-30Z.db`; rollback: `auctus:before-border-refinement-2026-10-19`.
+
+## Blue in-progress state — 19 October 2026
+
+Added shared blue foreground, surface and secondary-text tokens. Active exercise rows,
+the selected active exercise heading and active sets use a blue-tinted surface. Active
+exercise icons use a filled play symbol; active sets explicitly say In progress. Completed
+items retain green and pending items remain neutral. Borders remain thin, without side accents.
+
+Validation: typecheck, lint and local production build pass. Disposable Chromium and mobile
+WebKit fixtures confirmed active/completed colors, labels, keyboard selection, full mobile
+exercise rows and no overflow at 320, 390, 768, 1024 and 1440px. Desktop/mobile screenshots
+were inspected. Blue text contrast on its surface exceeds 8:1. One Impeccable detector pass
+returned no findings; no suppressions were added. All 51 Docker tests, typecheck, lint and
+production build pass.
+
+Image `auctus:36ff43f` is healthy on the VPS. Public HTTPS Chromium/mobile WebKit checks
+confirmed login, the new blue tokens and stylesheet rules, logout and protected API access.
+Unrelated service containers remain unchanged. Backup: `auctus-2026-10-19T10-46-50Z.db`;
+rollback image: `auctus:before-blue-progress-2026-10-19`. Local production server is also
+running the update on port 3105. No production training data was changed.
