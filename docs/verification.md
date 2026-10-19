@@ -247,3 +247,25 @@ confirmed login, the new blue tokens and stylesheet rules, logout and protected 
 Unrelated service containers remain unchanged. Backup: `auctus-2026-10-19T10-46-50Z.db`;
 rollback image: `auctus:before-blue-progress-2026-10-19`. Local production server is also
 running the update on port 3105. No production training data was changed.
+
+## Paused and skipped feedback — 19 October 2026
+
+Added shared orange paused and red skipped tokens, tinted surfaces and secondary text.
+Workout, exercise, set, overview and history statuses now share explicit labels and icons:
+play for in progress, pause for paused, check for completed, skip for skipped, and an empty
+circle for not started. Paused rests turn orange, including when already overtime. Pausing
+a workout displays an explanation and preserves the paused exercise as the default detail
+selection. Completed set badges/surfaces are green; pending badges are neutral.
+
+Validation: Chromium and mobile WebKit fixture checks cover all five activity states,
+pause/resume, disabled results while paused, selection retention, independent rest pause,
+skipped history and no overflow/full mobile rows at 320, 390, 768, 1024 and 1440px.
+Desktop/mobile screenshots were inspected. Both full workout/API flows also pass (four
+checks). Orange/red foreground and secondary-text contrast on their surfaces exceeds 8:1.
+The Impeccable pass returned no findings; none were suppressed. Local build, lint/typecheck
+and all 51 Docker tests plus the production build pass. Fixtures stayed in disposable databases.
+
+Image `auctus:f09235a` is healthy. Public HTTPS Chromium/mobile WebKit login, served status
+tokens/styles, logout and protected API checks pass. Unrelated service IDs remain unchanged.
+Backup: `auctus-2026-10-19T10-55-56Z.db`; rollback:
+`auctus:before-status-feedback-2026-10-19`. Local port 3105 also serves the update.
