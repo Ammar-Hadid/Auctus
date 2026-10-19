@@ -773,7 +773,6 @@ main > .notice {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 44px;
   border: 1px solid var(--line);
-  border-left: 4px solid var(--line);
   border-radius: 10px;
   background: var(--raised);
   min-width: 0;
@@ -783,7 +782,6 @@ main > .notice {
 }
 .exercise-choice.completed {
   background: var(--completed-surface);
-  border-left-color: var(--accent);
 }
 .exercise-select {
   border: 0;
@@ -864,8 +862,7 @@ main > .notice {
 }
 .exercise-detail-heading {
   background: var(--raised);
-  border-bottom: 3px solid var(--accent);
-  border-radius: 10px 10px 0 0;
+  border-radius: 10px;
   padding: 20px;
 }
 .exercise-detail-heading.completed {
@@ -907,7 +904,7 @@ main > .notice {
 }
 .set-card.active {
   background: var(--surface);
-  border-left: 3px solid var(--accent);
+  border-color: var(--muted);
 }
 .set-kind {
   color: var(--muted);
