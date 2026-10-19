@@ -3,6 +3,7 @@
   --bg: #0c0e10;
   --surface: #15181b;
   --raised: #1d2226;
+  --completed-surface: #182219;
   --line: #30363b;
   --text: #f2f4ef;
   --muted: #a4adaf;
@@ -769,38 +770,126 @@ main > .notice {
   margin-bottom: 10px;
 }
 .exercise-choice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
+  border-left: 4px solid var(--line);
+  border-radius: 10px;
+  background: var(--raised);
+  min-width: 0;
 }
 .exercise-choice.selected {
-  border-color: #627e39;
-  background: #1b2117;
+  border-color: var(--accent);
+}
+.exercise-choice.completed {
+  background: var(--completed-surface);
+  border-left-color: var(--accent);
 }
 .exercise-select {
   border: 0;
   background: none;
   width: 100%;
+  min-width: 0;
   justify-content: flex-start;
   text-align: left;
+  align-items: flex-start;
   gap: 12px;
   padding: 16px 12px;
-  font-size: 13px;
+  font-size: 15px;
+}
+.exercise-select:hover {
+  background: #ffffff05;
+}
+.exercise-select .grow {
+  min-width: 0;
+}
+.exercise-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--muted);
+}
+.completed .exercise-mark {
+  background: var(--accent);
+  color: #17200b;
+}
+.exercise-number {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.exercise-name {
+  display: block;
+  line-height: 1.35;
+  margin: 4px 0 8px;
+  overflow-wrap: anywhere;
+}
+.exercise-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.exercise-state.completed {
+  color: var(--accent);
+}
+.exercise-state.active {
+  color: var(--text);
 }
 .exercise-select small {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--muted);
-  margin-top: 5px;
+  margin-top: 3px;
 }
 .exercise-order {
-  justify-content: flex-end;
-  padding: 0 8px 4px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
 }
 .exercise-order button {
-  min-height: 28px;
-  padding: 4px 8px;
+  min-height: 44px;
+  width: 40px;
+  padding: 8px;
+  border-color: transparent;
+}
+.exercise-detail-heading {
+  background: var(--raised);
+  border-bottom: 3px solid var(--accent);
+  border-radius: 10px 10px 0 0;
+  padding: 20px;
+}
+.exercise-detail-heading.completed {
+  background: var(--completed-surface);
+}
+.exercise-heading-copy {
+  min-width: 0;
+}
+.exercise-detail-heading h2 {
+  font-size: 24px;
+  line-height: 1.2;
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.sets-heading {
+  margin-top: 8px;
+}
+.sets-heading span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.exercise-sets {
+  border-left: 2px solid var(--line);
+  padding-left: 16px;
 }
 .previous-performance {
   border-left: 2px solid var(--line);
@@ -811,13 +900,26 @@ main > .notice {
   margin-top: 5px;
 }
 .set-card {
-  background: var(--surface);
+  background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 20px;
 }
 .set-card.active {
-  border-color: #6e8a45;
+  background: var(--surface);
+  border-left: 3px solid var(--accent);
+}
+.set-kind {
+  color: var(--muted);
+  font-weight: 400;
+}
+.set-status {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.set-card.completed .set-status {
+  color: var(--accent);
 }
 .set-badge {
   width: 34px;
@@ -928,11 +1030,19 @@ details[open] summary {
   .exercise-rail > .row {
     grid-column: 1/-1;
   }
-  .exercise-select {
-    font-size: 12px;
-  }
   .exercise-detail {
     margin-top: 8px;
+  }
+}
+@media (max-width: 760px) {
+  .exercise-rail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .exercise-detail-heading {
+    padding: 16px;
+  }
+  .exercise-sets {
+    padding-left: 10px;
   }
 }
 @media (max-width: 420px) {
@@ -951,10 +1061,6 @@ details[open] summary {
   }
   .set-target {
     max-width: 200px;
-  }
-  .exercise-select {
-    padding: 10px;
-    gap: 7px;
   }
   .session-time {
     font-size: 30px;

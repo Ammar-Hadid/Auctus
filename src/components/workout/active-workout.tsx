@@ -1,13 +1,21 @@
 'use client';
 import { ExercisePicker } from '../programming/exercise-picker';
 import { useState } from 'react';
-import { Play, Pause, Check, ArrowUp, ArrowDown, Plus } from 'lucide-react';
+import { Play, Pause, Check, ArrowUp, ArrowDown, Plus, Dumbbell } from 'lucide-react';
 import type { State } from '@/domain/types';
 import type { Send } from '../use-model';
 import { activeDuration, durationLabel } from '@/domain/timing';
 import { useNow, RestTimer } from './timer';
 import { SetCard } from './set-card';
 import { defaultSet, move } from '../programming/template-editor';
+const exerciseLabels = {
+  pending: 'Not started',
+  active: 'In progress',
+  paused: 'Paused',
+  completed: 'Completed',
+  skipped: 'Skipped',
+};
+
 export function ActiveWorkout({
   state,
   send,
@@ -108,14 +116,31 @@ export function ActiveWorkout({
           {w.exercises
             .filter((x) => !x.removed_at)
             .map((x, i) => (
-              <div className={'exercise-choice ' + (e?.id === x.id ? 'selected' : '')} key={x.id}>
-                <button className="exercise-select" onClick={() => setFocused(x.id)}>
-                  <span className="muted">{String(i + 1).padStart(2, '0')}</span>
+              <div
+                className={`exercise-choice ${x.status} ${e?.id === x.id ? 'selected' : ''}`}
+                key={x.id}
+              >
+                <button
+                  className="exercise-select"
+                  aria-current={e?.id === x.id ? 'true' : undefined}
+                  onClick={() => setFocused(x.id)}
+                >
+                  <span className="exercise-mark" aria-hidden="true">
+                    {x.status === 'completed' ? (
+                      <Check size={22} strokeWidth={3} />
+                    ) : (
+                      <Dumbbell size={20} />
+                    )}
+                  </span>
                   <span className="grow">
-                    {x.name}
+                    <span className="exercise-number">
+                      Exercise {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="exercise-name">{x.name}</span>
+                    <span className={`exercise-state ${x.status}`}>{exerciseLabels[x.status]}</span>
                     <small>
-                      {x.status} · {x.sets.filter((s) => s.status === 'completed').length}/
-                      {x.sets.filter((s) => !s.removed_at).length} sets
+                      {x.sets.filter((s) => !s.removed_at && s.status === 'completed').length} /{' '}
+                      {x.sets.filter((s) => !s.removed_at).length} sets recorded
                     </small>
                   </span>
                 </button>
@@ -176,10 +201,19 @@ export function ActiveWorkout({
           )}
           {e ? (
             <>
-              <div className="row between">
-                <div>
+              <div className={`row between exercise-detail-heading ${e.status}`}>
+                <div className="exercise-heading-copy">
+                  <span className="eyeline">
+                    Exercise{' '}
+                    {String(
+                      w.exercises.filter((x) => !x.removed_at).findIndex((x) => x.id === e.id) + 1,
+                    ).padStart(2, '0')}
+                  </span>
                   <h2>{e.name}</h2>
-                  <span className="status">{e.status}</span>
+                  <span className={`exercise-state ${e.status}`}>
+                    {e.status === 'completed' && <Check size={16} aria-hidden="true" />}
+                    {exerciseLabels[e.status]}
+                  </span>
                 </div>
                 {['pending', 'paused'].includes(e.status) && (
                   <button
@@ -207,49 +241,60 @@ export function ActiveWorkout({
                     : 'Your first recorded session for this exercise.'}
                 </p>
               </div>
-              {e.sets
-                .filter((s) => !s.removed_at)
-                .map((s, i) => (
-                  <div key={s.id}>
-                    <SetCard
-                      set={s}
-                      index={i}
-                      workout={w}
-                      parentActive={e.status === 'active'}
-                      send={send}
-                    />
-                    <div className="row set-order">
-                      <button
-                        className="small ghost"
-                        disabled={e.sets.indexOf(s) === 0 || w.status === 'paused'}
-                        aria-label={`Move set ${i + 1} up`}
-                        onClick={() =>
-                          act('set.reorder', {
-                            id: e.id,
-                            ids: move(e.sets, e.sets.indexOf(s), -1).map((s) => s.id),
-                          })
-                        }
-                      >
-                        <ArrowUp size={13} />
-                        Move up
-                      </button>
-                      <button
-                        className="small ghost"
-                        disabled={e.sets.indexOf(s) === e.sets.length - 1 || w.status === 'paused'}
-                        aria-label={`Move set ${i + 1} down`}
-                        onClick={() =>
-                          act('set.reorder', {
-                            id: e.id,
-                            ids: move(e.sets, e.sets.indexOf(s), 1).map((s) => s.id),
-                          })
-                        }
-                      >
-                        <ArrowDown size={13} />
-                        Move down
-                      </button>
+              <div className="row between sets-heading">
+                <h3>Sets</h3>
+                <span>
+                  {e.sets.filter((s) => !s.removed_at && s.status === 'completed').length} /{' '}
+                  {e.sets.filter((s) => !s.removed_at).length} recorded
+                </span>
+              </div>
+              <div className="stack exercise-sets">
+                {e.sets
+                  .filter((s) => !s.removed_at)
+                  .map((s, i) => (
+                    <div key={s.id}>
+                      <SetCard
+                        set={s}
+                        index={i}
+                        workout={w}
+                        parentActive={e.status === 'active'}
+                        send={send}
+                      />
+                      <div className="row set-order">
+                        <button
+                          className="small ghost"
+                          disabled={e.sets.indexOf(s) === 0 || w.status === 'paused'}
+                          aria-label={`Move set ${i + 1} up`}
+                          onClick={() =>
+                            act('set.reorder', {
+                              id: e.id,
+                              ids: move(e.sets, e.sets.indexOf(s), -1).map((s) => s.id),
+                            })
+                          }
+                        >
+                          <ArrowUp size={13} />
+                          Move up
+                        </button>
+                        <button
+                          className="small ghost"
+                          disabled={
+                            e.sets.indexOf(s) === e.sets.length - 1 || w.status === 'paused'
+                          }
+                          aria-label={`Move set ${i + 1} down`}
+                          onClick={() =>
+                            act('set.reorder', {
+                              id: e.id,
+                              ids: move(e.sets, e.sets.indexOf(s), 1).map((s) => s.id),
+                            })
+                          }
+                        >
+                          <ArrowDown size={13} />
+                          Move down
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+              </div>
               {!['completed', 'skipped'].includes(e.status) && (
                 <>
                   <button

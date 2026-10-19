@@ -63,25 +63,29 @@ export function SetCard({
     }
   }
   return (
-    <div className={'set-card ' + (set.status === 'active' ? 'active' : '')}>
+    <div className={'set-card ' + set.status}>
       <div className="row between">
         <div className="row">
-          <span className="set-badge">
-            {set.status === 'completed' ? <Check size={17} /> : index + 1}
-          </span>
+          <span className="set-badge">{index + 1}</span>
           <div>
             <strong>
-              {set.type === 'warmup'
-                ? 'Warm-up'
-                : set.type.charAt(0).toUpperCase() + set.type.slice(1)}{' '}
-              set
+              Set {index + 1}{' '}
+              <span className="set-kind">
+                ·{' '}
+                {set.type === 'warmup'
+                  ? 'Warm-up'
+                  : set.type.charAt(0).toUpperCase() + set.type.slice(1)}
+              </span>
             </strong>
             <p className="set-target">
               Planned {repRangeLabel(set.min_reps, set.max_reps)} reps · {set.rest_ms / 1000}s rest
             </p>
           </div>
         </div>
-        <span className="status">{set.status}</span>
+        <span className="status set-status">
+          {set.status === 'completed' && <Check size={14} aria-hidden="true" />}
+          {set.status}
+        </span>
       </div>
       {set.status === 'completed' && !editing && (
         <div className="recorded number">
