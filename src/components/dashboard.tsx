@@ -83,19 +83,26 @@ export function Dashboard({
         </div>
         <span className="completion-count">
           {goal.completed}
-          <span> / {goal.total} mandatory</span>
+          <span> / {goal.total} workouts</span>
         </span>
       </div>
-      <div className="progress-track">
+      <div
+        className="progress-track"
+        role="progressbar"
+        aria-label="Weekly workout progress"
+        aria-valuemin={0}
+        aria-valuemax={goal.total || 1}
+        aria-valuenow={goal.completed}
+        aria-valuetext={`${goal.completed} of ${goal.total} workouts completed`}
+      >
         <div style={{ width: `${goal.total ? (goal.completed / goal.total) * 100 : 0}%` }} />
       </div>
       {available.length > 0 && (
         <p className="muted weekly-goal-summary">
-          {goal.total === 0
-            ? 'No mandatory workouts this week.'
-            : `${goal.completed} of ${goal.total} mandatory workouts completed.`}
-          {goal.optionalTotal > 0 &&
-            ` ${goal.optionalCompleted} of ${goal.optionalTotal} optional workouts completed.`}
+          {goal.weekDone && <strong className="week-done">Week done. </strong>}
+          {goal.mandatoryTotal === 0
+            ? 'No mandatory workouts set. Every workout counts toward your weekly progress.'
+            : `${goal.mandatoryCompleted} of ${goal.mandatoryTotal} mandatory workouts completed.`}
         </p>
       )}
       {available.length ? (

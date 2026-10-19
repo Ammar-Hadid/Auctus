@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('mandatory and optional workouts are editable, visible and counted separately', async ({
+test('all workouts advance weekly progress while mandatory workouts determine week completion', async ({
   page,
 }, info) => {
   await page.goto('/');
@@ -35,6 +35,7 @@ test('mandatory and optional workouts are editable, visible and counted separate
   for (const [name, mandatory] of [
     ['Required training', true],
     ['Extra training', false],
+    ['Extra time workout', false],
   ] as const) {
     await page.getByRole('button', { name: 'New workout', exact: true }).click();
     await page.getByLabel('Workout name').fill(name);
@@ -72,7 +73,15 @@ test('mandatory and optional workouts are editable, visible and counted separate
   await page.getByRole('button', { name: 'Use this program', exact: true }).click();
   await nav.getByRole('button', { name: 'Overview', exact: true }).click();
   await expect(page.locator('.weekly-goal-summary')).toHaveText(
-    '0 of 1 mandatory workouts completed. 0 of 1 optional workouts completed.',
+    '0 of 1 mandatory workouts completed.',
+  );
+  await expect(page.getByRole('progressbar', { name: 'Weekly workout progress' })).toHaveAttribute(
+    'aria-valuenow',
+    '0',
+  );
+  await expect(page.getByRole('progressbar', { name: 'Weekly workout progress' })).toHaveAttribute(
+    'aria-valuemax',
+    '3',
   );
   for (const width of [320, 390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -106,8 +115,42 @@ test('mandatory and optional workouts are editable, visible and counted separate
   });
   await page.reload();
   await expect(page.locator('.weekly-goal-summary')).toHaveText(
-    '0 of 1 mandatory workouts completed. 1 of 1 optional workouts completed.',
+    '0 of 1 mandatory workouts completed.',
   );
+  await expect(page.getByRole('progressbar', { name: 'Weekly workout progress' })).toHaveAttribute(
+    'aria-valuenow',
+    '1',
+  );
+  await expect(page.locator('.week-done')).toHaveCount(0);
+  const requiredAssignment = state.assignments.find(
+    (a: { name: string }) => a.name === 'Required training',
+  );
+  const requiredWorkout = await command('workout.start', { assignment_id: requiredAssignment.id });
+  await command('session.action', {
+    workout_id: requiredWorkout.id,
+    version: requiredWorkout.version,
+    action: 'workout.complete',
+    skipRemaining: true,
+  });
+  await page.reload();
+  await expect(page.locator('.week-done')).toHaveText('Week done.');
+  await expect(page.getByRole('progressbar', { name: 'Weekly workout progress' })).toHaveAttribute(
+    'aria-valuenow',
+    '2',
+  );
+  await expect(page.getByRole('progressbar', { name: 'Weekly workout progress' })).toHaveAttribute(
+    'aria-valuemax',
+    '3',
+  );
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.screenshot({
+      path: info.outputPath(`week-done-${width}.png`),
+      fullPage: true,
+      animations: 'disabled',
+    });
+  }
+  await page.setViewportSize(info.project.use.viewport!);
   await nav.getByRole('button', { name: 'History', exact: true }).click();
-  await expect(page.locator('.workout-requirement')).toHaveText('Optional');
+  await expect(page.locator('.workout-requirement')).toHaveText(['Mandatory', 'Optional']);
 });

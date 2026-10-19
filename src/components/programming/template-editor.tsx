@@ -148,7 +148,8 @@ export function TemplateEditor({
               ]}
             />
             <p className="muted">
-              Mandatory workouts count toward your weekly goal. Optional workouts are extra.
+              Every workout counts toward your weekly progress. Complete all mandatory workouts to
+              call the week done; optional workouts are for when you have extra time.
             </p>
           </div>
           <label>

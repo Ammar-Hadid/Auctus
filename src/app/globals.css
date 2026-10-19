@@ -1698,3 +1698,8 @@ main:not(.login):has(.rest-panel) {
 .weekly-goal-summary {
   font-size: 12px;
 }
+
+.week-done {
+  color: var(--accent);
+  font-weight: 600;
+}
