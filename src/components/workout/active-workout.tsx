@@ -1,4 +1,5 @@
 'use client';
+import { EquipmentLabel } from '../ui/equipment';
 import { ActivityIcon, ActivityStatusLabel, activityLabels } from '../ui/activity-status';
 import { ExercisePicker } from '../programming/exercise-picker';
 import { useState } from 'react';
@@ -38,7 +39,7 @@ export function ActiveWorkout({
     ? state.history
         .filter((h) => h.status === 'completed')
         .flatMap((h) => h.exercises)
-        .find((x) => x.exercise_id === e.exercise_id)
+        .find((x) => x.exercise_id === e.exercise_id && x.equipment === e.equipment)
     : null;
   return (
     <div className="stack">
@@ -138,6 +139,7 @@ export function ActiveWorkout({
                       Exercise {String(i + 1).padStart(2, '0')}
                     </span>
                     <span className="exercise-name">{x.name}</span>
+                    <EquipmentLabel equipment={x.equipment} />
                     <span className={`exercise-state ${x.status}`}>{activityLabels[x.status]}</span>
                     <small>
                       {x.sets.filter((s) => !s.removed_at && s.status === 'completed').length} /{' '}
@@ -211,6 +213,7 @@ export function ActiveWorkout({
                     ).padStart(2, '0')}
                   </span>
                   <h2>{e.name}</h2>
+                  <EquipmentLabel equipment={e.equipment} />
                   <ActivityStatusLabel status={e.status} />
                 </div>
                 {['pending', 'paused'].includes(e.status) && (

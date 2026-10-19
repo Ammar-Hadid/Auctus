@@ -1,4 +1,5 @@
 'use client';
+import { equipmentLabel } from '@/domain/equipment';
 import { useRef, useState } from 'react';
 import type { Exercise } from '@/domain/types';
 import type { Send } from '../use-model';
@@ -33,7 +34,7 @@ export function ExercisePicker({
           disabled={disabled}
           options={exercises
             .filter((e) => !e.archived_at)
-            .map((e) => ({ value: e.id, label: e.name }))}
+            .map((e) => ({ value: e.id, label: e.name, description: equipmentLabel(e.equipment) }))}
           inputRef={trigger}
           onCreate={(query) => {
             setDraftName(query);

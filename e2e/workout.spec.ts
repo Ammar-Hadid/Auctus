@@ -29,6 +29,8 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('button', { name: 'New exercise', exact: true }).click();
   const suffix = Date.now().toString();
   await page.getByLabel('Name', { exact: true }).fill('Row ' + suffix);
+  await page.getByRole('combobox', { name: 'Equipment', exact: true }).click();
+  await page.getByRole('option', { name: 'Stack machine', exact: true }).click();
   await page.getByRole('button', { name: 'Save exercise' }).click();
   await expect(page.getByRole('heading', { name: 'Row ' + suffix })).toBeVisible();
   await nav.getByRole('button', { name: 'Programs' }).click();

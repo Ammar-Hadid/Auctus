@@ -16,7 +16,7 @@ export function ExerciseSearch({
   onSearchQueryChange,
 }: {
   label: string;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; description?: string }[];
   value: string;
   onValueChange: (value: string) => void;
   onCreate: (query: string) => void;
@@ -34,7 +34,11 @@ export function ExerciseSearch({
   const search = searchQuery ?? query ?? '';
   const trimmed = search.trim();
   const normalized = trimmed.toLocaleLowerCase();
-  const matches = options.filter((option) => option.label.toLocaleLowerCase().includes(normalized));
+  const matches = options.filter((option) =>
+    [option.label, option.description ?? ''].some((text) =>
+      text.toLocaleLowerCase().includes(normalized),
+    ),
+  );
   const canCreate =
     !normalized ||
     !options.some((option) => option.label.trim().toLocaleLowerCase() === normalized);
@@ -149,6 +153,8 @@ export function ExerciseSearch({
                     key={option.value}
                     id={`${id}-option-${index}`}
                     role="option"
+                    aria-label={option.label}
+                    aria-describedby={option.description ? `${id}-description-${index}` : undefined}
                     aria-selected={value === option.value}
                     data-state={value === option.value ? 'checked' : undefined}
                     data-highlighted={activeIndex === index ? '' : undefined}
@@ -156,7 +162,17 @@ export function ExerciseSearch({
                     onPointerMove={() => setActive(index)}
                     onClick={() => choose(index)}
                   >
-                    {option.label}
+                    <span>
+                      {option.label}
+                      {option.description && (
+                        <small
+                          id={`${id}-description-${index}`}
+                          className="exercise-option-equipment"
+                        >
+                          {option.description}
+                        </small>
+                      )}
+                    </span>
                     {value === option.value && (
                       <span className="select-check">
                         <Check size={16} />

@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-test('sign-in errors stay fixed, expire automatically and return on another attempt', async ({ page }) => {
+test('sign-in errors stay fixed, expire automatically and return on another attempt', async ({
+  page,
+}) => {
   await page.route('**/api/auth/sign-in/email', (route) =>
     route.fulfill({ status: 401, json: { error: 'Invalid credentials' } }),
   );
@@ -54,6 +56,8 @@ test('dialog errors and unconfirmed saves share a fixed, keyboard-accessible sta
   await page
     .getByLabel('Exercise name', { exact: true })
     .fill('Toast check ' + testInfo.project.name);
+  await page.getByRole('combobox', { name: 'Equipment', exact: true }).click();
+  await page.getByRole('option', { name: 'Dumbbells', exact: true }).click();
   const panel = page.locator('.exercise-dialog');
   const before = await panel.boundingBox();
   let failure = 400;

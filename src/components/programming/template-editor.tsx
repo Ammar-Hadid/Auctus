@@ -1,4 +1,5 @@
 'use client';
+import { EquipmentLabel } from '../ui/equipment';
 import { AuctusSelect, setTypeOptions } from '../ui/select';
 import { ExercisePicker } from './exercise-picker';
 import { useEffect, useRef, useState } from 'react';
@@ -144,7 +145,8 @@ export function TemplateEditor({
           </p>
         </div>
         {items.map((e, ei) => {
-          const exerciseName = exercises.find((x) => x.id === e.exercise_id)?.name ?? 'Exercise';
+          const source = exercises.find((x) => x.id === e.exercise_id);
+          const exerciseName = source?.name ?? 'Exercise';
           const warmups = e.sets.filter((s) => s.type === 'warmup').length;
           return (
             <section
@@ -158,6 +160,7 @@ export function TemplateEditor({
                     <span className="muted">{String(ei + 1).padStart(2, '0')} / </span>
                     {exerciseName}
                   </h2>
+                  <EquipmentLabel equipment={source?.equipment ?? null} />
                   {e.collapsed && (
                     <p className="exercise-editor-summary">
                       {e.sets.length} {e.sets.length === 1 ? 'set' : 'sets'}

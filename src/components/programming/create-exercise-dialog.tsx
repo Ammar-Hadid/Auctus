@@ -1,4 +1,5 @@
 'use client';
+import { EquipmentField } from '../ui/equipment';
 import { NotificationHost } from '../ui/notification';
 import { useRef, useState, type RefObject } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -35,6 +36,7 @@ export function CreateExerciseDialog({
       const saved = await send('exercise.save', {
         name: form.get('exercise-name'),
         details: form.get('exercise-details'),
+        equipment: form.get('equipment'),
       });
       if (
         saved &&
@@ -95,8 +97,8 @@ export function CreateExerciseDialog({
             </div>
             <Dialog.Description className="muted">
               {context === 'library'
-                ? 'Save the exercise name and technique notes. You can add it to a workout later to set its sets, reps and rest.'
-                : 'Save the exercise name and technique notes here. Then add it to this workout to set its sets, reps and rest. Your workout edits are kept.'}
+                ? 'Save the exercise name, equipment and technique notes. You can add it to a workout later to set its sets, reps and rest.'
+                : 'Save the exercise name, equipment and technique notes here. Then add it to this workout to set its sets, reps and rest. Your workout edits are kept.'}
             </Dialog.Description>
             <form className="stack" onSubmit={create}>
               <label>
@@ -111,12 +113,13 @@ export function CreateExerciseDialog({
                   disabled={saving}
                 />
               </label>
+              <EquipmentField disabled={saving} />
               <label>
                 Details / technique notes
                 <textarea
                   name="exercise-details"
                   maxLength={5000}
-                  placeholder="Equipment, setup or cues (optional)"
+                  placeholder="Setup or technique cues (optional)"
                   disabled={saving}
                 />
               </label>

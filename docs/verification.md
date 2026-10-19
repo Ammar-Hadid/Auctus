@@ -308,3 +308,9 @@ errors and dialog retry controls. Typecheck, lint, local/Docker builds and 51 un
 tests pass. Public HTTPS tests confirm automatic expiry in both browsers.
 Image `auctus:9fbd906` is healthy; unrelated service IDs are unchanged. Backup:
 `auctus-2026-10-19T11-53-17Z.db`; rollback: `auctus:before-toast-expiry-2026-10-19`.
+
+## Exercise equipment — 19 October 2026
+
+Equipment is saved on reusable exercises and snapshotted in sessions. Five custom-menu choices cover Dumbbells, Stack machine, Plate-loaded machine, Cable machine (including rope attachments), and Other. Labels appear in library/search, workout editor, active exercises and history. Migration 0012 preserves old records as unclassified. Matching equipment is required for prior-weight and “Last time” suggestions.
+
+53 tests across 18 files pass, including enum validation, older-client updates, populated database migration, session snapshots, mid-workout additions and exclusion of weights from a different equipment type. Typecheck and lint pass. Chromium and mobile WebKit cover required choices, all options, library editing/reload, equipment search, inline creation, workout/session labels, notification retry behavior, and layouts down to 320px. The existing full training workflow also verifies per-set weights, ranges, timers and history corrections. A menu layering defect found in the create dialog was fixed by raising the shared menu above the dialog. Desktop/mobile screenshots were reviewed; equipment uses neutral labels so workout status colors remain distinct.

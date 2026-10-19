@@ -1,4 +1,5 @@
 'use client';
+import { EquipmentLabel } from '../ui/equipment';
 import { AuctusSelect } from '../ui/select';
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
@@ -27,6 +28,7 @@ export function ProgressView({
       </button>
       <div>
         <h1>{exercise.name}</h1>
+        <EquipmentLabel equipment={exercise.equipment} />
         <p className="subtitle">Progress earned, one session at a time.</p>
       </div>
       <div className="record-grid">

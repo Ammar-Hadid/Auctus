@@ -18,6 +18,7 @@ export function AuctusSelect({
   name,
   id,
   disabled,
+  required,
   placeholder = 'Choose an option',
   className = '',
   onCreate,
@@ -32,6 +33,7 @@ export function AuctusSelect({
   name?: string;
   id?: string;
   disabled?: boolean;
+  required?: boolean;
   placeholder?: string;
   className?: string;
   onCreate?: () => void;
@@ -44,6 +46,7 @@ export function AuctusSelect({
       defaultValue={defaultValue}
       name={name}
       disabled={disabled}
+      required={required}
       onValueChange={(next) => (next === CREATE ? onCreate?.() : onValueChange?.(next))}
     >
       <Select.Trigger

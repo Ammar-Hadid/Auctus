@@ -115,9 +115,9 @@ export class Sessions {
           const eid = randomUUID();
           this.sql
             .prepare(
-              "INSERT INTO exercise_session (id,workout_id,exercise_id,name,position,status) VALUES (?,?,?,?,?,'pending')",
+              "INSERT INTO exercise_session (id,workout_id,exercise_id,name,position,status,equipment) VALUES (?,?,?,?,?,'pending',?)",
             )
-            .run(eid, id, e.exercise_id, source.name, i);
+            .run(eid, id, e.exercise_id, source.name, i, source.equipment);
           e.sets.forEach((s, j) => this.insertSet(id, eid, j, s, s.id));
         });
         return this.get(id);
@@ -383,7 +383,7 @@ export class Sessions {
                 WHERE template_id=? AND id<>? AND status IN ('completed','abandoned') AND ended_at<=?
                 ORDER BY ended_at DESC,rowid DESC LIMIT 1
               )
-                AND s.template_set_id=? AND s.type=? AND e.exercise_id=?
+                AND s.template_set_id=? AND s.type=? AND e.exercise_id=? AND e.equipment IS ?
                 AND s.status='completed' AND s.removed_at IS NULL AND e.removed_at IS NULL
               LIMIT 1
             `,
@@ -395,6 +395,7 @@ export class Sessions {
                 set.template_set_id,
                 set.type,
                 parent.exercise_id,
+                parent.equipment,
               ) as { id: string; actual_grams: number } | undefined;
             this.closeRest(w.id, now, 'next_set');
             this.sql
@@ -518,9 +519,9 @@ export class Sessions {
             const eid = randomUUID();
             this.sql
               .prepare(
-                "INSERT INTO exercise_session (id,workout_id,exercise_id,name,position,status) VALUES (?,?,?,?,?,'pending')",
+                "INSERT INTO exercise_session (id,workout_id,exercise_id,name,position,status,equipment) VALUES (?,?,?,?,?,'pending',?)",
               )
-              .run(eid, w.id, source.id, source.name, w.exercises.length);
+              .run(eid, w.id, source.id, source.name, w.exercises.length, source.equipment);
             const sets = z.array(prescription).min(1).max(100).parse(c.sets);
             sets.forEach((s, i) => this.insertSet(w.id, eid, i, s));
             break;

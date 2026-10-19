@@ -50,6 +50,10 @@ it('upgrades populated databases without changing actual results or legacy sessi
     expect(migrated.sqlite.prepare('SELECT * FROM template_set').get()).not.toHaveProperty(
       'target_grams',
     );
+    expect(migrated.sqlite.prepare('SELECT equipment FROM exercise WHERE id=?').get('e')).toEqual({
+      equipment: null,
+    });
+    expect(new Sessions(migrated).get('w').exercises[0].equipment).toBeNull();
     const active = new Sessions(migrated).get('w').exercises[0].sets[1];
     // Exact targets are preserved as equal bounds by the subsequent rep-range migration.
     expect(active).toMatchObject({ min_reps: 8, max_reps: 8 });

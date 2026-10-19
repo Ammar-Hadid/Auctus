@@ -1,7 +1,9 @@
+import type { Equipment } from './equipment';
 export type SetType = 'normal' | 'warmup' | 'dropset' | 'failure';
 export type WorkoutStatus = 'active' | 'paused' | 'completed' | 'abandoned';
 export type ActivityStatus = 'pending' | 'active' | 'paused' | 'completed' | 'skipped';
 export interface Exercise {
+  equipment: Equipment | null;
   id: string;
   name: string;
   details: string;
@@ -65,6 +67,7 @@ export interface Workout {
   resume_set_id: string | null;
 }
 export interface ExerciseSession {
+  equipment: Equipment | null;
   id: string;
   workout_id: string;
   exercise_id: string;

@@ -76,6 +76,8 @@ test('custom menus create exercises in place and preserve template and training 
   await picker.press('Enter');
   await expect(dialog.getByLabel('Exercise name')).toHaveValue('No matching exercise xyz');
   await dialog.getByLabel('Exercise name').fill('Incline dumbbell press');
+  await dialog.getByRole('combobox', { name: 'Equipment', exact: true }).click();
+  await page.getByRole('option', { name: 'Dumbbells', exact: true }).click();
   await dialog.getByLabel('Details / technique notes').fill('Bench at 30 degrees.');
   await page.screenshot({
     path: `test-results/create-exercise-${test.info().project.name}.png`,
@@ -172,6 +174,7 @@ test('custom menus create exercises in place and preserve template and training 
     path: `test-results/exercise-collapsed-${test.info().project.name}.png`,
     fullPage: true,
   });
+  await expect(page.locator('.exercise-editor-title .equipment-label')).toHaveText('Dumbbells');
   await page.getByRole('button', { name: 'Save workout', exact: true }).click();
   await page.getByRole('button', { name: 'Use this program' }).click();
   await nav.getByRole('button', { name: 'Overview' }).click();
@@ -188,6 +191,8 @@ test('custom menus create exercises in place and preserve template and training 
   await page.getByRole('option', { name: `Add “${trainingName}”`, exact: true }).click();
   await expect(dialog.getByLabel('Exercise name')).toHaveValue(trainingName);
   await dialog.getByLabel('Exercise name').fill('Cable lateral raise');
+  await dialog.getByRole('combobox', { name: 'Equipment', exact: true }).click();
+  await page.getByRole('option', { name: 'Cable machine', exact: true }).click();
   await dialog.getByRole('button', { name: 'Create and select' }).click();
   await expect(activePicker).toHaveValue('Cable lateral raise');
   await expect(page.getByRole('listbox')).toBeHidden();
@@ -198,6 +203,10 @@ test('custom menus create exercises in place and preserve template and training 
     'Cable lateral raise',
   ]);
   expect(state.activeWorkout.exercises[0].sets[0].type).toBe('failure');
+  expect(state.activeWorkout.exercises.map((e: { equipment: string }) => e.equipment)).toEqual([
+    'dumbbell',
+    'cable',
+  ]);
   expect(
     state.templates.find((t: { id: string }) => t.id === state.activeWorkout.template_id).notes,
   ).toBe('Keep these unsaved cues.');
@@ -206,7 +215,9 @@ test('custom menus create exercises in place and preserve template and training 
   );
   await page.reload();
   await page.getByRole('button', { name: 'Continue workout' }).click();
-  await expect(page.getByRole('button', { name: /^Exercise 02 Cable lateral raise/ })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /^Exercise 02 Cable lateral raise/ }),
+  ).toBeVisible();
   await page.getByRole('button', { name: 'Abandon workout', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm abandon', exact: true }).click();
   await nav.getByRole('button', { name: 'Library', exact: true }).click();
@@ -235,6 +246,8 @@ test('custom menus create exercises in place and preserve template and training 
     animations: 'disabled',
   });
   await dialog.getByLabel('Details / technique notes').fill('Created from Library search.');
+  await dialog.getByRole('combobox', { name: 'Equipment', exact: true }).click();
+  await page.getByRole('option', { name: 'Stack machine', exact: true }).click();
   await dialog.getByRole('button', { name: 'Save exercise', exact: true }).click();
   await expect(dialog).toBeHidden();
   await expect(librarySearch).toHaveValue(libraryName);

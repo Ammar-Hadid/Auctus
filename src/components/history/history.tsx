@@ -1,4 +1,5 @@
 'use client';
+import { EquipmentLabel } from '../ui/equipment';
 import { ActivityStatusLabel } from '../ui/activity-status';
 import { AuctusSelect } from '../ui/select';
 import { useState } from 'react';
@@ -75,6 +76,7 @@ export function HistoryView({
                   {e.removed_at ? ' · removed from plan' : ''}
                 </span>
                 <h2>{e.name}</h2>
+                <EquipmentLabel equipment={e.equipment} />
               </div>
               <button className="ghost" onClick={() => onProgress(e.exercise_id)}>
                 Progress

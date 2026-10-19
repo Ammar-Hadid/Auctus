@@ -1,4 +1,6 @@
 'use client';
+import { EquipmentField, EquipmentLabel } from '../ui/equipment';
+import { equipmentLabel } from '@/domain/equipment';
 import { useRef, useState } from 'react';
 import { Plus, ArrowUpRight, Archive } from 'lucide-react';
 import type { Exercise } from '@/domain/types';
@@ -29,6 +31,7 @@ export function Library({
         id: editing?.id,
         name: f.get('name'),
         details: f.get('details'),
+        equipment: f.get('equipment'),
       })
     )
       setEditing(undefined);
@@ -38,7 +41,7 @@ export function Library({
       <div className="row between">
         <div>
           <h1>Exercise library</h1>
-          <p className="subtitle">Save exercise names and technique notes here.</p>
+          <p className="subtitle">Save exercise names, equipment and technique notes here.</p>
         </div>
         <button className="primary" onClick={() => setEditing(null)}>
           <Plus size={18} />
@@ -70,6 +73,7 @@ export function Library({
             Name
             <input name="name" defaultValue={editing?.name} required maxLength={120} autoFocus />
           </label>
+          <EquipmentField value={editing?.equipment} />
           <label>
             Details / technique notes
             <textarea name="details" defaultValue={editing?.details} />
@@ -82,7 +86,7 @@ export function Library({
           label="Search exercises"
           options={exercises
             .filter((e) => !e.archived_at)
-            .map((e) => ({ value: e.id, label: e.name }))}
+            .map((e) => ({ value: e.id, label: e.name, description: equipmentLabel(e.equipment) }))}
           value=""
           searchQuery={query}
           onSearchQueryChange={setQuery}
@@ -106,12 +110,15 @@ export function Library({
           .filter(
             (e) =>
               !e.archived_at &&
-              e.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
+              [e.name, equipmentLabel(e.equipment)].some((text) =>
+                text.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
+              ),
           )
           .map((e) => (
             <div className="list-row" key={e.id}>
               <div className="grow">
                 <h3>{e.name}</h3>
+                <EquipmentLabel equipment={e.equipment} />
                 <p>{e.details || 'No technique notes'}</p>
               </div>
               <div className="row">

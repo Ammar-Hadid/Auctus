@@ -1241,7 +1241,7 @@ td:nth-child(2) {
   color: var(--accent);
 }
 .select-menu {
-  z-index: 100;
+  z-index: 120;
   width: var(--radix-select-trigger-width);
   min-width: min(200px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
@@ -1644,4 +1644,36 @@ main:not(.login):has(.rest-panel) {
   body:has(.login) .toast-viewport {
     bottom: max(16px, env(safe-area-inset-bottom));
   }
+}
+
+.equipment-field {
+  display: grid;
+  gap: 8px;
+}
+.equipment-field p {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+}
+.equipment-label {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 6px 0 10px;
+  overflow-wrap: anywhere;
+}
+.exercise-option-equipment {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 2px;
 }

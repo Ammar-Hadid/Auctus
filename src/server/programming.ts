@@ -1,3 +1,4 @@
+import { equipmentTypes } from '../domain/equipment';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { accountId, type Store } from './db/connection';
@@ -65,7 +66,14 @@ export class Programming {
     );
   }
   saveExercise(input: unknown) {
-    const v = z.object({ id: id.optional(), name, details: notes }).parse(input);
+    const v = z
+      .object({
+        id: id.optional(),
+        name,
+        details: notes,
+        equipment: z.enum(equipmentTypes).nullable().optional(),
+      })
+      .parse(input);
     const key = v.id ?? randomUUID();
     if (v.id) {
       requireCondition(
@@ -74,14 +82,21 @@ export class Programming {
         404,
       );
       this.sql
-        .prepare('UPDATE exercise SET name=?,details=? WHERE id=?')
-        .run(v.name, v.details, key);
+        .prepare('UPDATE exercise SET name=?,details=?,equipment=? WHERE id=?')
+        .run(
+          v.name,
+          v.details,
+          v.equipment === undefined
+            ? this.exercises().find((e) => e.id === key)!.equipment
+            : v.equipment,
+          key,
+        );
     } else
       this.sql
         .prepare(
-          'INSERT INTO exercise (id,name,details,archived_at,created_at,user_id) VALUES (?,?,?,NULL,?,?)',
+          'INSERT INTO exercise (id,name,details,archived_at,created_at,user_id,equipment) VALUES (?,?,?,NULL,?,?,?)',
         )
-        .run(key, v.name, v.details, this.clock(), this.userId);
+        .run(key, v.name, v.details, this.clock(), this.userId, v.equipment ?? null);
     return this.exercises().find((e) => e.id === key)!;
   }
   saveProgram(input: unknown) {
