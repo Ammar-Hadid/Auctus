@@ -4,7 +4,9 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   timeout: 60000,
-  use: { baseURL: 'http://localhost:3100', trace: 'retain-on-failure' },
+  // Fault-injection tests must intercept requests before a production service worker.
+  // Service-worker fetch/push behavior has dedicated unit coverage.
+  use: { baseURL: 'http://localhost:3100', trace: 'retain-on-failure', serviceWorkers: 'block' },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'webkit-mobile', use: { ...devices['iPhone 13'] } },

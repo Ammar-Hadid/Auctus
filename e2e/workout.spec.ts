@@ -83,9 +83,10 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     .getByRole('button', { name: 'Start workout', exact: true })
     .and(page.locator(':enabled'))
     .click();
-  await expect(page.getByRole('button', { name: 'Start exercise', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start set 1', exact: true })).toBeVisible();
   await page.unroute('**/api/state');
-  await expect(page.getByText('Planned 6–8 reps', { exact: false })).toBeVisible();
+  await expect(page.getByText('Aim for 6–8 reps', { exact: false })).toBeVisible();
+  await page.getByText('Set options', { exact: true }).click();
   await page
     .locator('.set-card')
     .filter({
@@ -100,13 +101,11 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   ).toBeVisible();
   await page.getByLabel('Set 1 minimum reps').fill('6');
   await page.getByRole('button', { name: 'Save set changes', exact: true }).click();
-  await page.getByRole('button', { name: 'Start exercise', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('');
   await page.getByLabel('Set 1 actual kg').fill('22');
   await page.getByLabel('Set 1 actual reps').fill('9');
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout' }).click();
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('22');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Rest timer' })).toBeVisible();
@@ -123,7 +122,8 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await restTimer.getByRole('button', { name: 'Pause rest timer', exact: true }).click();
   await expect(restTimer.getByText('Rest paused', { exact: true })).toBeVisible();
   const pausedTime = await restTimer.getByRole('timer').textContent();
-  await expect(page.getByText('Session in progress', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start set 2', exact: true })).toBeVisible();
+  expect((await (await page.request.get('/api/state')).json()).activeWorkout.status).toBe('active');
   await restTimer.getByRole('button', { name: '+5s', exact: true }).click();
   await restTimer.getByRole('button', { name: '+15s', exact: true }).click();
   const seconds = (text: string | null) =>
@@ -138,7 +138,6 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     .toBe(20);
   const extendedTime = await restTimer.getByRole('timer').textContent();
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
   await expect(restTimer.getByRole('timer')).toHaveText(extendedTime!);
   await expect(
     restTimer.getByRole('button', { name: 'Resume rest timer', exact: true }),
@@ -167,12 +166,13 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
     path: `test-results/active-${test.info().project.name}.png`,
     fullPage: false,
   });
+  await page.getByText('Workout options', { exact: true }).click();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.getByText('Rest paused', { exact: false })).toBeVisible();
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout' }).click();
-  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume workout', exact: true }).click();
   await page.getByRole('button', { name: 'End rest', exact: true }).click();
+  await page.getByText('Workout options', { exact: true }).click();
   await page.getByRole('button', { name: 'Finish workout', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm finish' }).click();
   await expect(
@@ -230,16 +230,13 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.context().setOffline(false);
   await page.getByRole('button', { name: 'Retry save', exact: true }).click();
   await page.getByRole('button', { name: 'Continue workout' }).click();
-  await page.getByRole('button', { name: 'Start exercise', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('24');
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout' }).click();
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('24');
   // Clearing a suggestion is an intentional draft; it stays empty after reload.
   await page.getByLabel('Set 1 actual kg').fill('');
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout' }).click();
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('');
   await page.getByLabel('Set 1 actual kg').fill('40');
   await page.getByLabel('Set 1 actual reps').fill('8');
@@ -284,8 +281,8 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   );
   expect(requests.map((r) => r.status()).sort()).toEqual([200, 409]);
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout' }).click();
-  await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Resume workout', exact: true })).toBeVisible();
+  await page.getByText('Workout options', { exact: true }).click();
   await page.getByRole('button', { name: 'Abandon workout', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm abandon', exact: true }).click();
   await verifyPerSetWeightHistory(page);

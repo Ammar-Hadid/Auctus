@@ -1,16 +1,22 @@
 'use client';
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Toast from '@radix-ui/react-toast';
 import { CircleAlert, Check, Info, X } from 'lucide-react';
 
-const ViewportHostContext = createContext<(host: HTMLDivElement | null) => void>(() => {});
+type RegisterHost = (host: HTMLDivElement) => () => void;
+const ViewportHostContext = createContext<RegisterHost>(() => () => {});
 
 export function Notifications({ children }: { children: ReactNode }) {
-  const [host, setHost] = useState<HTMLDivElement | null>(null);
+  const [hosts, setHosts] = useState<HTMLDivElement[]>([]);
+  const registerHost = useCallback<RegisterHost>((host) => {
+    setHosts((current) => [...current.filter((item) => item !== host), host]);
+    return () => setHosts((current) => current.filter((item) => item !== host));
+  }, []);
+  const host = hosts.at(-1);
   const viewport = <Toast.Viewport className="toast-viewport" label="Notifications (F8)" />;
   return (
-    <ViewportHostContext.Provider value={setHost}>
+    <ViewportHostContext.Provider value={registerHost}>
       <Toast.Provider duration={5000} announcerContainer={host ?? undefined}>
         {children}
         {host ? createPortal(viewport, host) : viewport}
@@ -21,8 +27,14 @@ export function Notifications({ children }: { children: ReactNode }) {
 
 // Keep notifications inside an open modal's focus and accessibility boundary.
 export function NotificationHost() {
-  const setHost = useContext(ViewportHostContext);
-  return <div ref={setHost} />;
+  const registerHost = useContext(ViewportHostContext);
+  const hostRef = useCallback(
+    (host: HTMLDivElement | null) => {
+      if (host) return registerHost(host);
+    },
+    [registerHost],
+  );
+  return <div ref={hostRef} />;
 }
 
 export function Notification({

@@ -59,8 +59,6 @@ test('expired rest rings until End rest and stays ended after reload', async ({ 
     assignment_id: state.assignments.find((a) => a.template_id === template.id)!.id,
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
-  await page.getByRole('button', { name: 'Start exercise', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
   await page.getByLabel('Set 1 actual kg').fill('1');
   await page.getByLabel('Set 1 actual reps').fill('1');
@@ -94,7 +92,6 @@ test('expired rest rings until End rest and stays ended after reload', async ({ 
   await expect(timer).toHaveCount(0);
   expect(await audio()).toEqual({ starts: 1, stops: 1, looping: true });
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
   await expect(timer).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Start set 2', exact: true })).toBeVisible();
   expect((await audio()).starts).toBe(0);

@@ -48,13 +48,9 @@ export async function verifyPerSetWeightHistory(page: Page) {
   await act('workout.complete', { skipRemaining: true });
   await command('workout.start', { assignment_id: assignment.id, repeat: true });
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
-  await page.getByRole('button', { name: 'Start exercise', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('15');
-  await expect(
-    page.getByText('This set in your previous workout: 15 kg. Change it as needed.'),
-  ).toBeVisible();
+  await expect(page.getByText('Last time, this set: 15 kg. Adjust if needed.')).toBeVisible();
   await page.getByLabel('Set 1 actual kg').fill('17');
   await page.getByLabel('Set 1 actual reps').fill('8');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
@@ -63,7 +59,6 @@ export async function verifyPerSetWeightHistory(page: Page) {
   await page.getByLabel('Set 2 actual kg').fill('40');
   await page.getByLabel('Set 2 actual reps').fill('7');
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout', exact: true }).click();
   await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('40');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 3', exact: true }).click();

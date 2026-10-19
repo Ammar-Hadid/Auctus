@@ -27,6 +27,7 @@ export function ExerciseSearch({
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
+  const [portalHost, setPortalHost] = useState<HTMLElement | null>(null);
   const [query, setQuery] = useState<string | null>(null);
   const [active, setActive] = useState(-1);
   const menu = useRef<HTMLDivElement>(null);
@@ -44,6 +45,11 @@ export function ExerciseSearch({
     !options.some((option) => option.label.trim().toLocaleLowerCase() === normalized);
   const optionCount = matches.length + (canCreate ? 1 : 0);
   const activeIndex = active < optionCount ? active : -1;
+  function openMenu() {
+    // Keep custom options inside a modal's pointer and accessibility boundary.
+    setPortalHost(inputRef.current?.closest<HTMLElement>('[role="dialog"]') ?? document.body);
+    setOpen(true);
+  }
   function close() {
     setOpen(false);
     setActive(-1);
@@ -98,7 +104,7 @@ export function ExerciseSearch({
             value={searchQuery ?? query ?? selected?.label ?? ''}
             disabled={disabled}
             onFocus={() => setActive(-1)}
-            onClick={() => setOpen(true)}
+            onClick={openMenu}
             onBlur={() => {
               close();
               setQuery(null);
@@ -107,14 +113,14 @@ export function ExerciseSearch({
               setQuery(event.target.value);
               onSearchQueryChange?.(event.target.value);
               if (value) onValueChange('');
-              setOpen(true);
+              openMenu();
               setActive(-1);
             }}
             onKeyDown={(event) => {
               if (event.nativeEvent.isComposing) return;
               if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
                 event.preventDefault();
-                setOpen(true);
+                openMenu();
                 setActive(
                   event.key === 'ArrowDown'
                     ? (open ? activeIndex + 1 : 0) % optionCount
@@ -136,11 +142,13 @@ export function ExerciseSearch({
       </Popper.Anchor>
       {open &&
         !disabled &&
+        portalHost &&
         createPortal(
           <Popper.Content
             className="select-menu exercise-search-menu"
             sideOffset={6}
             collisionPadding={12}
+            collisionBoundary={portalHost === document.body ? undefined : portalHost}
             align="start"
             ref={menu}
             onMouseDown={(event) => event.preventDefault()}
@@ -202,7 +210,7 @@ export function ExerciseSearch({
               {matches.length} exercises found.
             </p>
           </Popper.Content>,
-          document.body,
+          portalHost,
         )}
     </Popper.Root>
   );

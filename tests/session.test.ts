@@ -84,7 +84,7 @@ describe('persistent workout engine', () => {
     x.s.act({ ...context(x), action: 'exercise.start', id: a.id });
     const w = x.s.get(x.workout.id);
     expect(w.exercises.filter((e) => e.status === 'active')).toHaveLength(1);
-    expect(w.exercises[1].status).toBe('paused');
+    expect(w.exercises[1].status).toBe('skipped');
     x.store.sqlite.close();
   });
   it('records results and real rest, freezes on pause, restores the same active child and rejects duplicate completion', () => {
@@ -291,3 +291,319 @@ it('persists independent rest pauses and extensions without double-counting work
   expect(() => act('rest.extend', { ms: 5000 })).toThrow('no longer active');
   x.store.sqlite.close();
 });
+
+describe('guided set flow', () => {
+  it('begins a chosen set atomically and deliberately resumes an interrupted exercise', () => {
+    const x = setup();
+    try {
+      const [a, b] = x.workout.exercises;
+      let w = x.s.act({ ...context(x), action: 'set.begin', id: a.sets[1].id });
+      expect(w.version).toBe(1);
+      expect(w.exercises[0].status).toBe('active');
+      expect(w.exercises[0].sets.map((s) => s.status)).toEqual(['pending', 'active']);
+      x.s.act({
+        ...context(x),
+        action: 'set.complete',
+        id: a.sets[1].id,
+        actual_grams: 20000,
+        actual_reps: 8,
+      });
+      x.tick(15000);
+      w = x.s.act({ ...context(x), action: 'set.begin', id: b.sets[0].id });
+      expect(w.exercises[0].status).toBe('paused');
+      expect(w.exercises[1].status).toBe('active');
+      expect(w.rests[0].ended_at).toBe(x.clock());
+      expect(w.rests[0].reason).toBe('exercise_switch');
+      x.s.act({ ...context(x), action: 'set.skip', id: b.sets[0].id });
+      w = x.s.act({ ...context(x), action: 'set.begin', id: a.sets[0].id });
+      expect(w.exercises[0].status).toBe('active');
+      expect(w.exercises[0].sets[0].status).toBe('active');
+      expect(w.exercises[0].started_at).toBe(x.workout.started_at);
+      expect(w.exercises[1].status).toBe('skipped');
+    } finally {
+      x.store.sqlite.close();
+    }
+  });
+
+  it('rejects switching with an active set, stale versions and paused workouts without partial changes', () => {
+    const x = setup();
+    try {
+      const [a, b] = x.workout.exercises;
+      const w = x.s.act({ ...context(x), action: 'set.begin', id: a.sets[0].id });
+      expect(() => x.s.act({ ...context(x), action: 'set.begin', id: b.sets[0].id })).toThrow(
+        'active',
+      );
+      expect(() =>
+        x.s.act({ workout_id: w.id, version: 0, action: 'set.begin', id: b.sets[0].id }),
+      ).toThrow('changed');
+      expect(x.s.get(w.id)).toEqual(w);
+      const paused = x.s.act({ ...context(x), action: 'workout.pause' });
+      expect(() => x.s.act({ ...context(x), action: 'set.begin', id: b.sets[0].id })).toThrow(
+        'Resume',
+      );
+      expect(x.s.get(w.id)).toEqual(paused);
+    } finally {
+      x.store.sqlite.close();
+    }
+  });
+
+  it('finishes the last completed set’s exercise without ending rest or beginning the next effort', () => {
+    const x = setup();
+    try {
+      const [a, b] = x.workout.exercises;
+      x.s.act({ ...context(x), action: 'set.begin', id: b.sets[0].id });
+      x.tick(10000);
+      const w = x.s.act({
+        ...context(x),
+        action: 'set.complete',
+        id: b.sets[0].id,
+        actual_grams: 30000,
+        actual_reps: 9,
+      });
+      expect(w.exercises[1]).toMatchObject({ status: 'completed', ended_at: x.clock() });
+      expect(w.exercises[0]).toMatchObject({ id: a.id, status: 'pending', started_at: null });
+      expect(w.exercises[0].sets.every((s) => s.status === 'pending')).toBe(true);
+      expect(w.status).toBe('active');
+      expect(w.rests).toHaveLength(1);
+      expect(w.rests[0].ended_at).toBeNull();
+    } finally {
+      x.store.sqlite.close();
+    }
+  });
+
+  it('completes mixed-result exercises and marks entirely skipped exercises skipped', () => {
+    const x = setup();
+    try {
+      const [a, b] = x.workout.exercises;
+      x.s.act({ ...context(x), action: 'set.begin', id: a.sets[0].id });
+      x.s.act({
+        ...context(x),
+        action: 'set.complete',
+        id: a.sets[0].id,
+        actual_grams: 30000,
+        actual_reps: 9,
+      });
+      const mixed = x.s.act({ ...context(x), action: 'set.skip', id: a.sets[1].id });
+      expect(mixed.exercises[0].status).toBe('completed');
+      expect(mixed.rests[0].ended_at).toBeNull();
+      x.s.act({ ...context(x), action: 'set.begin', id: b.sets[0].id });
+      const skipped = x.s.act({ ...context(x), action: 'set.skip', id: b.sets[0].id });
+      expect(skipped.exercises[1].status).toBe('skipped');
+      expect(skipped.rests).toHaveLength(1);
+    } finally {
+      x.store.sqlite.close();
+    }
+  });
+
+  it('ignores removed sets when resolving an exercise and handles completion after an earlier skip', () => {
+    const x = setup();
+    try {
+      const a = x.workout.exercises[0];
+      x.s.act({
+        ...context(x),
+        action: 'set.add',
+        id: a.id,
+        type: 'warmup',
+        min_reps: 10,
+        max_reps: 12,
+        rest_ms: 30000,
+      });
+      x.s.act({ ...context(x), action: 'set.skip', id: a.sets[0].id });
+      expect(x.s.get(x.workout.id).exercises[0].status).toBe('pending');
+      const added = x.s.get(x.workout.id).exercises[0].sets.at(-1)!;
+      x.s.act({ ...context(x), action: 'set.remove', id: added.id });
+      x.s.act({ ...context(x), action: 'set.begin', id: a.sets[1].id });
+      const w = x.s.act({
+        ...context(x),
+        action: 'set.complete',
+        id: a.sets[1].id,
+        actual_grams: 25000,
+        actual_reps: 8,
+      });
+      expect(w.exercises[0].status).toBe('completed');
+      expect(w.rests[0].ended_at).toBeNull();
+    } finally {
+      x.store.sqlite.close();
+    }
+  });
+});
+
+it.each(['completed', 'skipped'] as const)(
+  'reopens a %s exercise for extra sets without interrupting another active exercise',
+  (terminalStatus) => {
+    const x = setup();
+    try {
+      const [a, b] = x.workout.exercises;
+      x.s.act({ ...context(x), action: 'set.begin', id: b.sets[0].id });
+      x.s.act({
+        ...context(x),
+        action: terminalStatus === 'completed' ? 'set.complete' : 'set.skip',
+        id: b.sets[0].id,
+        actual_grams: 20000,
+        actual_reps: 8,
+      });
+      expect(x.s.get(x.workout.id).exercises[1].status).toBe(terminalStatus);
+      x.tick(10000);
+      x.s.act({ ...context(x), action: 'set.begin', id: a.sets[0].id });
+      let w = x.s.act({
+        ...context(x),
+        action: 'set.add',
+        id: b.id,
+        type: 'normal',
+        min_reps: 8,
+        max_reps: 10,
+        rest_ms: 60000,
+      });
+      expect(w.exercises[0].status).toBe('active');
+      expect(w.exercises[1]).toMatchObject({
+        status: 'pending',
+        ended_at: null,
+        started_at: x.workout.started_at,
+      });
+      const extra = w.exercises[1].sets.at(-1)!;
+      expect(extra).toMatchObject({ status: 'pending', template_set_id: null });
+      expect(() => x.s.act({ ...context(x), action: 'set.begin', id: extra.id })).toThrow(
+        'active set',
+      );
+      x.s.act({ ...context(x), action: 'set.skip', id: a.sets[0].id });
+      w = x.s.act({ ...context(x), action: 'set.begin', id: extra.id });
+      expect(w.exercises[0].status).toBe('paused');
+      expect(w.exercises[1].status).toBe('active');
+      expect(w.exercises[1].sets.at(-1)!.prefill_grams).toBeNull();
+      w = x.s.act({
+        ...context(x),
+        action: 'set.complete',
+        id: extra.id,
+        actual_grams: 22000,
+        actual_reps: 9,
+      });
+      expect(w.exercises[1]).toMatchObject({ status: 'completed', ended_at: x.clock() });
+      expect(w.exercises[1].sets[0].status).toBe(terminalStatus);
+      expect(w.rests.at(-1)!.ended_at).toBeNull();
+    } finally {
+      x.store.sqlite.close();
+    }
+  },
+);
+
+it('replays a guided begin receipt without starting a second effort or changing its timestamp', () => {
+  const x = setup();
+  try {
+    const request = randomUUID();
+    const payload = { ...context(x), action: 'set.begin', id: x.workout.exercises[0].sets[0].id };
+    const execute = () => x.s.act(payload);
+    const first = command(x.store, request, payload, x.clock(), execute);
+    x.tick(5000);
+    expect(command(x.store, request, payload, x.clock(), execute)).toEqual(first);
+    const w = x.s.get(x.workout.id);
+    expect(w.version).toBe(1);
+    expect(w.exercises.flatMap((e) => e.sets).filter((s) => s.status === 'active')).toHaveLength(1);
+    expect(w.exercises[0].sets[0].started_at).toBe(x.workout.started_at);
+  } finally {
+    x.store.sqlite.close();
+  }
+});
+
+it('resolves fully skipped pending and paused exercises without disturbing another exercise or rest', () => {
+  const x = setup();
+  try {
+    const [a, b] = x.workout.exercises;
+    x.s.act({ ...context(x), action: 'set.begin', id: a.sets[0].id });
+    x.s.act({
+      ...context(x),
+      action: 'set.complete',
+      id: a.sets[0].id,
+      actual_grams: 20000,
+      actual_reps: 8,
+    });
+    const rest = x.s.get(x.workout.id).rests[0];
+    let w = x.s.act({ ...context(x), action: 'set.skip', id: b.sets[0].id });
+    expect(w.exercises[1]).toMatchObject({ status: 'skipped', started_at: null });
+    expect(w.exercises[0].status).toBe('active');
+    expect(w.rests[0]).toEqual(rest);
+    w = x.s.act({
+      ...context(x),
+      action: 'set.add',
+      id: b.id,
+      type: 'normal',
+      min_reps: 8,
+      max_reps: 8,
+      rest_ms: 60000,
+    });
+    const added = w.exercises[1].sets.at(-1)!;
+    x.s.act({ ...context(x), action: 'set.begin', id: added.id });
+    const activeOther = x.s.get(x.workout.id).exercises[1];
+    expect(x.s.get(x.workout.id).exercises[0].status).toBe('paused');
+    w = x.s.act({ ...context(x), action: 'set.skip', id: a.sets[1].id });
+    expect(w.exercises[0].status).toBe('completed');
+    expect(w.exercises[1]).toEqual(activeOther);
+  } finally {
+    x.store.sqlite.close();
+  }
+});
+
+it('resolves an exercise when its last unfinished set is removed without deleting recorded results or ending rest', () => {
+  const x = setup();
+  try {
+    const [a, b] = x.workout.exercises;
+    x.s.act({ ...context(x), action: 'set.begin', id: a.sets[0].id });
+    x.s.act({
+      ...context(x),
+      action: 'set.complete',
+      id: a.sets[0].id,
+      actual_grams: 23000,
+      actual_reps: 9,
+    });
+    let w = x.s.act({ ...context(x), action: 'set.remove', id: a.sets[1].id });
+    expect(w.exercises[0].status).toBe('completed');
+    expect(w.exercises[0].sets[0]).toMatchObject({
+      status: 'completed',
+      actual_grams: 23000,
+      actual_reps: 9,
+      removed_at: null,
+    });
+    expect(w.rests[0].ended_at).toBeNull();
+    w = x.s.act({ ...context(x), action: 'set.remove', id: b.sets[0].id });
+    expect(w.exercises[1].status).toBe('skipped');
+    expect(w.exercises[1].sets[0].removed_at).not.toBeNull();
+    expect(w.rests[0].ended_at).toBeNull();
+  } finally {
+    x.store.sqlite.close();
+  }
+});
+
+it.each(['pending', 'paused'] as const)(
+  'finishes legacy fully resolved %s exercises without starting them or closing rest',
+  (status) => {
+    const x = setup();
+    try {
+      const [a, b] = x.workout.exercises;
+      x.s.act({ ...context(x), action: 'set.begin', id: b.sets[0].id });
+      x.s.act({
+        ...context(x),
+        action: 'set.complete',
+        id: b.sets[0].id,
+        actual_grams: 20000,
+        actual_reps: 8,
+      });
+      // Model an already-existing session written before automatic exercise resolution.
+      x.store.sqlite
+        .prepare("UPDATE set_session SET status='skipped',ended_at=? WHERE exercise_session_id=?")
+        .run(x.clock(), a.id);
+      x.store.sqlite
+        .prepare('UPDATE exercise_session SET status=?,ended_at=NULL WHERE id=?')
+        .run(status, a.id);
+      const before = x.s.get(x.workout.id);
+      const w = x.s.act({ ...context(x), action: 'exercise.complete', id: a.id });
+      expect(w.exercises[0]).toMatchObject({
+        status: 'skipped',
+        started_at: null,
+        ended_at: x.clock(),
+      });
+      expect(w.exercises[1]).toEqual(before.exercises[1]);
+      expect(w.rests).toEqual(before.rests);
+    } finally {
+      x.store.sqlite.close();
+    }
+  },
+);

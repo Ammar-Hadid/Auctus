@@ -28,7 +28,7 @@ const nav = [
 ];
 export function App({ initial }: { initial: State }) {
   const model = useModel(initial);
-  const [view, setView] = useState('dashboard');
+  const [view, setView] = useState(initial.activeWorkout ? 'workout' : 'dashboard');
   const [progressId, setProgressId] = useState<string | null>(null);
   const navigate = (v: string) => {
     setView(v);
@@ -149,6 +149,7 @@ export function App({ initial }: { initial: State }) {
               )}
               {view === 'workout' && model.state.activeWorkout && (
                 <ActiveWorkout
+                  busy={model.busy}
                   state={model.state}
                   send={model.send}
                   finished={() => navigate('dashboard')}

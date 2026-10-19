@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test e2e/accounts.spec.ts --project=chromium --output=test-results/accounts && playwright test --project=chromium --grep-invert 'master password plus passkey' --output=test-results/chromium && playwright test --project=webkit-mobile --output=test-results/webkit-mobile",
+    "test:e2e": "tsx scripts/e2e.ts",
     "db:migrate": "node --env-file-if-exists=.env.local --import tsx scripts/migrate.ts",
     "owner": "node --env-file-if-exists=.env.local --import tsx scripts/owner.ts",
     "backup": "node --env-file-if-exists=.env.local --import tsx scripts/backup.ts",

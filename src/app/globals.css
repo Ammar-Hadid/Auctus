@@ -1793,3 +1793,537 @@ td:nth-child(2) {
   color: var(--accent);
   font-weight: 600;
 }
+
+/* The workout is context, the exercise is a section, and sets are rows within it. */
+.workout-focus {
+  max-width: 780px;
+  margin: 0 auto;
+}
+.workout-context {
+  padding-bottom: 0;
+}
+.workout-context-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.workout-context h1 {
+  font-size: 24px;
+  letter-spacing: -0.6px;
+  margin-top: 4px;
+}
+.workout-clock {
+  flex-shrink: 0;
+  font-size: 22px;
+  text-align: right;
+}
+.workout-clock small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+.workout-progress-copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin: 14px 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.workout-focus .progress-track {
+  height: 3px;
+}
+.workout-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  padding: 8px 0 12px;
+  background: var(--bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 10px;
+}
+.workout-toolbar > button {
+  font-size: 13px;
+}
+.exercise-focus-area {
+  scroll-margin-top: 64px;
+  outline: none;
+}
+.exercise-focus-heading {
+  padding: 22px 24px;
+  background: var(--surface);
+  border-radius: 12px 12px 0 0;
+}
+.exercise-focus-heading.active {
+  background: var(--in-progress-surface);
+}
+.exercise-focus-heading.paused {
+  background: var(--paused-surface);
+}
+.exercise-focus-heading.completed {
+  background: var(--completed-surface);
+}
+.exercise-focus-heading.skipped {
+  background: var(--skipped-surface);
+}
+.exercise-focus-heading h2 {
+  font-size: clamp(24px, 3vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.7px;
+  margin: 12px 0 10px;
+  overflow-wrap: anywhere;
+}
+.exercise-focus-heading .eyeline {
+  font-size: 10px;
+}
+.exercise-conventions {
+  font-size: 11px;
+  margin-top: 6px;
+}
+.exercise-work-area {
+  padding: 20px 24px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+}
+.set-instruction {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.set-focus {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+}
+.set-focus > .row:first-child {
+  align-items: start;
+  gap: 8px;
+}
+.set-focus strong {
+  font-size: 19px;
+}
+.set-focus .set-kind {
+  font-size: 13px;
+}
+.set-focus .set-target {
+  font-size: 13px;
+  margin-top: 6px;
+}
+.set-focus > .stack {
+  margin-top: 16px;
+  gap: 12px;
+}
+.set-focus > .stack > p {
+  font-size: 12px;
+}
+.set-focus .result-form {
+  margin-top: 16px;
+  gap: 12px;
+}
+.set-focus .field-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.set-focus .result-form input[type='number'] {
+  font-size: 28px;
+  min-height: 58px;
+  padding: 10px;
+}
+.set-focus .result-form input::placeholder {
+  font-size: 16px;
+}
+.set-focus .result-form .muted {
+  font-size: 12px;
+}
+.set-focus .primary {
+  min-height: 50px;
+}
+.set-focus .recorded {
+  margin: 12px 0;
+}
+.set-focus label {
+  color: var(--muted) !important;
+  font-size: 12px;
+}
+.set-focus .set-options {
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 4px;
+}
+.set-focus summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.set-focus summary::before {
+  content: '+';
+  width: 20px;
+}
+.set-focus details[open] > summary::before {
+  content: '−';
+}
+.set-focus details[open] > summary {
+  margin-bottom: 8px;
+}
+.set-focus .set-notes summary {
+  min-height: 32px;
+}
+.set-focus .draft-label {
+  text-align: center;
+}
+.set-ledger {
+  margin-top: 22px;
+}
+.set-ledger-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.set-ledger-heading h3 {
+  font-size: 15px;
+}
+.set-ledger-heading span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.set-ledger-labels,
+.set-ledger-row {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1.3fr;
+  gap: 8px;
+  align-items: center;
+  text-align: left;
+}
+.set-ledger-labels {
+  padding: 8px 10px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.set-ledger-labels > :last-child {
+  text-align: right;
+}
+.set-ledger-row {
+  width: 100%;
+  padding: 12px 10px;
+  min-height: 60px;
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 400;
+}
+.set-ledger-row small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.set-ledger-row.selected {
+  box-shadow: inset 0 0 0 1px var(--muted);
+}
+.set-ledger-row.active {
+  background: var(--in-progress-surface);
+  color: var(--in-progress);
+}
+.set-ledger-row.paused {
+  background: var(--paused-surface);
+  color: var(--paused);
+}
+.set-ledger-row.completed {
+  background: var(--completed-surface);
+  color: var(--accent);
+}
+.set-ledger-row.skipped {
+  background: var(--skipped-surface);
+  color: var(--skipped);
+}
+.set-ledger-number {
+  font-weight: 600;
+}
+.set-ledger-result {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  text-align: right;
+}
+.set-ledger-result svg {
+  flex: 0 0 16px;
+}
+.exercise-tools {
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding-top: 8px;
+}
+.exercise-tools > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.exercise-tools p {
+  font-size: 13px;
+}
+.exercise-finished {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px 0 12px;
+}
+.exercise-finished.completed > svg {
+  color: var(--accent);
+}
+.exercise-finished.skipped > svg {
+  color: var(--skipped);
+}
+.exercise-finished > .primary {
+  width: 100%;
+  margin-top: 8px;
+}
+.exercise-finished p {
+  font-size: 13px;
+}
+.return-to-set {
+  width: 100%;
+  margin-bottom: 12px;
+  background: var(--in-progress-surface);
+  color: var(--in-progress);
+  font-size: 13px;
+}
+.workout-focus .workout-paused-notice {
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.session-dialog {
+  position: fixed;
+  z-index: 111;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(580px, calc(100vw - 24px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+}
+.session-dialog > p {
+  margin: 12px 0 20px;
+  font-size: 13px;
+}
+.session-dialog fieldset {
+  min-width: 0;
+}
+.session-dialog fieldset > .row > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.workout-overview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.overview-exercise {
+  background: var(--bg);
+  border-radius: 8px;
+}
+.overview-exercise.active {
+  background: var(--in-progress-surface);
+}
+.overview-exercise.paused {
+  background: var(--paused-surface);
+}
+.overview-exercise.completed {
+  background: var(--completed-surface);
+}
+.overview-exercise.skipped {
+  background: var(--skipped-surface);
+}
+.overview-exercise-select {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 16px;
+  gap: 12px;
+  text-align: left;
+  background: transparent;
+  border-color: transparent;
+  padding: 14px 10px;
+  width: 100%;
+}
+.overview-exercise-select small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 400;
+}
+.overview-exercise-select strong {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+.overview-index {
+  color: var(--muted);
+  font-size: 15px;
+  text-align: center;
+}
+.completed .overview-index {
+  color: var(--accent);
+}
+.session-confirm .row {
+  justify-content: flex-end;
+}
+@media (max-width: 760px) {
+  .app-content:has(.workout-focus) .topbar {
+    display: none;
+  }
+  .app-content:has(.workout-focus) {
+    padding-top: 0;
+  }
+  main:has(.workout-focus) {
+    padding-top: 14px;
+  }
+  .workout-context h1 {
+    font-size: 20px;
+  }
+  .workout-context-title {
+    gap: 12px;
+  }
+  .workout-context .eyeline {
+    font-size: 9px;
+  }
+  .workout-clock {
+    font-size: 20px;
+  }
+  .workout-progress-copy {
+    margin-top: 10px;
+    font-size: 11px;
+  }
+  .workout-toolbar > button {
+    padding: 8px 10px;
+  }
+  .exercise-focus-heading {
+    padding: 18px 16px;
+  }
+  .exercise-work-area {
+    padding: 16px;
+  }
+  .exercise-focus-heading h2 {
+    font-size: 26px;
+  }
+  .set-focus > .row:first-child .activity-status {
+    font-size: 11px;
+  }
+  .set-focus strong {
+    font-size: 18px;
+  }
+  .set-focus .field-grid {
+    gap: 10px;
+  }
+  .set-focus .set-target {
+    font-size: 12px;
+  }
+  .session-dialog {
+    padding: 18px;
+  }
+}
+@media (max-width: 360px) {
+  .workout-toolbar {
+    gap: 4px;
+  }
+  .workout-toolbar > button {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .exercise-focus-heading .row {
+    gap: 6px;
+  }
+  .exercise-focus-heading .activity-status {
+    font-size: 11px;
+  }
+  .set-ledger-row {
+    grid-template-columns: 0.8fr 1fr 1.2fr;
+    gap: 5px;
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+}
+.set-focus .field-grid > label {
+  justify-content: flex-end;
+}
+@media (max-width: 760px) {
+  .bottom-dock .rest-panel:not(.collapsed) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left));
+  }
+  .rest-panel:not(.collapsed) > div:first-of-type {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 12px;
+    align-items: center;
+    padding-right: 44px;
+    min-height: 44px;
+  }
+  .rest-panel:not(.collapsed) .rest-clock {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    font-size: 32px;
+  }
+  .rest-panel:not(.collapsed) .eyeline {
+    grid-column: 2;
+    font-size: 9px;
+    letter-spacing: 1px;
+    align-self: end;
+  }
+  .rest-panel:not(.collapsed) p {
+    grid-column: 2;
+    font-size: 10px;
+    align-self: start;
+  }
+  .rest-panel:not(.collapsed) .rest-controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(44px, 1fr)) minmax(80px, 1.5fr);
+    gap: 5px;
+  }
+  .rest-panel:not(.collapsed) .rest-controls button {
+    padding: 8px;
+    font-size: 13px;
+  }
+  .rest-button-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+.session-dialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 111;
+  pointer-events: none;
+}
+.session-dialog-layer .session-dialog,
+.session-dialog-layer .exercise-search-menu {
+  pointer-events: auto;
+}

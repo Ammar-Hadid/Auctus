@@ -163,6 +163,41 @@ export class Sessions {
       .prepare('UPDATE rest_period SET ended_at=?,reason=? WHERE workout_id=? AND ended_at IS NULL')
       .run(now, reason, workout);
   }
+  private activateExercise(w: WorkoutDetail, exercise: ExerciseSession, now: number) {
+    requireCondition(!exercise.removed_at, 'Exercise not found.', 404);
+    requireCondition(
+      ['pending', 'paused'].includes(exercise.status),
+      'This exercise cannot be started.',
+      409,
+    );
+    requireCondition(
+      !w.exercises.some((e) => e.sets.some((s) => ['active', 'paused'].includes(s.status))),
+      'Complete or skip the active set before switching exercises.',
+      409,
+    );
+    this.closeRest(w.id, now, 'exercise_switch');
+    this.sql
+      .prepare("UPDATE exercise_session SET status='paused' WHERE workout_id=? AND status='active'")
+      .run(w.id);
+    this.sql
+      .prepare(
+        "UPDATE exercise_session SET status='active',started_at=COALESCE(started_at,?) WHERE id=?",
+      )
+      .run(now, exercise.id);
+  }
+  private resolveExercise(exerciseId: string, now: number) {
+    const sets = this.sql
+      .prepare('SELECT status FROM set_session WHERE exercise_session_id=? AND removed_at IS NULL')
+      .all(exerciseId) as { status: SetSession['status'] }[];
+    if (sets.some((s) => !['completed', 'skipped'].includes(s.status))) return;
+    // Resolve this exercise only; never activate it or disturb another exercise or its rest.
+    const status = sets.some((s) => s.status === 'completed') ? 'completed' : 'skipped';
+    this.sql
+      .prepare(
+        "UPDATE exercise_session SET status=?,ended_at=? WHERE id=? AND status IN ('pending','active','paused')",
+      )
+      .run(status, now, exerciseId);
+  }
   act(input: unknown): WorkoutDetail {
     const c = z
       .object({
@@ -283,32 +318,14 @@ export class Sessions {
             break;
           case 'exercise.start': {
             requireCondition(exercise && !exercise.removed_at, 'Exercise not found.', 404);
-            requireCondition(
-              ['pending', 'paused'].includes(exercise.status),
-              'This exercise cannot be started.',
-              409,
-            );
-            requireCondition(
-              !activeSet,
-              'Complete or skip the active set before switching exercises.',
-              409,
-            );
-            this.closeRest(w.id, now, 'exercise_switch');
-            this.sql
-              .prepare(
-                "UPDATE exercise_session SET status='paused' WHERE workout_id=? AND status='active'",
-              )
-              .run(w.id);
-            this.sql
-              .prepare(
-                "UPDATE exercise_session SET status='active',started_at=COALESCE(started_at,?) WHERE id=?",
-              )
-              .run(now, exercise.id);
+            this.activateExercise(w, exercise, now);
             break;
           }
           case 'exercise.complete':
           case 'exercise.skip': {
             requireCondition(exercise && !exercise.removed_at, 'Exercise not found.', 404);
+            // Older clients may still acknowledge an exercise after the last set resolved it.
+            if (c.action === 'exercise.complete' && exercise.status === 'completed') break;
             requireCondition(
               !['completed', 'skipped'].includes(exercise.status),
               'Exercise is already finished.',
@@ -320,13 +337,14 @@ export class Sessions {
             );
             const completing = c.action === 'exercise.complete';
             if (completing) {
-              requireCondition(exercise.status === 'active', 'Start this exercise first.');
               requireCondition(
                 exercise.sets.every(
                   (s) => s.removed_at || ['completed', 'skipped'].includes(s.status),
                 ),
                 'Complete or skip the remaining sets first.',
               );
+              this.resolveExercise(exercise.id, now);
+              break;
             }
             if (exercise.status === 'active' && !completing)
               this.closeRest(w.id, now, 'exercise_skipped');
@@ -368,11 +386,14 @@ export class Sessions {
               .run(v.actual_reps, v.actual_grams, v.notes, set.id);
             break;
           }
+          case 'set.begin':
           case 'set.start': {
             requireCondition(set && !set.removed_at, 'Set not found.', 404);
             requireCondition(set.status === 'pending', 'This set cannot be started.', 409);
             const parent = w.exercises.find((e) => e.id === set.exercise_session_id)!;
-            requireCondition(parent.status === 'active', 'Start this exercise first.');
+            if (c.action === 'set.begin' && parent.status !== 'active')
+              this.activateExercise(w, parent, now);
+            else requireCondition(parent.status === 'active', 'Start this exercise first.');
             requireCondition(!activeSet, 'Another set is already active.', 409);
             const previous = this.sql
               .prepare(
@@ -429,6 +450,7 @@ export class Sessions {
                 'INSERT INTO rest_period (id,workout_id,set_id,planned_ms,started_at,ended_at,reason) VALUES (?,?,?,?,?,NULL,NULL)',
               )
               .run(randomUUID(), w.id, set.id, set.rest_ms, now);
+            this.resolveExercise(set.exercise_session_id, now);
             break;
           }
           case 'set.skip': {
@@ -440,6 +462,7 @@ export class Sessions {
             this.sql
               .prepare("UPDATE set_session SET status='skipped',ended_at=? WHERE id=?")
               .run(now, set.id);
+            this.resolveExercise(set.exercise_session_id, now);
             break;
           }
           case 'rest.pause':
@@ -503,13 +526,12 @@ export class Sessions {
             break;
           }
           case 'set.add': {
-            requireCondition(
-              exercise &&
-                !exercise.removed_at &&
-                !['completed', 'skipped'].includes(exercise.status),
-              'Choose an unfinished exercise.',
-            );
+            requireCondition(exercise && !exercise.removed_at, 'Choose an available exercise.');
             this.insertSet(w.id, exercise.id, exercise.sets.length, c);
+            if (['completed', 'skipped'].includes(exercise.status))
+              this.sql
+                .prepare("UPDATE exercise_session SET status='pending',ended_at=NULL WHERE id=?")
+                .run(exercise.id);
             break;
           }
           case 'exercise.add': {
@@ -557,6 +579,7 @@ export class Sessions {
                 "UPDATE set_session SET status=CASE WHEN status='completed' THEN status ELSE 'skipped' END,ended_at=COALESCE(ended_at,?),removed_at=? WHERE id=?",
               )
               .run(now, now, set.id);
+            this.resolveExercise(set.exercise_session_id, now);
             break;
           }
           default:

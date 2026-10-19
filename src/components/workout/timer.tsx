@@ -2,7 +2,7 @@
 import { Notification } from '@/components/ui/notification';
 import { useState, useEffect, useSyncExternalStore } from 'react';
 import { useAccount } from '../account-context';
-import { Volume2, Timer, Pause, Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { Volume2, VolumeX, Timer, Pause, Play, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRestSound } from '../use-rest-sound';
 import { enableSound, muteSound, playRestSound, stopAlarm } from '@/client/rest-sound';
 import type { WorkoutDetail } from '@/domain/types';
@@ -134,7 +134,7 @@ export function RestTimer({
               onClick={() => act(timerPaused ? 'rest.resume' : 'rest.pause', { id: rest.id })}
             >
               {timerPaused ? <Play size={16} /> : <Pause size={16} />}
-              {timerPaused ? 'Resume' : 'Pause'}
+              <span className="rest-button-text">{timerPaused ? 'Resume' : 'Pause'}</span>
             </button>
             <button
               disabled={workout.status === 'paused'}
@@ -150,11 +150,15 @@ export function RestTimer({
             </button>
             <button
               data-sound-control
+              aria-pressed={sound.enabled && sound.ready}
+              title={sound.enabled && sound.ready ? 'Sound on' : 'Enable sound'}
               onClick={() => (sound.enabled && sound.ready ? muteSound() : void enableSound())}
               className="ghost"
             >
-              <Volume2 size={16} />
-              {sound.enabled && sound.ready ? 'Sound on' : 'Enable sound'}
+              {sound.enabled && sound.ready ? <Volume2 size={16} /> : <VolumeX size={16} />}
+              <span className="rest-button-text">
+                {sound.enabled && sound.ready ? 'Sound on' : 'Enable sound'}
+              </span>
             </button>
           </>
         )}

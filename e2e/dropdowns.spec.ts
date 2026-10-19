@@ -182,6 +182,7 @@ test('custom menus create exercises in place and preserve template and training 
     .getByRole('button', { name: 'Start workout', exact: true })
     .and(page.locator(':enabled'))
     .click();
+  await page.getByRole('button', { name: 'Workout overview', exact: true }).click();
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   const activePicker = page.getByRole('combobox', { name: 'Exercise', exact: true });
   await activePicker.fill('Cable lateral raise');
@@ -214,10 +215,10 @@ test('custom menus create exercises in place and preserve template and training 
     false,
   );
   await page.reload();
-  await page.getByRole('button', { name: 'Continue workout' }).click();
-  await expect(
-    page.getByRole('button', { name: /^Exercise 02 Cable lateral raise/ }),
-  ).toBeVisible();
+  await page.getByRole('button', { name: 'Workout overview', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Cable lateral raise.*0\/1 sets/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Close workout overview', exact: true }).click();
+  await page.getByText('Workout options', { exact: true }).click();
   await page.getByRole('button', { name: 'Abandon workout', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm abandon', exact: true }).click();
   await nav.getByRole('button', { name: 'Library', exact: true }).click();
