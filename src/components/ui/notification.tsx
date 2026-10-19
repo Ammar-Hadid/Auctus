@@ -11,7 +11,7 @@ export function Notifications({ children }: { children: ReactNode }) {
   const viewport = <Toast.Viewport className="toast-viewport" label="Notifications (F8)" />;
   return (
     <ViewportHostContext.Provider value={setHost}>
-      <Toast.Provider duration={6000} announcerContainer={host ?? undefined}>
+      <Toast.Provider duration={5000} announcerContainer={host ?? undefined}>
         {children}
         {host ? createPortal(viewport, host) : viewport}
       </Toast.Provider>
@@ -42,7 +42,7 @@ export function Notification({
     <Toast.Root
       className={`toast ${tone}`}
       type={tone === 'error' || tone === 'warning' ? 'foreground' : 'background'}
-      duration={tone === 'error' || tone === 'warning' || persistent ? Infinity : 6000}
+      duration={persistent ? Infinity : undefined}
       open={persistent ? true : undefined}
       onOpenChange={(open) => {
         if (!open) onDismiss?.();

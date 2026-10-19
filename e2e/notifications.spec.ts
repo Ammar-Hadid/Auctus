@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('sign-in errors stay fixed, dismiss and return on another attempt', async ({ page }) => {
+test('sign-in errors stay fixed, expire automatically and return on another attempt', async ({ page }) => {
   await page.route('**/api/auth/sign-in/email', (route) =>
     route.fulfill({ status: 401, json: { error: 'Invalid credentials' } }),
   );
@@ -17,12 +17,12 @@ test('sign-in errors stay fixed, dismiss and return on another attempt', async (
   const initial = await toast.boundingBox();
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   expect((await toast.boundingBox())!.y).toBeCloseTo(initial!.y, 0);
-  await page.waitForTimeout(6500);
+  await page.mouse.move(0, 0);
+  await expect(toast).toHaveCount(0, { timeout: 7500 });
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(toast).toBeVisible();
   await page.getByRole('button', { name: 'Dismiss notification' }).click();
   await expect(toast).toHaveCount(0);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(toast).toBeVisible();
 });
 
 test('dialog errors and unconfirmed saves share a fixed, keyboard-accessible stack', async ({
