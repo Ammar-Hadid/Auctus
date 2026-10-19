@@ -181,3 +181,18 @@ absence of the separate stop button, and persistence after reload. The workout f
 API authorization checks also pass in both browsers. Typecheck and lint pass. A stale
 development build initially caused reload loops; restarting with a fresh development
 cache resolved those test-server failures.
+
+## Remove preview controls — 19 October 2026
+
+Removed Test alarm, its preview stop control, and Test notification from the interface.
+Enable sound now unlocks audio without playback. Explicit sound controls bypass the global
+pointer/keyboard audio-unlock listener so its state change cannot turn an enable click into
+mute before the click handler runs. Rest expiry still rings; End rest stops it.
+
+Validation: 51 unit/integration tests, typecheck, lint and production builds pass. All six
+focused Chromium/mobile WebKit alarm and workout checks pass, including silent enable,
+expiry playback, End rest, reload and absence of preview buttons. Image `auctus:c8b5567`
+is healthy on the VPS. Public HTTPS checks in both browsers confirm the updated copy,
+absence of preview controls, silent enable/mute, sign-in and sign-out. Unrelated service
+container IDs remain unchanged. Backup: `auctus-2026-10-19T00-08-44Z.db` in the standard
+VPS SQLite backup directory. Rollback image: `auctus:before-remove-previews-2026-10-19`.
