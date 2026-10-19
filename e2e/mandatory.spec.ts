@@ -4,8 +4,8 @@ test('mandatory and optional workouts are editable, visible and counted separate
   page,
 }, info) => {
   await page.goto('/');
-  await page.getByLabel('Email', { exact: true }).fill('athlete@example.test');
-  await page.getByLabel('Password', { exact: true }).fill('test-only-training-password');
+  await page.getByLabel('Email', { exact: true }).fill('mandatory@example.test');
+  await page.getByLabel('Password', { exact: true }).fill('test-only-mandatory-password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Make today count.', exact: true })).toBeVisible();
   let state = await (await page.request.get('/api/state')).json();
