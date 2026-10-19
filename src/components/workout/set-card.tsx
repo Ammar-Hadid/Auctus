@@ -84,7 +84,7 @@ export function SetCard({
         </div>
         <span className="status set-status">
           {set.status === 'completed' && <Check size={14} aria-hidden="true" />}
-          {set.status}
+          {set.status === 'active' ? 'In progress' : set.status}
         </span>
       </div>
       {set.status === 'completed' && !editing && (

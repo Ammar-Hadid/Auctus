@@ -4,6 +4,9 @@
   --surface: #15181b;
   --raised: #1d2226;
   --completed-surface: #182219;
+  --in-progress: #8bc5ff;
+  --in-progress-surface: #162638;
+  --in-progress-muted: #aec3d8;
   --line: #30363b;
   --text: #f2f4ef;
   --muted: #a4adaf;
@@ -778,7 +781,28 @@ main > .notice {
   min-width: 0;
 }
 .exercise-choice.selected {
+  border-color: var(--muted);
+}
+.exercise-choice.completed.selected {
   border-color: var(--accent);
+}
+.exercise-choice.active {
+  background: var(--in-progress-surface);
+}
+.exercise-choice.active.selected {
+  border-color: var(--in-progress);
+}
+.exercise-choice.active .exercise-mark {
+  background: var(--in-progress);
+  color: var(--bg);
+}
+.exercise-choice.active .exercise-number,
+.exercise-choice.active small,
+.exercise-detail-heading.active .eyeline,
+.set-card.active p,
+.set-card.active label,
+.set-card.active .set-kind {
+  color: var(--in-progress-muted);
 }
 .exercise-choice.completed {
   background: var(--completed-surface);
@@ -839,8 +863,10 @@ main > .notice {
 .exercise-state.completed {
   color: var(--accent);
 }
-.exercise-state.active {
-  color: var(--text);
+.exercise-state.active,
+.status.in-progress,
+.set-card.active .set-status {
+  color: var(--in-progress);
 }
 .exercise-select small {
   display: block;
@@ -864,6 +890,9 @@ main > .notice {
   background: var(--raised);
   border-radius: 10px;
   padding: 20px;
+}
+.exercise-detail-heading.active {
+  background: var(--in-progress-surface);
 }
 .exercise-detail-heading.completed {
   background: var(--completed-surface);
@@ -903,8 +932,12 @@ main > .notice {
   padding: 20px;
 }
 .set-card.active {
-  background: var(--surface);
-  border-color: var(--muted);
+  background: var(--in-progress-surface);
+  border-color: var(--in-progress);
+}
+.set-card.active .set-badge {
+  color: var(--in-progress);
+  border-color: var(--in-progress);
 }
 .set-kind {
   color: var(--muted);

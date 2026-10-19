@@ -50,7 +50,7 @@ export function ActiveWorkout({
       <RestTimer workout={w} now={now} end={() => act('rest.end')} act={act} />
       <div className="row between">
         <div>
-          <span className="status accent">
+          <span className={w.status === 'active' ? 'status in-progress' : 'status'}>
             {w.status === 'paused' ? 'Workout paused' : 'Session in progress'}
           </span>
           <h1>{w.name}</h1>
@@ -128,6 +128,8 @@ export function ActiveWorkout({
                   <span className="exercise-mark" aria-hidden="true">
                     {x.status === 'completed' ? (
                       <Check size={22} strokeWidth={3} />
+                    ) : x.status === 'active' ? (
+                      <Play size={20} fill="currentColor" />
                     ) : (
                       <Dumbbell size={20} />
                     )}
