@@ -107,7 +107,10 @@ export function NotificationSettings() {
         device to hear it when your rest finishes.
       </p>
       <div className="row">
-        <button onClick={() => (sound.enabled && sound.ready ? muteSound() : void enableSound())}>
+        <button
+          data-sound-control
+          onClick={() => (sound.enabled && sound.ready ? muteSound() : void enableSound())}
+        >
           {sound.enabled && sound.ready ? 'Mute timer sound' : 'Enable sound'}
         </button>
       </div>

@@ -126,6 +126,7 @@ export function RestTimer({
             +15s
           </button>
           <button
+            data-sound-control
             onClick={() => (sound.enabled && sound.ready ? muteSound() : void enableSound())}
             className="ghost"
           >

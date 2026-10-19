@@ -298,7 +298,6 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await expect(
     page.getByRole('button', { name: /Test alarm|Test notification|Stop alarm/ }),
   ).toHaveCount(0);
-  await page.getByRole('button', { name: 'Mute timer sound', exact: true }).click();
   await page.getByRole('button', { name: 'Enable sound', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Mute timer sound', exact: true })).toBeVisible();
   await page.screenshot({
