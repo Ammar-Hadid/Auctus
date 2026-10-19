@@ -1,4 +1,5 @@
 'use client';
+import { ActivityStatusLabel } from '../ui/activity-status';
 import { AuctusSelect } from '../ui/select';
 import { useState } from 'react';
 import { ArrowLeft, ArrowUpRight, Clock, Check, Edit3 } from 'lucide-react';
@@ -47,7 +48,7 @@ export function HistoryView({
         <div className="row between">
           <div>
             <span className="status">
-              {w.status} · {date(w.started_at)}
+              <ActivityStatusLabel status={w.status} /> · {date(w.started_at)}
             </span>
             <h1>{w.name}</h1>
           </div>
@@ -66,11 +67,11 @@ export function HistoryView({
           <EditRecord key={w.version} workout={w} send={send} close={() => setEditing(null)} />
         )}
         {w.exercises.map((e, i) => (
-          <section className="panel stack" key={e.id}>
+          <section className={`panel stack history-exercise ${e.status}`} key={e.id}>
             <div className="row between">
               <div>
                 <span className="status">
-                  {String(i + 1).padStart(2, '0')} · {e.status}
+                  {String(i + 1).padStart(2, '0')} · <ActivityStatusLabel status={e.status} />
                   {e.removed_at ? ' · removed from plan' : ''}
                 </span>
                 <h2>{e.name}</h2>
@@ -82,7 +83,7 @@ export function HistoryView({
             </div>
             <div className="history-sets">
               {e.sets.map((s, j) => (
-                <div className="history-set" key={s.id}>
+                <div className={`history-set ${s.status}`} key={s.id}>
                   <div className="row between">
                     <div>
                       <strong>
@@ -90,7 +91,7 @@ export function HistoryView({
                       </strong>
                       <span className="status">
                         {' '}
-                        · {s.status}
+                        · <ActivityStatusLabel status={s.status} />
                         {s.removed_at ? ' · removed' : ''}
                       </span>
                       <p>
@@ -204,7 +205,7 @@ export function HistoryView({
                 </div>
                 <div className="grow">
                   <span className="status">
-                    {date(w.started_at)} · {w.status}
+                    {date(w.started_at)} · <ActivityStatusLabel status={w.status} />
                   </span>
                   <h2>{w.name}</h2>
                   <p>

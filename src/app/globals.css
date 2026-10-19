@@ -7,11 +7,17 @@
   --in-progress: #8bc5ff;
   --in-progress-surface: #162638;
   --in-progress-muted: #aec3d8;
+  --paused: #ffba73;
+  --paused-surface: #322318;
+  --paused-muted: #d9bda3;
+  --skipped: #ffaaa3;
+  --skipped-surface: #321e22;
+  --skipped-muted: #dab4b4;
   --line: #30363b;
   --text: #f2f4ef;
   --muted: #a4adaf;
   --accent: #d5f878;
-  --danger: #ffaaa3;
+  --danger: var(--skipped);
   --radius: 12px;
   color-scheme: dark;
 }
@@ -864,8 +870,7 @@ main > .notice {
   color: var(--accent);
 }
 .exercise-state.active,
-.status.in-progress,
-.set-card.active .set-status {
+.status.in-progress {
   color: var(--in-progress);
 }
 .exercise-select small {
@@ -943,14 +948,6 @@ main > .notice {
   color: var(--muted);
   font-weight: 400;
 }
-.set-status {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-}
-.set-card.completed .set-status {
-  color: var(--accent);
-}
 .set-badge {
   width: 34px;
   height: 34px;
@@ -959,7 +956,7 @@ main > .notice {
   place-items: center;
   border-radius: 50%;
   font-size: 13px;
-  color: var(--accent);
+  color: var(--muted);
 }
 .set-card strong {
   font-size: 14px;
@@ -1445,4 +1442,133 @@ main:not(.login):has(.rest-panel) {
   main:not(.login):has(.rest-panel) {
     padding-top: max(28px, calc(var(--rest-panel-height, 220px) + 24px - 64px));
   }
+}
+
+/* Activity states share colors across the workout, overview and history. */
+.activity-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.activity-status svg {
+  flex-shrink: 0;
+}
+.activity-status.active {
+  color: var(--in-progress);
+}
+.activity-status.completed {
+  color: var(--accent);
+}
+.activity-status.paused,
+.exercise-state.paused {
+  color: var(--paused);
+}
+.activity-status.skipped,
+.activity-status.abandoned,
+.exercise-state.skipped {
+  color: var(--skipped);
+}
+
+:is(
+  .exercise-choice,
+  .exercise-detail-heading,
+  .set-card,
+  .resume-banner,
+  .history-exercise,
+  .history-set
+).paused {
+  background: var(--paused-surface);
+}
+:is(
+  .exercise-choice,
+  .exercise-detail-heading,
+  .set-card,
+  .history-exercise,
+  .history-set
+).skipped {
+  background: var(--skipped-surface);
+}
+.exercise-choice.paused.selected,
+.set-card.paused {
+  border-color: var(--paused);
+}
+.exercise-choice.skipped.selected,
+.set-card.skipped {
+  border-color: var(--skipped);
+}
+.exercise-choice.paused .exercise-mark {
+  background: var(--paused);
+  color: var(--bg);
+}
+.exercise-choice.skipped .exercise-mark {
+  background: var(--skipped);
+  color: var(--bg);
+}
+.exercise-choice.paused :is(.exercise-number, small),
+.exercise-detail-heading.paused .eyeline,
+.set-card.paused :is(p, label, .set-kind),
+.resume-banner.paused p {
+  color: var(--paused-muted);
+}
+.exercise-choice.skipped :is(.exercise-number, small),
+.exercise-detail-heading.skipped .eyeline,
+.set-card.skipped :is(p, label, .set-kind),
+.history-exercise.skipped p,
+.history-set.skipped p {
+  color: var(--skipped-muted);
+}
+.set-card.paused .set-badge {
+  color: var(--paused);
+  border-color: var(--paused);
+}
+.set-card.skipped .set-badge {
+  color: var(--skipped);
+  border-color: var(--skipped);
+}
+.set-card.completed {
+  background: var(--completed-surface);
+}
+.set-card.completed .set-badge {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.resume-banner.active {
+  background: var(--in-progress-surface);
+  border-color: var(--in-progress);
+}
+.resume-banner.active p {
+  color: var(--in-progress-muted);
+}
+.resume-banner.paused {
+  border-color: var(--paused);
+}
+.workout-paused-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--paused-surface);
+  color: var(--paused);
+}
+.workout-paused-notice > svg {
+  flex-shrink: 0;
+}
+.workout-paused-notice p {
+  margin: 4px 0 0;
+  color: var(--paused-muted);
+  font-size: 13px;
+}
+.rest-panel.paused {
+  background: var(--paused-surface);
+  border-color: var(--paused);
+}
+.rest-panel.paused :is(.rest-clock, .eyeline) {
+  color: var(--paused);
+}
+.rest-panel.paused p {
+  color: var(--paused-muted);
 }

@@ -1,3 +1,4 @@
+import { ActivityStatusLabel } from './ui/activity-status';
 import { ArrowUpRight, Check, Play } from 'lucide-react';
 import type { State } from '@/domain/types';
 import type { Send } from './use-model';
@@ -46,11 +47,9 @@ export function Dashboard({
         </span>
       </div>
       {state.activeWorkout && (
-        <section className="resume-banner row between">
+        <section className={`resume-banner row between ${state.activeWorkout.status}`}>
           <div>
-            <span className="status">
-              {state.activeWorkout.status === 'paused' ? 'Paused workout' : 'In progress'}
-            </span>
+            <ActivityStatusLabel status={state.activeWorkout.status} />
             <h2>{state.activeWorkout.name}</h2>
             <p>Your session is saved. Pick up where you left off.</p>
           </div>

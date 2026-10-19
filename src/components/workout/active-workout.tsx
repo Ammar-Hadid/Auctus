@@ -1,20 +1,14 @@
 'use client';
+import { ActivityIcon, ActivityStatusLabel, activityLabels } from '../ui/activity-status';
 import { ExercisePicker } from '../programming/exercise-picker';
 import { useState } from 'react';
-import { Play, Pause, Check, ArrowUp, ArrowDown, Plus, Dumbbell } from 'lucide-react';
+import { Play, Pause, Check, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import type { State } from '@/domain/types';
 import type { Send } from '../use-model';
 import { activeDuration, durationLabel } from '@/domain/timing';
 import { useNow, RestTimer } from './timer';
 import { SetCard } from './set-card';
 import { defaultSet, move } from '../programming/template-editor';
-const exerciseLabels = {
-  pending: 'Not started',
-  active: 'In progress',
-  paused: 'Paused',
-  completed: 'Completed',
-  skipped: 'Skipped',
-};
 
 export function ActiveWorkout({
   state,
@@ -34,6 +28,7 @@ export function ActiveWorkout({
   const e =
     w.exercises.find((e) => e.id === focused && !e.removed_at) ??
     w.exercises.find((e) => e.status === 'active') ??
+    w.exercises.find((e) => e.id === w.resume_exercise_id && !e.removed_at) ??
     w.exercises.find((e) => !e.removed_at);
   const act = (action: string, extra: Record<string, unknown> = {}) =>
     send('session.action', { workout_id: w.id, version: w.version, action, ...extra });
@@ -50,7 +45,8 @@ export function ActiveWorkout({
       <RestTimer workout={w} now={now} end={() => act('rest.end')} act={act} />
       <div className="row between">
         <div>
-          <span className={w.status === 'active' ? 'status in-progress' : 'status'}>
+          <span className={`activity-status ${w.status}`}>
+            <ActivityIcon status={w.status} />
             {w.status === 'paused' ? 'Workout paused' : 'Session in progress'}
           </span>
           <h1>{w.name}</h1>
@@ -79,6 +75,15 @@ export function ActiveWorkout({
           </button>
         </div>
       </div>
+      {w.status === 'paused' && (
+        <div className="workout-paused-notice" role="status">
+          <Pause size={20} aria-hidden="true" />
+          <div>
+            <strong>Workout paused</strong>
+            <p>Active time and rest countdown are stopped. Resume to continue.</p>
+          </div>
+        </div>
+      )}
       <div className="progress-track">
         <div style={{ width: `${total.length ? (done / total.length) * 100 : 0}%` }} />
       </div>
@@ -126,20 +131,14 @@ export function ActiveWorkout({
                   onClick={() => setFocused(x.id)}
                 >
                   <span className="exercise-mark" aria-hidden="true">
-                    {x.status === 'completed' ? (
-                      <Check size={22} strokeWidth={3} />
-                    ) : x.status === 'active' ? (
-                      <Play size={20} fill="currentColor" />
-                    ) : (
-                      <Dumbbell size={20} />
-                    )}
+                    <ActivityIcon status={x.status} size={22} />
                   </span>
                   <span className="grow">
                     <span className="exercise-number">
                       Exercise {String(i + 1).padStart(2, '0')}
                     </span>
                     <span className="exercise-name">{x.name}</span>
-                    <span className={`exercise-state ${x.status}`}>{exerciseLabels[x.status]}</span>
+                    <span className={`exercise-state ${x.status}`}>{activityLabels[x.status]}</span>
                     <small>
                       {x.sets.filter((s) => !s.removed_at && s.status === 'completed').length} /{' '}
                       {x.sets.filter((s) => !s.removed_at).length} sets recorded
@@ -212,10 +211,7 @@ export function ActiveWorkout({
                     ).padStart(2, '0')}
                   </span>
                   <h2>{e.name}</h2>
-                  <span className={`exercise-state ${e.status}`}>
-                    {e.status === 'completed' && <Check size={16} aria-hidden="true" />}
-                    {exerciseLabels[e.status]}
-                  </span>
+                  <ActivityStatusLabel status={e.status} />
                 </div>
                 {['pending', 'paused'].includes(e.status) && (
                   <button

@@ -1,4 +1,5 @@
 'use client';
+import { ActivityStatusLabel } from '../ui/activity-status';
 import { useAccount } from '../account-context';
 import { AuctusSelect, setTypeOptions } from '../ui/select';
 import { useState } from 'react';
@@ -82,10 +83,7 @@ export function SetCard({
             </p>
           </div>
         </div>
-        <span className="status set-status">
-          {set.status === 'completed' && <Check size={14} aria-hidden="true" />}
-          {set.status === 'active' ? 'In progress' : set.status}
-        </span>
+        <ActivityStatusLabel status={set.status} />
       </div>
       {set.status === 'completed' && !editing && (
         <div className="recorded number">

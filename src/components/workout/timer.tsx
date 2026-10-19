@@ -82,12 +82,15 @@ export function RestTimer({
       <section
         ref={panel}
         style={{ left: position.left, width: position.width || undefined }}
-        className={'rest-panel ' + (remaining <= 0 ? 'overtime' : '')}
+        className={
+          'rest-panel ' +
+          (workout.status === 'paused' || timerPaused ? 'paused' : remaining <= 0 ? 'overtime' : '')
+        }
         aria-label="Rest timer"
       >
         <div>
           <span className="eyeline">
-            <Timer size={13} />{' '}
+            {workout.status === 'paused' || timerPaused ? <Pause size={16} /> : <Timer size={16} />}{' '}
             {workout.status === 'paused' || timerPaused
               ? 'Rest paused'
               : remaining > 0
