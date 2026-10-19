@@ -24,6 +24,12 @@
 * {
   box-sizing: border-box;
 }
+html {
+  scroll-padding-bottom: calc(
+    var(--mobile-nav-height, 0px) + var(--rest-panel-height, 0px) +
+      var(--viewport-bottom-offset, 0px) + 24px
+  );
+}
 body {
   margin: 0;
   background: var(--bg);
@@ -611,7 +617,12 @@ main:not(.login) {
   }
   .app-content {
     margin-left: 0;
-    padding-bottom: 80px;
+    padding-bottom: var(--mobile-nav-height, 80px);
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
   .topbar {
     height: 64px;
@@ -650,7 +661,7 @@ main:not(.login) {
   .mobile-nav {
     display: flex;
     position: fixed;
-    bottom: 0;
+    bottom: var(--viewport-bottom-offset, 0px);
     left: 0;
     right: 0;
     justify-content: space-around;
@@ -972,17 +983,40 @@ main:not(.login) {
 }
 .rest-panel {
   position: fixed;
-  top: max(12px, env(safe-area-inset-top));
+  bottom: calc(
+    var(--mobile-nav-height, 0px) + var(--viewport-bottom-offset, 0px) +
+      max(12px, env(safe-area-inset-bottom))
+  );
   z-index: 40;
   flex-wrap: wrap;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding: 14px 18px;
+  padding: 14px 60px 14px 18px;
   border: 1px solid #536735;
   border-radius: 12px;
   background: #1b2416;
+  max-height: calc(
+    100dvh - var(--mobile-nav-height, 0px) - var(--viewport-bottom-offset, 0px) - 24px
+  );
+  overflow-y: auto;
+}
+.rest-collapse {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 44px;
+  padding: 8px;
+  border-color: transparent;
+  color: inherit;
+}
+.rest-panel.collapsed {
+  padding: 8px 60px 8px 18px;
+  min-height: 60px;
+}
+.rest-panel.collapsed .rest-clock {
+  font-size: 28px;
 }
 .rest-controls {
   display: flex;
@@ -1046,7 +1080,13 @@ details[open] summary {
 }
 @media (max-width: 420px) {
   .rest-panel {
-    padding: 16px;
+    padding: 14px 60px 14px 16px;
+  }
+  .rest-controls {
+    width: 100%;
+  }
+  .rest-controls .primary {
+    flex: 1;
   }
   .rest-clock {
     font-size: 36px;
@@ -1406,14 +1446,12 @@ td:nth-child(2) {
   border-top: 1px solid var(--line);
 }
 
-/* Reserve space above the entire workout, including save/retry messages. */
-main:not(.login):has(.rest-panel) {
-  padding-top: max(46px, calc(var(--rest-panel-height, 220px) + 24px - 80px));
-}
-@media (max-width: 760px) {
-  main:not(.login):has(.rest-panel) {
-    padding-top: max(28px, calc(var(--rest-panel-height, 220px) + 24px - 64px));
-  }
+/* Reserve space after the footer so every part of the page clears the dock. */
+.app-content:has(.rest-panel) {
+  padding-bottom: calc(
+    var(--mobile-nav-height, 0px) + var(--rest-panel-height, 220px) +
+      var(--viewport-bottom-offset, 0px) + max(24px, env(safe-area-inset-bottom))
+  );
 }
 
 /* Activity states share colors across the workout, overview and history. */
@@ -1550,7 +1588,10 @@ main:not(.login):has(.rest-panel) {
   position: fixed;
   z-index: 200;
   right: max(20px, env(safe-area-inset-right));
-  bottom: max(20px, env(safe-area-inset-bottom));
+  bottom: calc(
+    var(--rest-panel-height, 0px) + var(--viewport-bottom-offset, 0px) +
+      max(24px, env(safe-area-inset-bottom))
+  );
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1638,11 +1679,20 @@ main:not(.login):has(.rest-panel) {
 @media (max-width: 760px) {
   .toast-viewport {
     right: 16px;
-    bottom: calc(88px + env(safe-area-inset-bottom));
+    bottom: calc(
+      var(--mobile-nav-height, 80px) + var(--rest-panel-height, 0px) +
+        var(--viewport-bottom-offset, 0px) + 24px
+    );
     max-height: 50dvh;
   }
   body:has(.login) .toast-viewport {
     bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 760px) {
+  .history-edit input[type='datetime-local'] {
+    font-size: 16px;
   }
 }
 

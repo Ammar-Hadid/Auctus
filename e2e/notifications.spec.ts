@@ -93,8 +93,14 @@ test('dialog errors and unconfirmed saves share a fixed, keyboard-accessible sta
     expect(viewport.x).toBeGreaterThanOrEqual(0);
     expect(viewport.x + viewport.width).toBeLessThanOrEqual(width);
     if (width < 760) {
-      const mobileNav = (await page.locator('.mobile-nav').boundingBox())!;
-      expect(viewport.y + viewport.height).toBeLessThanOrEqual(mobileNav.y);
+      // The navigation's ResizeObserver updates its reserved space after layout.
+      await expect
+        .poll(async () => {
+          const current = (await page.locator('.toast-viewport').boundingBox())!;
+          const mobileNav = (await page.locator('.mobile-nav').boundingBox())!;
+          return current.y + current.height <= mobileNav.y;
+        })
+        .toBe(true);
     }
     await page.screenshot({ path: testInfo.outputPath(`toasts-${width}.png`), fullPage: true });
   }

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { State } from '@/domain/types';
 import { useModel } from './use-model';
+import { useBottomLayout } from './use-bottom-layout';
 import { HistoryView } from './history/history';
 import { ProgressView } from './history/progress';
 import { ActiveWorkout } from './workout/active-workout';
@@ -27,6 +28,7 @@ const nav = [
 ];
 export function App({ initial }: { initial: State }) {
   const model = useModel(initial);
+  const mobileNavigation = useBottomLayout();
   const [view, setView] = useState('dashboard');
   const [progressId, setProgressId] = useState<string | null>(null);
   const navigate = (v: string) => {
@@ -165,7 +167,7 @@ export function App({ initial }: { initial: State }) {
             AUCTUS <span>Consistency compounds.</span>
           </footer>
         </div>
-        <nav className="mobile-nav" aria-label="Mobile navigation">
+        <nav ref={mobileNavigation} className="mobile-nav" aria-label="Mobile navigation">
           {nav.map((n) => (
             <button
               key={n.id}

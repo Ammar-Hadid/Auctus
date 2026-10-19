@@ -146,7 +146,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   const timerBox = await restTimer.boundingBox();
   expect(timerBox!.y).toBeGreaterThanOrEqual(0);
-  expect(timerBox!.y).toBeLessThanOrEqual(16);
+  expect(timerBox!.y + timerBox!.height).toBeLessThanOrEqual(page.viewportSize()!.height - 12);
   expect(timerBox!.x + timerBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
   await restTimer.getByRole('button', { name: 'Resume rest timer', exact: true }).click();
   await expect(
