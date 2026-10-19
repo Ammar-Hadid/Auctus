@@ -269,3 +269,31 @@ Image `auctus:f09235a` is healthy. Public HTTPS Chromium/mobile WebKit login, se
 tokens/styles, logout and protected API checks pass. Unrelated service IDs remain unchanged.
 Backup: `auctus-2026-10-19T10-55-56Z.db`; rollback:
 `auctus:before-status-feedback-2026-10-19`. Local port 3105 also serves the update.
+
+## Fixed notifications — 19 October 2026
+
+All application error and toast messages now use a shared Radix Toast viewport fixed at the
+bottom right, above the mobile navigation and safe-area inset. Messages stack, wrap and scroll
+within a bounded viewport without shifting page/form content. Errors persist until dismissed;
+success/info messages expire after six seconds, pausing dismissal on interaction. Saving,
+offline and unconfirmed-write notices persist until resolved. Retry/discard controls remain
+available. Inline history notes and workout state explanations remain document content.
+
+The same viewport moves into an open exercise dialog's accessibility/focus boundary without
+being constrained by the transformed dialog panel. The dialog now exposes the actual save
+error rather than a duplicate generic message. Notification-settings failures use error tone.
+Updated browser assertions for portal notifications and one stale exercise-row name selector.
+
+Validation: four new Chromium/mobile WebKit checks cover fixed positioning while scrolling,
+no form resize, persistent errors, dismissal/reappearance, keyboard access within dialogs,
+stacked failed/retry saves and 320/390/1440px layouts. Desktop/mobile captures were inspected.
+Existing dropdown, workout/API, passkey cancellation and master-account flows pass (nine
+checks). A stale Next development cache caused one reload-loop failure; a fresh cache resolved
+it. Typecheck, lint, local and Docker production builds, and 51 unit/integration tests pass.
+One Impeccable detector pass returned no findings; no suppressions were added.
+
+Image `auctus:e84a322` is healthy. Public HTTPS Chromium/mobile WebKit checks verified real
+member login/logout plus client-intercepted sign-in errors: fixed overlay, unchanged form
+height and dismissal. No real failed authentication or training-data writes were needed.
+Other service container IDs are unchanged. Backup: `auctus-2026-10-19T11-44-31Z.db`;
+rollback image: `auctus:before-fixed-toasts-2026-10-19`. Local port 3105 also serves the update.
