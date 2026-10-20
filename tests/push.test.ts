@@ -147,6 +147,25 @@ describe('background rest notifications', () => {
     expect(send).not.toHaveBeenCalled();
     x.store.sqlite.close();
   });
+  it('stops checking devices when a workout is cancelled during delivery', async () => {
+    const x = setup();
+    saveSubscription(
+      x.store,
+      's-u',
+      { ...x.subscription, endpoint: 'https://web.push.apple.com/second' },
+      x.now(),
+    );
+    x.tick(1000);
+    const send = vi.fn(async () => {
+      const sessions = new Sessions(x.store);
+      const workout = sessions.all()[0];
+      sessions.cancel({ workout_id: workout.id, version: workout.version });
+    });
+    await expect(deliverDueRests(x.store, send, x.now())).resolves.toBeUndefined();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(x.store.sqlite.prepare('SELECT * FROM push_delivery').all()).toEqual([]);
+    x.store.sqlite.close();
+  });
 });
 
 it('delivers simultaneous rests only to each account’s own verified devices', async () => {

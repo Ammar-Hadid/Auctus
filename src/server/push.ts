@@ -122,6 +122,12 @@ async function deliverWorkoutRest(store: Store, send: PushSender, now: number, w
     .all(store.userId, now, deadline) as { id: string; subscription: string }[];
   for (const subscription of subscriptions) {
     // Recheck after each awaited network request: pause, extension, or ending rest cancels unsent work.
+    if (
+      !store.sqlite
+        .prepare('SELECT id FROM workout_session WHERE id=? AND user_id=?')
+        .get(workout.id, store.userId)
+    )
+      break;
     const current = new Sessions(store).get(workout.id);
     const active = current.rests.find(
       (r) => r.id === rest.id && r.ended_at === null && r.timer_paused_at === null,

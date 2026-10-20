@@ -23,6 +23,8 @@ export function dispatch(store: Store, body: unknown, now = Date.now()) {
           z.string().parse(c.data.assignment_id),
           c.data.repeat === true,
         );
+      case 'workout.cancel':
+        return new Sessions(store, () => now).cancel(c.data);
       case 'session.action':
         return new Sessions(store, () => now).act(c.data);
       case 'exercise.save':

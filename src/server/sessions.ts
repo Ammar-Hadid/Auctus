@@ -66,6 +66,40 @@ export class Sessions {
       }[]
     ).map((w) => this.get(w.id));
   }
+  cancel(input: unknown) {
+    const c = z
+      .object({ workout_id: z.string(), version: z.number().int().nonnegative() })
+      .parse(input);
+    return this.sql
+      .transaction(() => {
+        const w = this.get(c.workout_id);
+        requireCondition(
+          w.version === c.version,
+          'This workout changed on another screen. Review the latest version and retry.',
+          409,
+        );
+        requireCondition(
+          ['active', 'paused', 'abandoned'].includes(w.status),
+          'Completed workouts cannot be cancelled.',
+          409,
+        );
+        // Later workouts may have copied a weight from an abandoned set.
+        this.sql
+          .prepare(
+            'UPDATE set_session SET prefill_set_id=NULL,prefill_grams=NULL WHERE prefill_set_id IN (SELECT id FROM set_session WHERE workout_id=?) AND workout_id<>?',
+          )
+          .run(w.id, w.id);
+        this.sql.prepare('DELETE FROM rest_period WHERE workout_id=?').run(w.id);
+        this.sql.prepare('DELETE FROM workout_pause WHERE workout_id=?').run(w.id);
+        this.sql.prepare('DELETE FROM set_session WHERE workout_id=?').run(w.id);
+        this.sql.prepare('DELETE FROM exercise_session WHERE workout_id=?').run(w.id);
+        this.sql
+          .prepare('DELETE FROM workout_session WHERE id=? AND user_id=?')
+          .run(w.id, this.userId);
+        return { id: w.id };
+      })
+      .immediate();
+  }
   start(assignmentId: string, repeat: boolean) {
     return this.sql
       .transaction(() => {
@@ -78,7 +112,7 @@ export class Sessions {
               "SELECT id FROM workout_session WHERE user_id=? AND status IN ('active','paused')",
             )
             .get(this.userId),
-          'Resume or abandon your unfinished workout first.',
+          'Resume, abandon, or cancel your unfinished workout first.',
           409,
         );
         const a = this.sql

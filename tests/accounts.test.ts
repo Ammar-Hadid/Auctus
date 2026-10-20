@@ -57,6 +57,9 @@ it('isolates reads, writes, history, scheduling, active workouts and request rec
     expect(() =>
       new Sessions(x.test).act({ workout_id: w.id, version: w.version, action: 'workout.abandon' }),
     ).toThrow();
+    expect(() => new Sessions(x.test).cancel({ workout_id: w.id, version: w.version })).toThrow(
+      'Workout not found',
+    );
     expect(() =>
       editHistory(x.test, {
         workout_id: w.id,

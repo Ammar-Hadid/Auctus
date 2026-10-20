@@ -1,4 +1,5 @@
 'use client';
+import * as Dialog from '@radix-ui/react-dialog';
 import { WorkoutRequirement } from '../ui/workout-requirement';
 import { EquipmentLabel } from '../ui/equipment';
 import { ActivityStatusLabel } from '../ui/activity-status';
@@ -11,6 +12,7 @@ import { activeDuration, durationLabel, restDuration } from '@/domain/timing';
 import { trainingWeek } from '@/domain/calendar';
 import { EditRecord } from './edit-record';
 import { repRangeLabel } from '@/domain/reps';
+import { NotificationHost } from '../ui/notification';
 export function HistoryView({
   workouts,
   send,
@@ -24,7 +26,8 @@ export function HistoryView({
     [filter, setFilter] = useState('all'),
     [editing, setEditing] = useState<{ kind: 'set' | 'rest' | 'workout'; id?: string } | null>(
       null,
-    );
+    ),
+    [confirmCancel, setConfirmCancel] = useState<string | null>(null);
   const w = workouts.find((w) => w.id === selected);
   const week = (w: WorkoutDetail) => w.week_id ?? trainingWeek(w.started_at).id;
   const weeks = [...new Set(workouts.map(week))];
@@ -55,11 +58,53 @@ export function HistoryView({
             <h1>{w.name}</h1>
             <WorkoutRequirement mandatory={w.mandatory} />
           </div>
-          <button onClick={() => setEditing({ kind: 'workout' })}>
-            <Edit3 size={15} />
-            Edit workout
-          </button>
+          <div className="row">
+            <button onClick={() => setEditing({ kind: 'workout' })}>
+              <Edit3 size={15} />
+              Edit workout
+            </button>
+            {w.status === 'abandoned' && (
+              <button className="ghost danger" onClick={() => setConfirmCancel(w.id)}>
+                Cancel workout
+              </button>
+            )}
+          </div>
         </div>
+        <Dialog.Root
+          open={confirmCancel === w.id}
+          onOpenChange={(open) => setConfirmCancel(open ? w.id : null)}
+        >
+          <Dialog.Portal>
+            <Dialog.Overlay className="exercise-dialog-overlay" />
+            <Dialog.Content className="session-dialog-layer">
+              <NotificationHost />
+              <div className="session-dialog session-confirm">
+                <Dialog.Title>Cancel this workout?</Dialog.Title>
+                <Dialog.Description>
+                  This workout and all its recorded results will be deleted. It will not appear in
+                  history or count toward your training.
+                </Dialog.Description>
+                <div className="row">
+                  <button
+                    className="danger"
+                    onClick={() =>
+                      send('workout.cancel', { workout_id: w.id, version: w.version }, () => {
+                        setConfirmCancel(null);
+                        setSelected(null);
+                        setEditing(null);
+                      })
+                    }
+                  >
+                    Confirm cancel
+                  </button>
+                  <Dialog.Close asChild>
+                    <button>Keep workout</button>
+                  </Dialog.Close>
+                </div>
+              </div>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
         <p>
           <Clock size={14} className="inline-icon" />{' '}
           {durationLabel(activeDuration(w, w.ended_at!))} active ·{' '}

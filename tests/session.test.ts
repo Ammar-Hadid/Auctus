@@ -5,6 +5,8 @@ import { Programming } from '../src/server/programming';
 import { Sessions } from '../src/server/sessions';
 import { activeDuration, restDuration, restRemaining } from '../src/domain/timing';
 import { command } from '../src/server/commands';
+import { readState } from '../src/server/read-state';
+import { dispatch } from '../src/server/dispatch';
 function setup() {
   const store = openDatabase(':memory:');
   let now = Date.parse('2026-10-18T12:00Z');
@@ -43,6 +45,92 @@ const context = (x: ReturnType<typeof setup>) => ({
   version: x.s.get(x.workout.id).version,
 });
 describe('persistent workout engine', () => {
+  it('cancels an active or paused workout without leaving session records or blocking a fresh start', () => {
+    const x = setup();
+    const e = x.workout.exercises[0];
+    x.s.act({ ...context(x), action: 'exercise.start', id: e.id });
+    x.s.act({ ...context(x), action: 'set.start', id: e.sets[0].id });
+    x.tick(1000);
+    x.s.act({
+      ...context(x),
+      action: 'set.complete',
+      id: e.sets[0].id,
+      actual_reps: 8,
+      actual_grams: 20000,
+    });
+    x.s.act({ ...context(x), action: 'workout.pause' });
+    expect(() => x.s.cancel({ workout_id: x.workout.id, version: 0 })).toThrow('changed');
+    const request = {
+      requestId: randomUUID(),
+      action: 'workout.cancel',
+      data: context(x),
+    };
+    expect(dispatch(x.store, request, x.clock())).toEqual({ id: x.workout.id });
+    expect(dispatch(x.store, request, x.clock())).toEqual({ id: x.workout.id });
+    expect(readState(x.store, x.clock()).activeWorkout).toBeNull();
+    expect(readState(x.store, x.clock()).history).toEqual([]);
+    expect(
+      x.store.sqlite
+        .prepare('SELECT count(*) AS count FROM workout_session WHERE id=?')
+        .get(x.workout.id),
+    ).toEqual({ count: 0 });
+    for (const table of ['exercise_session', 'set_session', 'workout_pause', 'rest_period'])
+      expect(
+        x.store.sqlite
+          .prepare(`SELECT count(*) AS count FROM ${table} WHERE workout_id=?`)
+          .get(x.workout.id),
+      ).toEqual({ count: 0 });
+    expect(x.s.start(x.workout.assignment_id, false).id).not.toBe(x.workout.id);
+    x.store.sqlite.close();
+  });
+
+  it('removes an abandoned mistake from history and clears prefills copied into later workouts', () => {
+    const x = setup();
+    const e = x.workout.exercises[0];
+    x.s.act({ ...context(x), action: 'exercise.start', id: e.id });
+    x.s.act({ ...context(x), action: 'set.start', id: e.sets[0].id });
+    x.tick(1000);
+    x.s.act({
+      ...context(x),
+      action: 'set.complete',
+      id: e.sets[0].id,
+      actual_reps: 8,
+      actual_grams: 20000,
+    });
+    x.s.act({ ...context(x), action: 'workout.abandon' });
+    const next = x.s.start(x.workout.assignment_id, false);
+    x.s.act({
+      workout_id: next.id,
+      version: next.version,
+      action: 'exercise.start',
+      id: next.exercises[0].id,
+    });
+    const started = x.s.act({
+      workout_id: next.id,
+      version: x.s.get(next.id).version,
+      action: 'set.start',
+      id: next.exercises[0].sets[0].id,
+    });
+    expect(started.exercises[0].sets[0].prefill_set_id).toBe(e.sets[0].id);
+    x.s.cancel({ workout_id: x.workout.id, version: x.s.get(x.workout.id).version });
+    expect(readState(x.store, x.clock()).history).toEqual([]);
+    expect(x.s.get(next.id).exercises[0].sets[0]).toMatchObject({
+      prefill_set_id: null,
+      prefill_grams: null,
+    });
+    expect(readState(x.store, x.clock()).activeWorkout?.id).toBe(next.id);
+    x.store.sqlite.close();
+  });
+
+  it('does not cancel a completed workout', () => {
+    const x = setup();
+    x.s.act({ ...context(x), action: 'workout.complete', skipRemaining: true });
+    expect(() =>
+      x.s.cancel({ workout_id: x.workout.id, version: x.s.get(x.workout.id).version }),
+    ).toThrow('Completed workouts cannot be cancelled');
+    expect(readState(x.store, x.clock()).history).toHaveLength(1);
+    x.store.sqlite.close();
+  });
   it('keeps final-set rest running after exercise completion until switching', () => {
     const x = setup();
     const [a, b] = x.workout.exercises;

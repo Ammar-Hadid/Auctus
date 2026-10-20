@@ -59,7 +59,7 @@ export function ActiveWorkout({
   const [overview, setOverview] = useState(false);
   const [workoutOptions, setWorkoutOptions] = useState(false);
   const [reordering, setReordering] = useState(false);
-  const [confirm, setConfirm] = useState<'complete' | 'abandon' | 'remove' | null>(null);
+  const [confirm, setConfirm] = useState<'complete' | 'abandon' | 'cancel' | 'remove' | null>(null);
   const [add, setAdd] = useState(false);
   const [selection, setSelection] = useState('');
   const focusArea = useRef<HTMLDivElement>(null);
@@ -217,6 +217,15 @@ export function ActiveWorkout({
                       }}
                     >
                       Abandon workout
+                    </button>
+                    <button
+                      className="ghost danger"
+                      onClick={() => {
+                        setWorkoutOptions(false);
+                        setConfirm('cancel');
+                      }}
+                    >
+                      Cancel workout
                     </button>
                   </div>
                 </fieldset>
@@ -679,41 +688,52 @@ export function ActiveWorkout({
                   ? 'Finish your workout?'
                   : confirm === 'remove'
                     ? 'Remove this exercise?'
-                    : 'Abandon this workout?'}
+                    : confirm === 'cancel'
+                      ? 'Cancel this workout?'
+                      : 'Abandon this workout?'}
               </Dialog.Title>
               <Dialog.Description>
                 {confirm === 'complete'
                   ? `${done} sets completed. ${remaining ? `${remaining} unfinished sets will be marked skipped.` : 'Your recorded results will be saved in history.'}`
                   : confirm === 'remove'
                     ? 'The exercise leaves this workout. Recorded results stay in history.'
-                    : 'Recorded results stay in history; unfinished activity is marked skipped.'}
+                    : confirm === 'cancel'
+                      ? 'This workout and all its recorded results will be deleted. It will not appear in history or count toward your training.'
+                      : 'Recorded results stay in history; unfinished activity is marked skipped.'}
               </Dialog.Description>
               <fieldset disabled={busy} className="row">
                 <button
                   className={confirm === 'complete' ? 'primary' : 'danger'}
                   onClick={() =>
-                    act(
-                      confirm === 'remove'
-                        ? 'exercise.remove'
-                        : confirm === 'complete'
-                          ? 'workout.complete'
-                          : 'workout.abandon',
-                      confirm === 'remove' ? { id: e?.id } : { skipRemaining: true },
-                      () => {
-                        setConfirm(null);
-                        if (confirm === 'remove') {
-                          setFocused(null);
-                          setSelectedSet(null);
-                        } else finished();
-                      },
-                    )
+                    confirm === 'cancel'
+                      ? send('workout.cancel', { workout_id: w.id, version: w.version }, () => {
+                          setConfirm(null);
+                          finished();
+                        })
+                      : act(
+                          confirm === 'remove'
+                            ? 'exercise.remove'
+                            : confirm === 'complete'
+                              ? 'workout.complete'
+                              : 'workout.abandon',
+                          confirm === 'remove' ? { id: e?.id } : { skipRemaining: true },
+                          () => {
+                            setConfirm(null);
+                            if (confirm === 'remove') {
+                              setFocused(null);
+                              setSelectedSet(null);
+                            } else finished();
+                          },
+                        )
                   }
                 >
                   {confirm === 'complete'
                     ? 'Confirm finish'
                     : confirm === 'remove'
                       ? 'Confirm remove'
-                      : 'Confirm abandon'}
+                      : confirm === 'cancel'
+                        ? 'Confirm cancel'
+                        : 'Confirm abandon'}
                 </button>
                 <Dialog.Close asChild>
                   <button>Keep training</button>
