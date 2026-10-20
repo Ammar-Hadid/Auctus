@@ -611,6 +611,10 @@ main:not(.login) {
   }
 }
 @media (max-width: 760px) {
+  .login {
+    margin-top: max(12vh, calc(env(safe-area-inset-top) + 24px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
   .sidebar {
     display: none;
   }
@@ -623,7 +627,7 @@ main:not(.login) {
     font-size: 16px;
   }
   .topbar {
-    height: 64px;
+    height: calc(64px + env(safe-area-inset-top));
     margin: 0 20px;
     padding-top: env(safe-area-inset-top);
   }
@@ -659,7 +663,7 @@ main:not(.login) {
   .mobile-nav {
     display: flex;
     justify-content: space-around;
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    padding: 10px 12px calc(22px + env(safe-area-inset-bottom));
     background: transparent;
     border-top: 1px solid var(--line);
     z-index: 30;
@@ -2198,7 +2202,7 @@ td:nth-child(2) {
     padding-top: 0;
   }
   main:has(.workout-focus) {
-    padding-top: 14px;
+    padding-top: calc(14px + env(safe-area-inset-top));
   }
   .workout-context h1 {
     font-size: 20px;
