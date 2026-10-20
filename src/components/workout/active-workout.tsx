@@ -58,6 +58,7 @@ export function ActiveWorkout({
   const [selectedSet, setSelectedSet] = useState<string | null>(null);
   const [overview, setOverview] = useState(false);
   const [workoutOptions, setWorkoutOptions] = useState(false);
+  const [exerciseOptions, setExerciseOptions] = useState<string | null>(null);
   const [reordering, setReordering] = useState(false);
   const [confirm, setConfirm] = useState<'complete' | 'abandon' | 'cancel' | 'remove' | null>(null);
   const [add, setAdd] = useState(false);
@@ -429,109 +430,143 @@ export function ActiveWorkout({
                   </button>
                 ))}
               </section>
-              <details className="exercise-tools">
-                <summary>
-                  <SlidersHorizontal size={16} />
-                  Exercise options
-                </summary>
-                <div className="stack">
-                  <p className="muted">Changes here apply to this workout only.</p>
-                  <div className="row">
-                    <button
-                      disabled={locked}
-                      onClick={() =>
-                        act('set.add', { id: e.id, ...defaultSet() }, () => {
-                          setSelectedSet(null);
-                        })
-                      }
-                    >
-                      <Plus size={16} />
-                      Add set
+              <div className="exercise-tools">
+                <Dialog.Root
+                  open={exerciseOptions === e.id}
+                  onOpenChange={(open) => setExerciseOptions(open ? e.id : null)}
+                >
+                  <Dialog.Trigger asChild>
+                    <button className="exercise-tools-trigger">
+                      <SlidersHorizontal size={16} />
+                      Exercise options
                     </button>
-                    {!['completed', 'skipped'].includes(e.status) && (
-                      <button
-                        disabled={
-                          locked || e.sets.some((s) => ['active', 'paused'].includes(s.status))
-                        }
-                        onClick={() =>
-                          act('exercise.skip', { id: e.id }, () => {
-                            setSelectedSet(null);
-                            setFocused(e.id);
-                          })
-                        }
-                      >
-                        Skip exercise
-                      </button>
-                    )}
-                    <button
-                      className="ghost danger"
-                      disabled={
-                        locked ||
-                        e.status === 'active' ||
-                        e.sets.some((s) => ['active', 'paused'].includes(s.status))
-                      }
-                      onClick={() => setConfirm('remove')}
-                    >
-                      Remove exercise
-                    </button>
-                  </div>
-                  <details>
-                    <summary>Reorder sets</summary>
-                    <div className="stack">
-                      {sets.map((s, i) => (
-                        <div className="row between" key={s.id}>
-                          <span>
-                            Set {i + 1} · {s.type === 'normal' ? 'Working' : s.type}
-                          </span>
-                          <div className="row">
-                            <button
-                              className="small ghost"
-                              aria-label={`Move set ${i + 1} up`}
-                              disabled={locked || i === 0}
-                              onClick={() =>
-                                act('set.reorder', {
-                                  id: e.id,
-                                  ids: reorderVisible(e.sets, s.id, -1),
-                                })
-                              }
-                            >
-                              <ArrowUp size={16} />
+                  </Dialog.Trigger>
+                  <Dialog.Portal>
+                    <Dialog.Overlay className="exercise-dialog-overlay" />
+                    <Dialog.Content className="session-dialog-layer">
+                      <NotificationHost />
+                      <div className="session-dialog">
+                        <div className="row between">
+                          <Dialog.Title>Exercise options</Dialog.Title>
+                          <Dialog.Close asChild>
+                            <button className="ghost" aria-label="Close exercise options">
+                              <X size={18} />
                             </button>
+                          </Dialog.Close>
+                        </div>
+                        <Dialog.Description>
+                          {e.name}. Changes here apply to this workout only.
+                        </Dialog.Description>
+                        <fieldset disabled={busy} className="stack">
+                          <div className="stack">
                             <button
-                              className="small ghost"
-                              aria-label={`Move set ${i + 1} down`}
-                              disabled={locked || i === sets.length - 1}
+                              disabled={locked}
                               onClick={() =>
-                                act('set.reorder', {
-                                  id: e.id,
-                                  ids: reorderVisible(e.sets, s.id, 1),
+                                act('set.add', { id: e.id, ...defaultSet() }, () => {
+                                  setSelectedSet(null);
+                                  setExerciseOptions(null);
                                 })
                               }
                             >
-                              <ArrowDown size={16} />
+                              <Plus size={16} />
+                              Add set
+                            </button>
+                            {!['completed', 'skipped'].includes(e.status) && (
+                              <button
+                                disabled={
+                                  locked ||
+                                  e.sets.some((s) => ['active', 'paused'].includes(s.status))
+                                }
+                                onClick={() =>
+                                  act('exercise.skip', { id: e.id }, () => {
+                                    setSelectedSet(null);
+                                    setFocused(e.id);
+                                    setExerciseOptions(null);
+                                  })
+                                }
+                              >
+                                Skip exercise
+                              </button>
+                            )}
+                            <button
+                              className="ghost danger"
+                              disabled={
+                                locked ||
+                                e.status === 'active' ||
+                                e.sets.some((s) => ['active', 'paused'].includes(s.status))
+                              }
+                              onClick={() => {
+                                setExerciseOptions(null);
+                                setConfirm('remove');
+                              }}
+                            >
+                              Remove exercise
                             </button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                  <details>
-                    <summary>Previous workout & technique</summary>
-                    <p>
-                      {previous
-                        ? previous.sets
-                            .filter((s) => !s.removed_at && s.status === 'completed')
-                            .map((s) => `${(s.actual_grams ?? 0) / 1000} kg × ${s.actual_reps}`)
-                            .join(' / ') || 'No completed sets.'
-                        : 'Your first recorded workout for this exercise.'}
-                    </p>
-                    <p>
-                      {state.exercises.find((x) => x.id === e.exercise_id)?.details ||
-                        'No technique notes.'}
-                    </p>
-                  </details>
-                </div>
-              </details>
+                          <details>
+                            <summary>Reorder sets</summary>
+                            <div className="stack">
+                              {sets.map((s, i) => (
+                                <div className="row between" key={s.id}>
+                                  <span>
+                                    Set {i + 1} · {s.type === 'normal' ? 'Working' : s.type}
+                                  </span>
+                                  <div className="row">
+                                    <button
+                                      className="small ghost"
+                                      aria-label={`Move set ${i + 1} up`}
+                                      disabled={locked || i === 0}
+                                      onClick={() =>
+                                        act('set.reorder', {
+                                          id: e.id,
+                                          ids: reorderVisible(e.sets, s.id, -1),
+                                        })
+                                      }
+                                    >
+                                      <ArrowUp size={16} />
+                                    </button>
+                                    <button
+                                      className="small ghost"
+                                      aria-label={`Move set ${i + 1} down`}
+                                      disabled={locked || i === sets.length - 1}
+                                      onClick={() =>
+                                        act('set.reorder', {
+                                          id: e.id,
+                                          ids: reorderVisible(e.sets, s.id, 1),
+                                        })
+                                      }
+                                    >
+                                      <ArrowDown size={16} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                          <details>
+                            <summary>Previous workout & technique</summary>
+                            <p>
+                              {previous
+                                ? previous.sets
+                                    .filter((s) => !s.removed_at && s.status === 'completed')
+                                    .map(
+                                      (s) =>
+                                        `${(s.actual_grams ?? 0) / 1000} kg × ${s.actual_reps}`,
+                                    )
+                                    .join(' / ') || 'No completed sets.'
+                                : 'Your first recorded workout for this exercise.'}
+                            </p>
+                            <p>
+                              {state.exercises.find((x) => x.id === e.exercise_id)?.details ||
+                                'No technique notes.'}
+                            </p>
+                          </details>
+                        </fieldset>
+                      </div>
+                    </Dialog.Content>
+                  </Dialog.Portal>
+                </Dialog.Root>
+              </div>
             </div>
           </>
         ) : (

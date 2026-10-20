@@ -2066,16 +2066,19 @@ td:nth-child(2) {
   margin-top: 20px;
   padding-top: 8px;
 }
-.exercise-tools > summary {
+.exercise-tools-trigger {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   min-height: 44px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--muted);
   font-size: 13px;
-}
-.exercise-tools p {
-  font-size: 13px;
+  font-weight: normal;
 }
 .exercise-finished {
   display: flex;

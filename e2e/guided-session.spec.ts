@@ -141,8 +141,31 @@ test('guided gym journey keeps the current set visible and preserves full sessio
     page.getByRole('button', { name: 'View set 1, Completed', exact: true }),
   ).toContainText('16 kg × 8');
   // Reopen the completed exercise and keep its existing results.
-  await page.getByText('Exercise options', { exact: true }).click();
-  await page.getByRole('button', { name: 'Add set', exact: true }).click();
+  const exerciseOptions = page.getByRole('button', { name: 'Exercise options', exact: true });
+  await exerciseOptions.click();
+  const options = page.getByRole('dialog', { name: 'Exercise options', exact: true });
+  await expect(options).toContainText('Changes here apply to this workout only.');
+  await options.getByText('Previous workout & technique', { exact: true }).click();
+  await expect(options).toContainText('No technique notes.');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: test.info().outputPath('exercise-options-mobile.png') });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: test.info().outputPath('exercise-options-desktop.png') });
+  await page.setViewportSize({ width: 390, height: 720 });
+  await options.getByText('Reorder sets', { exact: true }).click();
+  await options.getByRole('button', { name: 'Move set 2 up' }).click();
+  await expect(options.getByText('Set 1 · Working', { exact: true })).toBeVisible();
+  await options.getByRole('button', { name: 'Close exercise options' }).click();
+  await expect(exerciseOptions).toBeFocused();
+  await exerciseOptions.click();
+  await options.getByRole('button', { name: 'Remove exercise', exact: true }).click();
+  const remove = page.getByRole('dialog', { name: 'Remove this exercise?' });
+  await expect(remove).toBeVisible();
+  await remove.getByRole('button', { name: 'Keep training' }).click();
+  await exerciseOptions.click();
+  await options.getByRole('button', { name: 'Add set', exact: true }).click();
+  await expect(options).not.toBeVisible();
   await page.getByRole('button', { name: 'Start set 4', exact: true }).click();
   await page.getByText('Set options', { exact: true }).click();
   await page.getByRole('button', { name: 'Skip set', exact: true }).click();

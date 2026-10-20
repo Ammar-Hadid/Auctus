@@ -13,7 +13,7 @@ A fresh in-app-browser inspection used an isolated seven-exercise, three-set sam
 - **Current set:** one editor and one primary action, Start set or Complete set. The weight/reps fields align side by side. Notes and plan/result changes sit in labeled disclosures. Account-scoped drafts survive browsing and reloads.
 - **Set ledger:** compact rows show type, rep range, rest and actual result/status. Selecting a row permits inspection/correction; a clear return action restores the current step or exercise summary.
 - **Overview:** an on-demand dialog lists every exercise with progress, supports direct inspection and keeps reordering/addition in deliberate controls. Inspecting an exercise never silently changes active timing. Nested search/create dialogs preserve keyboard access and fixed save-recovery notifications.
-- **Exercise options:** extra sets, skip/remove, reordering and previous performance/technique stay accessible below the ledger. Changes affect this workout, not its template.
+- **Exercise options:** the control below the ledger opens a dialog for extra sets, skip/remove, reordering and previous performance/technique. Changes affect this workout, not its template.
 - **Rest:** the existing unified bottom timer/navigation remains. Expanded phone controls use one compact row; compact mode retains End rest and the saved per-account browser preference. Sound state has an accessible name, pressed state and distinct muted icon. Measured bottom spacing keeps final content reachable.
 
 ## Routine journey
