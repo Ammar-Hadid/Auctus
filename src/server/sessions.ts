@@ -267,6 +267,29 @@ export class Sessions {
             409,
           );
         switch (c.action) {
+          case 'exercise.switch': {
+            requireCondition(exercise && !exercise.removed_at, 'Exercise not found.', 404);
+            requireCondition(
+              !['completed', 'skipped'].includes(exercise.status) &&
+                exercise.sets.every((s) => s.status === 'pending'),
+              'Quick Switch is available before the first set starts.',
+              409,
+            );
+            const source = new Programming(this.store, this.clock)
+              .exercises()
+              .find((e) => e.id === c.exercise_id && !e.archived_at);
+            requireCondition(source, 'Choose an available exercise.');
+            requireCondition(source.id !== exercise.exercise_id, 'Choose a different exercise.');
+            this.sql
+              .prepare('UPDATE exercise_session SET exercise_id=?,name=?,equipment=? WHERE id=?')
+              .run(source.id, source.name, source.equipment, exercise.id);
+            this.sql
+              .prepare(
+                'UPDATE set_session SET prefill_grams=NULL,prefill_set_id=NULL WHERE exercise_session_id=?',
+              )
+              .run(exercise.id);
+            break;
+          }
           case 'workout.pause': {
             const active = w.exercises.find((e) => e.status === 'active');
             this.sql

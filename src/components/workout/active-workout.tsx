@@ -24,6 +24,7 @@ import { activeDuration, durationLabel } from '@/domain/timing';
 import { repRangeLabel } from '@/domain/reps';
 import { useNow } from './timer';
 import { SetCard } from './set-card';
+import { QuickSwitch } from './quick-switch';
 import { defaultSet } from '../programming/template-editor';
 
 function reorderVisible<T extends { id: string; removed_at: number | null }>(
@@ -283,7 +284,19 @@ export function ActiveWorkout({
                 </span>
                 <ActivityStatusLabel status={e.status} />
               </div>
-              <h2 id="current-exercise-name">{e.name}</h2>
+              <div className="row between quick-switch-heading">
+                <h2 id="current-exercise-name">{e.name}</h2>
+                <QuickSwitch
+                  key={e.id}
+                  exercise={e}
+                  library={state.exercises}
+                  locked={locked}
+                  busy={busy}
+                  onSwitch={(id, confirmed) =>
+                    act('exercise.switch', { id: e.id, exercise_id: id }, confirmed)
+                  }
+                />
+              </div>
               <EquipmentLabel equipment={e.equipment} />
               <p className="exercise-conventions">
                 {e.equipment === 'dumbbell' ? 'Weight per dumbbell · ' : ''}Unilateral reps per side

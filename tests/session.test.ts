@@ -45,6 +45,67 @@ const context = (x: ReturnType<typeof setup>) => ({
   version: x.s.get(x.workout.id).version,
 });
 describe('persistent workout engine', () => {
+  it('quick switches only the session identity, preserving prescriptions and the template', () => {
+    const x = setup();
+    const original = x.workout.exercises[0];
+    const replacement = x.p.saveExercise({ name: 'Cable row', equipment: 'cable' });
+    const templates = x.p.templates();
+    const switched = x.s.act({
+      ...context(x),
+      action: 'exercise.switch',
+      id: original.id,
+      exercise_id: replacement.id,
+    });
+    expect(switched.exercises[0]).toEqual({
+      ...original,
+      exercise_id: replacement.id,
+      name: replacement.name,
+      equipment: replacement.equipment,
+    });
+    expect(switched.exercises[1]).toEqual(x.workout.exercises[1]);
+    expect(x.p.templates()).toEqual(templates);
+    expect(switched.version).toBe(x.workout.version + 1);
+    expect(() =>
+      x.s.act({
+        workout_id: x.workout.id,
+        version: 0,
+        action: 'exercise.switch',
+        id: original.id,
+        exercise_id: replacement.id,
+      }),
+    ).toThrow('changed');
+    x.store.sqlite.close();
+  });
+
+  it('rejects unavailable replacements and protects started and recorded sets', () => {
+    const x = setup();
+    const original = x.workout.exercises[0];
+    const replacement = x.p.saveExercise({ name: 'Unavailable' });
+    x.p.archive('exercise', replacement.id);
+    const switchTo = (id: string) =>
+      x.s.act({
+        ...context(x),
+        action: 'exercise.switch',
+        id: original.id,
+        exercise_id: id,
+      });
+    expect(() => switchTo(replacement.id)).toThrow('available');
+    expect(() => switchTo('missing')).toThrow('available');
+    expect(() => switchTo(original.exercise_id)).toThrow('different');
+    x.s.act({ ...context(x), action: 'set.begin', id: original.sets[0].id });
+    expect(() => switchTo(x.workout.exercises[1].exercise_id)).toThrow('first set');
+    x.s.act({
+      ...context(x),
+      action: 'set.complete',
+      id: original.sets[0].id,
+      actual_reps: 8,
+      actual_grams: 20000,
+    });
+    expect(() => switchTo(x.workout.exercises[1].exercise_id)).toThrow('first set');
+    expect(x.s.get(x.workout.id).exercises[0].exercise_id).toBe(original.exercise_id);
+    x.store.sqlite.close();
+  });
+
   it('cancels an active or paused workout without leaving session records or blocking a fresh start', () => {
     const x = setup();
     const e = x.workout.exercises[0];

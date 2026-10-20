@@ -1890,6 +1890,26 @@ td:nth-child(2) {
   margin: 12px 0 10px;
   overflow-wrap: anywhere;
 }
+.quick-switch-heading {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.quick-switch-heading h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.quick-switch-trigger {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+}
+.quick-switch-option {
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  min-height: 48px;
+  overflow-wrap: anywhere;
+}
 .exercise-focus-heading .eyeline {
   font-size: 10px;
 }
