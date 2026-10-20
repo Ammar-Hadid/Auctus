@@ -53,13 +53,22 @@ test('bottom timer collapses, preserves scrolling and follows the mobile viewpor
   });
   await page.goto('/');
   await expect(page).toHaveTitle('Auctus · Training, recorded.');
+  const mobile = page.viewportSize()!.width <= 760;
+  if (mobile) {
+    // Simulate the iPhone standalone fallback when WebKit reports a zero top inset.
+    await page.evaluate(() =>
+      document.documentElement.style.setProperty('--phone-safe-top', '64px'),
+    );
+    const context = (await page.locator('.workout-context').boundingBox())!;
+    expect(context.y).toBeGreaterThanOrEqual(78);
+    await expect(page.locator('.workout-toolbar')).toHaveCSS('top', '64px');
+  }
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
   await page.getByLabel('Set 1 actual kg').fill('15');
   await page.getByLabel('Set 1 actual reps').fill('8');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   const timer = page.getByRole('region', { name: 'Rest timer' });
   const nav = page.getByRole('navigation', { name: 'Mobile navigation', exact: true });
-  const mobile = page.viewportSize()!.width <= 760;
   const checkDock = async () => {
     await expect
       .poll(async () => {

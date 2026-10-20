@@ -19,7 +19,16 @@
   --accent: #d5f878;
   --danger: var(--skipped);
   --radius: 12px;
+  --phone-safe-top: env(safe-area-inset-top);
   color-scheme: dark;
+}
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 760px) and (display-mode: standalone),
+    (max-width: 760px) and (display-mode: fullscreen) {
+    :root {
+      --phone-safe-top: max(env(safe-area-inset-top), 64px);
+    }
+  }
 }
 * {
   box-sizing: border-box;
@@ -612,7 +621,7 @@ main:not(.login) {
 }
 @media (max-width: 760px) {
   .login {
-    margin-top: max(12vh, calc(env(safe-area-inset-top) + 24px));
+    margin-top: max(12vh, calc(var(--phone-safe-top) + 24px));
     padding-bottom: calc(24px + env(safe-area-inset-bottom));
   }
   .sidebar {
@@ -627,9 +636,9 @@ main:not(.login) {
     font-size: 16px;
   }
   .topbar {
-    height: calc(64px + env(safe-area-inset-top));
+    height: calc(64px + var(--phone-safe-top));
     margin: 0 20px;
-    padding-top: env(safe-area-inset-top);
+    padding-top: var(--phone-safe-top);
   }
   main:not(.login) {
     padding: 28px 20px;
@@ -2202,7 +2211,13 @@ td:nth-child(2) {
     padding-top: 0;
   }
   main:has(.workout-focus) {
-    padding-top: calc(14px + env(safe-area-inset-top));
+    padding-top: calc(14px + var(--phone-safe-top));
+  }
+  .workout-toolbar {
+    top: var(--phone-safe-top);
+  }
+  .exercise-focus-area {
+    scroll-margin-top: calc(64px + var(--phone-safe-top));
   }
   .workout-context h1 {
     font-size: 20px;
