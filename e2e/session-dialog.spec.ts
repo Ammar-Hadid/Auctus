@@ -56,6 +56,18 @@ test('workout overview supports search, nested creation and accessible save reco
     await page.goto('/');
     await page.getByRole('button', { name: 'Workout overview', exact: true }).click();
     const overview = page.getByRole('dialog', { name: 'Workout overview', exact: true });
+    if (page.viewportSize()!.width <= 760) {
+      const original = page.viewportSize()!;
+      await page.setViewportSize({ width: original.width, height: 420 });
+      // Simulate an installed iPhone where WebKit reports a zero top inset.
+      await page.evaluate(() =>
+        document.documentElement.style.setProperty('--phone-safe-top', '64px'),
+      );
+      const panel = (await overview.locator('.session-dialog').boundingBox())!;
+      expect(panel.y).toBeGreaterThanOrEqual(76);
+      expect(panel.y + panel.height).toBeLessThanOrEqual(408);
+      await page.setViewportSize(original);
+    }
     await overview.getByRole('button', { name: 'Add exercise', exact: true }).click();
     const search = overview.getByRole('combobox', { name: 'Exercise', exact: true });
     await search.fill(name);

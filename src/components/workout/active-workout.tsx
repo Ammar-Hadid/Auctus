@@ -590,7 +590,7 @@ export function ActiveWorkout({
         <Dialog.Portal>
           <Dialog.Overlay className="exercise-dialog-overlay" />
           <Dialog.Content
-            className="session-dialog-layer"
+            className="session-dialog-layer workout-overview-layer"
             onCloseAutoFocus={(ev) => {
               ev.preventDefault();
               if (selectedFromOverview.current) {

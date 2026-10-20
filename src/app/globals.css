@@ -2349,3 +2349,19 @@ td:nth-child(2) {
 .session-dialog-layer .exercise-search-menu {
   pointer-events: auto;
 }
+@media (max-width: 760px) {
+  .workout-overview-layer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--phone-safe-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px);
+  }
+  .workout-overview-layer .session-dialog {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: min(580px, 100%);
+    max-height: 100%;
+  }
+}
