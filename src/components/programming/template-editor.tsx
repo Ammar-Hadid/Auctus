@@ -158,9 +158,9 @@ export function TemplateEditor({
           </label>
           <p className="muted">
             Workout duration is recorded automatically from Start to Finish when you train. Pauses
-            are excluded from active time. Weight is entered during training, prefilled from the
-            same set in your previous workout when available. Warm-up and working sets keep their
-            own weights.
+            are excluded from active time. Weight and reps are prefilled from your latest completed
+            set of the same exercise and set type, including this workout. You can change them
+            before completing each set. Warm-up and working sets stay separate.
           </p>
         </div>
         {items.map((e, ei) => {

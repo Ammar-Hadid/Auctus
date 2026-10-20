@@ -125,6 +125,8 @@ Types are in `src/domain/types.ts`. Set kinds are normal, warmup, dropset, failu
 
 ## Weight prefill contract
 
+**Superseded on 20 October 2026:** the user requested the latest completed set for the same exercise, equipment and set type across all workouts, including the current exercise session. Both weight and reps are now snapshotted on `set.start` / `set.begin`. The original audit below describes the old behavior, not the current implementation.
+
 `Sessions.act('set.start')` finds the **latest completed or abandoned workout of the same template**, ended before this workout began. Within that one instance it requires matching template-set ID, type, library exercise ID, and equipment; completed, nonremoved set and exercise. No borrowing from a different working set, warm-up, older workout when newest lacks it, or today's earlier result. Corrected/zero historical loads are valid. Type/equipment changes and session-only additions leave suggestion empty. Prefill is persisted at start, actual weight remains null until user completion.
 
 This can constrain a redesigned pre-start edit surface: do not show guessed previous weights before server start unless a dedicated read model follows this exact matching contract.

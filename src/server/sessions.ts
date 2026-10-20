@@ -41,7 +41,7 @@ export class Sessions {
       ...e,
       sets: this.sql
         .prepare(
-          'SELECT id,template_set_id,workout_id,exercise_session_id,position,type,min_reps,max_reps,rest_ms,status,actual_reps,actual_grams,started_at,ended_at,notes,removed_at,prefill_grams,prefill_set_id FROM set_session WHERE exercise_session_id=? ORDER BY position',
+          'SELECT id,template_set_id,workout_id,exercise_session_id,position,type,min_reps,max_reps,rest_ms,status,actual_reps,actual_grams,started_at,ended_at,notes,removed_at,prefill_grams,prefill_reps,prefill_set_id FROM set_session WHERE exercise_session_id=? ORDER BY position',
         )
         .all(e.id) as SetSession[],
     }));
@@ -86,7 +86,7 @@ export class Sessions {
         // Later workouts may have copied a weight from an abandoned set.
         this.sql
           .prepare(
-            'UPDATE set_session SET prefill_set_id=NULL,prefill_grams=NULL WHERE prefill_set_id IN (SELECT id FROM set_session WHERE workout_id=?) AND workout_id<>?',
+            'UPDATE set_session SET prefill_set_id=NULL,prefill_grams=NULL,prefill_reps=NULL WHERE prefill_set_id IN (SELECT id FROM set_session WHERE workout_id=?) AND workout_id<>?',
           )
           .run(w.id, w.id);
         this.sql.prepare('DELETE FROM rest_period WHERE workout_id=?').run(w.id);
@@ -285,7 +285,7 @@ export class Sessions {
               .run(source.id, source.name, source.equipment, exercise.id);
             this.sql
               .prepare(
-                'UPDATE set_session SET prefill_grams=NULL,prefill_set_id=NULL WHERE exercise_session_id=?',
+                'UPDATE set_session SET prefill_grams=NULL,prefill_reps=NULL,prefill_set_id=NULL WHERE exercise_session_id=?',
               )
               .run(exercise.id);
             break;
@@ -455,33 +455,29 @@ export class Sessions {
             const previous = this.sql
               .prepare(
                 `
-              SELECT s.id,s.actual_grams FROM set_session s
+              SELECT s.id,s.actual_grams,s.actual_reps FROM set_session s
               JOIN exercise_session e ON e.id=s.exercise_session_id
-              WHERE s.workout_id=(
-                SELECT id FROM workout_session
-                WHERE template_id=? AND id<>? AND status IN ('completed','abandoned') AND ended_at<=?
-                ORDER BY ended_at DESC,rowid DESC LIMIT 1
-              )
-                AND s.template_set_id=? AND s.type=? AND e.exercise_id=? AND e.equipment IS ?
+              JOIN workout_session history ON history.id=s.workout_id
+              WHERE history.user_id=? AND e.exercise_id=? AND e.equipment IS ? AND s.type=?
                 AND s.status='completed' AND s.removed_at IS NULL AND e.removed_at IS NULL
-              LIMIT 1
+                AND s.actual_grams IS NOT NULL AND s.actual_reps IS NOT NULL AND s.ended_at<=?
+              ORDER BY s.ended_at DESC,s.rowid DESC LIMIT 1
             `,
               )
-              .get(
-                w.template_id,
-                w.id,
-                w.started_at,
-                set.template_set_id,
-                set.type,
-                parent.exercise_id,
-                parent.equipment,
-              ) as { id: string; actual_grams: number } | undefined;
+              .get(this.userId, parent.exercise_id, parent.equipment, set.type, now) as
+              { id: string; actual_grams: number; actual_reps: number } | undefined;
             this.closeRest(w.id, now, 'next_set');
             this.sql
               .prepare(
-                "UPDATE set_session SET status='active',started_at=?,prefill_grams=?,prefill_set_id=? WHERE id=?",
+                "UPDATE set_session SET status='active',started_at=?,prefill_grams=?,prefill_reps=?,prefill_set_id=? WHERE id=?",
               )
-              .run(now, previous?.actual_grams ?? null, previous?.id ?? null, set.id);
+              .run(
+                now,
+                previous?.actual_grams ?? null,
+                previous?.actual_reps ?? null,
+                previous?.id ?? null,
+                set.id,
+              );
             break;
           }
           case 'set.complete': {

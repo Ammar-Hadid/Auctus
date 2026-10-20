@@ -43,7 +43,7 @@ it('assigns all existing data to the master without changing history and keeps n
       INSERT INTO exercise_session (id,workout_id,exercise_id,name,position,status,started_at,ended_at) VALUES ('es','w','e','Press',0,'completed',1000,4900);
       INSERT INTO set_session (id,workout_id,exercise_session_id,position,type,min_reps,max_reps,legacy_target_grams,rest_ms,status,actual_reps,actual_grams,started_at,ended_at) VALUES ('set','w','es',0,'normal',6,8,0,60000,'completed',7,30000,1100,1200);
     `);
-    const result = old.prepare('SELECT * FROM set_session').get();
+    const result = old.prepare<[], Record<string, unknown>>('SELECT * FROM set_session').get();
     old.close();
     const store = openDatabase(file);
     try {
@@ -58,7 +58,10 @@ it('assigns all existing data to the master without changing history and keeps n
         expect(store.sqlite.prepare(`SELECT DISTINCT user_id FROM ${table}`).all()).toEqual([
           { user_id: 'master' },
         ]);
-      expect(store.sqlite.prepare('SELECT * FROM set_session').get()).toEqual(result);
+      expect(store.sqlite.prepare('SELECT * FROM set_session').get()).toEqual({
+        ...result,
+        prefill_reps: null,
+      });
       expect(store.sqlite.prepare('SELECT * FROM settings').get()).toEqual({
         user_id: 'master',
         selected_program_id: 'p',

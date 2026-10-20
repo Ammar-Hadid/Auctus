@@ -96,6 +96,7 @@ export interface SetSession {
   actual_reps: number | null;
   actual_grams: number | null;
   prefill_grams: number | null;
+  prefill_reps: number | null;
   prefill_set_id: string | null;
   started_at: number | null;
   ended_at: number | null;

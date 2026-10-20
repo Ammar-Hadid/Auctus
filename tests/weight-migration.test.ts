@@ -70,7 +70,7 @@ it('upgrades populated databases without changing actual results or legacy sessi
       min_reps: 8,
       max_reps: 8,
     });
-    expect(active.prefill_grams).toBeNull(); // Earlier sets in this workout are no longer a source.
+    expect(active.prefill_grams).toBeNull(); // An already-started set without a saved source is not retroactively changed.
     expect(active.actual_grams).toBeNull();
     expect(migrated.sqlite.pragma('foreign_key_check')).toEqual([]);
     expect(migrated.sqlite.pragma('integrity_check', { simple: true })).toBe('ok');
@@ -127,6 +127,7 @@ it('links matching legacy sets and corrects an active warm-up suggestion without
     expect(s.get('current').exercises[0].sets[0]).toMatchObject({
       template_set_id: 'warmup',
       prefill_grams: 15000,
+      prefill_reps: 8,
       prefill_set_id: 'prior-warmup',
       actual_grams: null,
     });

@@ -40,7 +40,7 @@ This interactive command backs up the database, requires an explicit confirmatio
    Use the document icon on an exercise to save current workout changes and collapse its fields. Use the pencil icon to reopen it. **Save workout** saves and returns to the workout list.
 4. Select **Use this program** / **Apply to this week**.
 5. In **Overview**, start a workout. Start any exercise, then start a set.
-6. Starting a set prefills its own completed weight from the previous run of the same workout template. Warm-up and working sets keep separate weights, including separate working sets. New sets, changed set types and sets without a completed match in that previous workout start empty. Change it as needed, enter actual reps, and complete the set. Rest starts automatically; the next set or **End rest** ends it.
+6. Starting a set prefills weight and reps from your latest completed set for the exact same exercise, equipment and set type, including earlier sets in the current workout and older workouts from other templates. Warm-up and working sets stay separate. Both fields start empty only when no matching completed set exists. Change either value as needed before completing the set. Rest starts automatically; the next set or **End rest** ends it.
 7. Complete exercises, or explicitly skip unused sets. Finish the workout to add it to history.
 8. Correct recorded results in **History**; view exercise records via **Progress**.
 

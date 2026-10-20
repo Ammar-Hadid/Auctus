@@ -49,7 +49,7 @@ export function SetCard({
   });
   const values = draft ?? {
     kg: set.prefill_grams !== null ? String(set.prefill_grams / 1000) : '',
-    reps: '',
+    reps: set.prefill_reps != null ? String(set.prefill_reps) : '',
     notes: '',
   };
   const [confirm, setConfirm] = useState(false);
@@ -184,8 +184,8 @@ export function SetCard({
           </div>
           <p className="muted">
             {set.prefill_grams !== null
-              ? `Last time, this set: ${set.prefill_grams / 1000} kg. Adjust if needed.`
-              : 'First time for this set? Enter the weight you used.'}
+              ? `Latest completed ${kind.toLowerCase()} set: ${set.prefill_grams / 1000} kg${set.prefill_reps != null ? ` × ${set.prefill_reps} reps` : ''}. Adjust if needed.`
+              : 'No completed set of this type for this exercise yet. Enter your weight and reps.'}
           </p>
 
           {set.status === 'paused' && (

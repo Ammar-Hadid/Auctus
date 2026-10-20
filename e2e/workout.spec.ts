@@ -261,9 +261,10 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   ).toHaveLength(1);
   expect(state.activeWorkout.rests).toHaveLength(1);
   expect(state.activeWorkout.exercises[0].sets[0].actual_grams).toBe(40000);
-  // This set was skipped last workout, so today's result must not supply its weight.
+  // Today's completed set supplies both values even though this slot was skipped last workout.
   await page.getByRole('button', { name: 'Start set 2', exact: true }).click();
-  await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('');
+  await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('40');
+  await expect(page.getByLabel('Set 2 actual reps')).toHaveValue('8');
   const nextState = await (await page.request.get('/api/state')).json();
   expect(nextState.activeWorkout.exercises[0].sets[1].actual_grams).toBeNull();
   const w = nextState.activeWorkout;

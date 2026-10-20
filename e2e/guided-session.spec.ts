@@ -117,7 +117,8 @@ test('guided gym journey keeps the current set visible and preserves full sessio
   ] as const) {
     await page.getByRole('button', { name: `Start set ${index}`, exact: true }).click();
     await expect(timer).not.toBeVisible();
-    await expect(page.getByLabel(`Set ${index} actual kg`)).toHaveValue('');
+    await expect(page.getByLabel(`Set ${index} actual kg`)).toHaveValue(index === 2 ? '' : '30');
+    await expect(page.getByLabel(`Set ${index} actual reps`)).toHaveValue(index === 2 ? '' : '8');
     await page.getByLabel(`Set ${index} actual kg`).fill(kg);
     await page.getByLabel(`Set ${index} actual reps`).fill('8');
     await page.getByRole('button', { name: 'Complete set', exact: true }).click();

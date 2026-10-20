@@ -42,27 +42,47 @@ export async function verifyPerSetWeightHistory(page: Page) {
   for (const [i, grams] of [15000, 30000, 35000].entries()) {
     const id = workout.exercises[0].sets[i].id;
     await act('set.start', { id });
-    expect(workout.exercises[0].sets[i].prefill_grams).toBeNull();
+    expect(workout.exercises[0].sets[i].prefill_grams).toBe(i === 2 ? 30000 : null);
+    expect(workout.exercises[0].sets[i].prefill_reps).toBe(i === 2 ? 8 : null);
     await act('set.complete', { id, actual_grams: grams, actual_reps: 8 });
   }
   await act('workout.complete', { skipRemaining: true });
-  await command('workout.start', { assignment_id: assignment.id, repeat: true });
+  workout = (await command('workout.start', { assignment_id: assignment.id, repeat: true })).state
+    .activeWorkout;
+  await act('workout.complete', { skipRemaining: true });
+  // A new template must still find older exercise history past the skipped workout.
+  const { result: alternate } = await command('template.save', {
+    program_id: program.id,
+    name: 'Another day, same exercise',
+    exercises: [{ exercise_id: exercise.id, sets: [{ ...plan, type: 'warmup' }, plan, plan] }],
+  });
+  const scheduled = await command('program.select', { id: program.id });
+  const alternateAssignment = scheduled.state.assignments.find(
+    (a: { template_id: string }) => a.template_id === alternate.id,
+  );
+  await command('workout.start', { assignment_id: alternateAssignment.id });
   await page.reload();
   await page.getByRole('button', { name: 'Start set 1', exact: true }).click();
   await expect(page.getByLabel('Set 1 actual kg')).toHaveValue('15');
-  await expect(page.getByText('Last time, this set: 15 kg. Adjust if needed.')).toBeVisible();
+  await expect(
+    page.getByText('Latest completed warm-up set: 15 kg × 8 reps. Adjust if needed.'),
+  ).toBeVisible();
+  await expect(page.getByLabel('Set 1 actual reps')).toHaveValue('8');
   await page.getByLabel('Set 1 actual kg').fill('17');
   await page.getByLabel('Set 1 actual reps').fill('8');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 2', exact: true }).click();
-  await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('30');
+  await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('35');
+  await expect(page.getByLabel('Set 2 actual reps')).toHaveValue('8');
   await page.getByLabel('Set 2 actual kg').fill('40');
   await page.getByLabel('Set 2 actual reps').fill('7');
   await page.reload();
   await expect(page.getByLabel('Set 2 actual kg')).toHaveValue('40');
+  await expect(page.getByLabel('Set 2 actual reps')).toHaveValue('7');
   await page.getByRole('button', { name: 'Complete set', exact: true }).click();
   await page.getByRole('button', { name: 'Start set 3', exact: true }).click();
-  await expect(page.getByLabel('Set 3 actual kg')).toHaveValue('35');
+  await expect(page.getByLabel('Set 3 actual kg')).toHaveValue('40');
+  await expect(page.getByLabel('Set 3 actual reps')).toHaveValue('7');
   const state = await (await page.request.get('/api/state')).json();
   expect(
     state.activeWorkout.exercises[0].sets.map(

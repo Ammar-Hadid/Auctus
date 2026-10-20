@@ -178,6 +178,7 @@ describe('persistent workout engine', () => {
     expect(x.s.get(next.id).exercises[0].sets[0]).toMatchObject({
       prefill_set_id: null,
       prefill_grams: null,
+      prefill_reps: null,
     });
     expect(readState(x.store, x.clock()).activeWorkout?.id).toBe(next.id);
     x.store.sqlite.close();
@@ -618,7 +619,9 @@ it.each(['completed', 'skipped'] as const)(
       w = x.s.act({ ...context(x), action: 'set.begin', id: extra.id });
       expect(w.exercises[0].status).toBe('paused');
       expect(w.exercises[1].status).toBe('active');
-      expect(w.exercises[1].sets.at(-1)!.prefill_grams).toBeNull();
+      expect(w.exercises[1].sets.at(-1)!.prefill_grams).toBe(
+        terminalStatus === 'completed' ? 20000 : null,
+      );
       w = x.s.act({
         ...context(x),
         action: 'set.complete',
