@@ -5,5 +5,7 @@ export async function register() {
   ) {
     const { startPushWorker } = await import('./server/push-worker');
     startPushWorker();
+    const { startShowcaseCleanup } = await import('./server/showcase-worker');
+    startShowcaseCleanup();
   }
 }

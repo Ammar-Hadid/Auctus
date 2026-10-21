@@ -133,7 +133,13 @@ export interface Metrics {
   duration: number;
 }
 export interface State {
-  account: { id: string; name: string; email: string; role: 'master' | 'member' };
+  account: {
+    id: string;
+    name: string;
+    email: string;
+    role: 'master' | 'member' | 'showcase';
+    expiresAt?: number;
+  };
   serverNow: number;
   exercises: Exercise[];
   programs: Program[];

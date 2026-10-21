@@ -20,7 +20,8 @@
     "owner": "node --env-file-if-exists=.env.local --import tsx scripts/owner.ts",
     "backup": "node --env-file-if-exists=.env.local --import tsx scripts/backup.ts",
     "setup": "tsx scripts/setup.ts",
-    "format": "prettier --write src scripts tests e2e migrations *.ts *.mjs *.json *.yaml"
+    "format": "prettier --write src scripts tests e2e migrations *.ts *.mjs *.json *.yaml",
+    "showcase:code": "tsx scripts/showcase-code.ts"
   },
   "dependencies": {
     "@js-temporal/polyfill": "^0.5.1",

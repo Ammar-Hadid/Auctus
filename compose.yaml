@@ -8,6 +8,7 @@ services:
       - '127.0.0.1:3101:3000'
     environment:
       DATABASE_PATH: /app/data/auctus.db
+      SHOWCASE_CODE_HASH: ${SHOWCASE_CODE_HASH:-}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the canonical HTTPS application URL}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set a long random authentication secret}
     volumes:

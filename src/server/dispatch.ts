@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { requireShowcaseCommand } from './showcase-policy';
 import { editHistory } from './history';
 import { Sessions } from './sessions';
 import { Programming } from './programming';
@@ -14,6 +15,7 @@ export function dispatch(store: Store, body: unknown, now = Date.now()) {
     })
     .parse(body);
   return command(store, c.requestId, { action: c.action, data: c.data }, now, () => {
+    requireShowcaseCommand(store, c.action, c.data);
     const p = new Programming(store, () => now);
     switch (c.action) {
       case 'history.edit':

@@ -3,15 +3,21 @@ import { hashPassword, verifyPassword } from 'better-auth/crypto';
 import { z } from 'zod';
 import type { Store } from './db/connection';
 import { requireCondition } from './errors';
-export type AccountProfile = { id: string; name: string; email: string; role: 'master' | 'member' };
+export type AccountProfile = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'master' | 'member' | 'showcase';
+  expiresAt?: number;
+};
 export function profile(store: Store, userId: string): AccountProfile {
   const user = store.sqlite
     .prepare(
-      'SELECT u.id,u.name,u.email,a.role FROM user u JOIN account_access a ON a.user_id=u.id WHERE u.id=? AND a.disabled_at IS NULL',
+      "SELECT u.id,u.name,u.email,CASE WHEN d.user_id IS NOT NULL THEN 'showcase' ELSE a.role END AS role,d.expires_at AS expiresAt FROM user u LEFT JOIN account_access a ON a.user_id=u.id LEFT JOIN showcase_visitor d ON d.user_id=u.id WHERE u.id=? AND ((a.user_id IS NOT NULL AND a.disabled_at IS NULL AND d.user_id IS NULL) OR d.expires_at>?)",
     )
-    .get(userId) as AccountProfile | undefined;
+    .get(userId, Date.now()) as AccountProfile | undefined;
   requireCondition(user, 'Account is unavailable.', 401);
-  return user;
+  return { ...user, expiresAt: user.expiresAt ?? undefined };
 }
 export function requireMaster(store: Store, userId: string) {
   requireCondition(
