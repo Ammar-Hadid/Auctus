@@ -21,7 +21,7 @@ test('master password plus passkey, master-only provisioning, and isolated membe
     },
   });
   async function login() {
-    await page.goto('/login');
+    await page.goto('/login/account');
     await page.getByLabel('Email', { exact: true }).fill('master@example.test');
     await page.getByLabel('Password', { exact: true }).fill('test-only-master-password');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -122,7 +122,7 @@ test('master password plus passkey, master-only provisioning, and isolated membe
     await other.close();
   }
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await page.waitForURL('**/login');
+  await expect(page.getByRole('heading', { name: 'Put in the work. See your progress.' })).toBeVisible();
   await login();
   expect(
     (

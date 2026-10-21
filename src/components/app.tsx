@@ -1,4 +1,5 @@
 'use client';
+import { ShowcaseBanner } from './showcase-banner';
 import { Notification } from './ui/notification';
 import { useState } from 'react';
 import {
@@ -57,7 +58,9 @@ export function App({ initial }: { initial: State }) {
           <div className="sidebar-bottom">
             <div className="private-label">
               <span />
-              Your private training space
+              {model.state.account.role === 'showcase'
+                ? 'Your temporary demo space'
+                : 'Your private training space'}
             </div>
             <button
               className={view === 'settings' ? 'nav-item selected' : 'nav-item'}
@@ -83,6 +86,9 @@ export function App({ initial }: { initial: State }) {
             </button>
           </header>
           <main>
+            {model.state.account.role === 'showcase' && (
+              <ShowcaseBanner expiresAt={model.state.account.expiresAt!} />
+            )}
             {model.offline && (
               <Notification tone="warning" persistent>
                 Offline · Changes cannot be confirmed saved. Reconnect to continue.

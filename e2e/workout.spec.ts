@@ -15,7 +15,7 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
       return source;
     };
   });
-  await page.goto('/');
+  await page.goto('/login/account');
   await expect(page.getByRole('heading', { name: /Back to/ })).toBeVisible();
   await page.getByLabel('Email', { exact: true }).fill('athlete@example.test');
   await page.getByLabel('Password', { exact: true }).fill('test-only-training-password');
@@ -307,7 +307,9 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   });
 
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await expect(page.getByRole('heading', { name: /Back to/ })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Put in the work. See your progress.' }),
+  ).toBeVisible();
   expect((await page.request.get('/api/state')).status()).toBe(401);
 });
 

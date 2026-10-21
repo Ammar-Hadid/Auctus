@@ -6,7 +6,7 @@ test('custom menus create exercises in place and preserve template and training 
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/login/account');
   await page.getByLabel('Email', { exact: true }).fill('athlete@example.test');
   await page.getByLabel('Password', { exact: true }).fill('test-only-training-password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();

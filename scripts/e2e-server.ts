@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -48,6 +49,7 @@ const child = spawn(
       ...process.env,
       NODE_ENV: production ? 'production' : 'development',
       DATABASE_PATH: file,
+      SHOWCASE_CODE_HASH: createHash('sha256').update('test-only-showcase-code').digest('hex'),
       BETTER_AUTH_URL: 'http://localhost:3100',
       BETTER_AUTH_SECRET: 'e2e-only-secret-never-use-in-production-123456789',
     },

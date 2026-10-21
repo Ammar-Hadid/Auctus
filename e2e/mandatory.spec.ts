@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('all workouts advance weekly progress while mandatory workouts determine week completion', async ({
   page,
 }, info) => {
-  await page.goto('/');
+  await page.goto('/login/account');
   await page.getByLabel('Email', { exact: true }).fill('mandatory@example.test');
   await page.getByLabel('Password', { exact: true }).fill('test-only-mandatory-password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();

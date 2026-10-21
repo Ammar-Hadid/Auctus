@@ -4,7 +4,7 @@ import { Notifications } from '@/components/ui/notification';
 import { Pwa } from '@/components/pwa';
 export const metadata: Metadata = {
   title: 'Auctus · Training, recorded.',
-  description: 'Your private training journal.',
+  description: 'Plan your week, log every set, and see your strength grow. Auctus brings your programs, workouts, and progress into one focused training journal.',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Auctus' },
   icons: { icon: '/icon-192.png', apple: '/icon-192.png' },
 };

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('equipment is required, editable and clearly shown in the library and search', async ({
   page,
 }, info) => {
-  await page.goto('/');
+  await page.goto('/login/account');
   await page.getByLabel('Email', { exact: true }).fill('alarm@example.test');
   await page.getByLabel('Password', { exact: true }).fill('test-only-alarm-password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();

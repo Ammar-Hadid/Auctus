@@ -10,10 +10,16 @@ export function Settings({ account }: { account: State['account'] }) {
     <div className="stack">
       <h1>Your space</h1>
       <p>
-        Signed in as {account.email} ·{' '}
-        {account.role === 'master' ? 'Master account' : 'Private account'}
+        {account.role === 'showcase' ? (
+          'Showcase mode · Fictional training data, just for this visit.'
+        ) : (
+          <>
+            Signed in as {account.email} ·{' '}
+            {account.role === 'master' ? 'Master account' : 'Private account'}
+          </>
+        )}
       </p>
-      <NotificationSettings />
+      {account.role !== 'showcase' && <NotificationSettings />}
       {account.role === 'master' && <AccountManagement />}
       <section className="panel stack">
         <h2>Training conventions</h2>
@@ -38,11 +44,13 @@ export function Settings({ account }: { account: State['account'] }) {
         </p>
       </section>
       <section className="panel stack">
-        <h2>Private account</h2>
+        <h2>{account.role === 'showcase' ? 'Temporary demo' : 'Private account'}</h2>
         <p>
-          {account.role === 'master'
-            ? 'Your master account requires a password and passkey. The server owner command can reset your password; it does not remove your passkey.'
-            : 'Your training data belongs only to this account. Contact the master administrator for account recovery.'}
+          {account.role === 'showcase'
+            ? 'This demo expires after two hours. Account management, background notifications and AI features are unavailable.'
+            : account.role === 'master'
+              ? 'Your master account requires a password and passkey. The server owner command can reset your password; it does not remove your passkey.'
+              : 'Your training data belongs only to this account. Contact the master administrator for account recovery.'}
         </p>
         {error && (
           <Notification key={error} onDismiss={() => setError('')}>
@@ -52,11 +60,14 @@ export function Settings({ account }: { account: State['account'] }) {
         <button
           onClick={async () => {
             try {
-              const r = await fetch('/api/auth/sign-out', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: '{}',
-              });
+              const r = await fetch(
+                account.role === 'showcase' ? '/api/showcase' : '/api/auth/sign-out',
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(account.role === 'showcase' ? { action: 'leave' } : {}),
+                },
+              );
               if (!r.ok) throw new Error('Sign out failed.');
               location.reload();
             } catch {

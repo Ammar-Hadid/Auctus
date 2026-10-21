@@ -6,7 +6,7 @@ test('sign-in errors stay fixed, expire automatically and return on another atte
   await page.route('**/api/auth/sign-in/email', (route) =>
     route.fulfill({ status: 401, json: { error: 'Invalid credentials' } }),
   );
-  await page.goto('/login');
+  await page.goto('/login/account');
   await page.getByLabel('Email', { exact: true }).fill('wrong@example.test');
   await page.getByLabel('Password', { exact: true }).fill('wrong-password');
   const form = page.locator('form');
