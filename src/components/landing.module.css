@@ -485,6 +485,9 @@
   border-radius: 5px;
   min-height: 52px;
 }
+.site .loginForm input:focus-visible {
+  outline-offset: -2px;
+}
 .loginForm input::placeholder {
   color: #969f90;
 }
