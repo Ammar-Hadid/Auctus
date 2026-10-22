@@ -55,3 +55,17 @@ Verified against `src/domain/types.ts`, `src/domain/metrics.ts`, `src/domain/cal
 ## Landing-page implications
 
 After implementation, update the landing page to describe and show the actual dashboard: weekly attendance, visible workout progress, and trends from completed sessions. Use a real screenshot of the implemented showcase data, keep demonstration data confined to the showcase, and avoid claims that analytics predict recovery or guarantee results. Maintain Auctus's existing visual language rather than introducing a competing dashboard brand.
+
+## Implemented and verified
+
+Implemented on `codex/dashboard-redesign` in an isolated worktree. The overview uses the existing dark surfaces, lime accent, workout labels, select controls, and history screens. It includes a browsable attendance week, unchanged mandatory/optional plan accounting, four weekly totals, an eight-week metric chart, a per-exercise actual-load chart, and direct session links. Chart values are available in expandable tables. The landing page now describes these features and shows a screenshot of fictional showcase records.
+
+Verification on 22 October 2026:
+
+- Production build and TypeScript check passed; ESLint passed.
+- 95 unit tests passed, including six dashboard cases covering reset boundaries, daylight saving, repeats, edits, empty weeks, and stable date labels.
+- 12 targeted production browser tests passed across Chromium and mobile WebKit: dashboard data and navigation, empty state, mandatory/optional progress, full workout/history flow, showcase isolation, and access controls.
+- Dashboard and landing layouts inspected at 320, 390, 768, 1024, and 1440 pixels; no horizontal overflow. Landing images decoded and its schedule FAQ worked by keyboard in both browsers.
+- A Safari hydration discrepancy (`Sep` versus `Sept` in different ICU versions) was reproduced and fixed with deterministic short date labels.
+
+No production deployment or push was part of this change. Future weekday planning remains separate from the attendance calendar; no weekday assignments are invented.

@@ -81,13 +81,13 @@ export function Landing() {
         <section id="experience" className={styles.experience}>
           <div className={styles.sectionIntro}>
             <h2>
-              Less friction.
+              Your week in focus.
               <br />
-              <span>More focus.</span>
+              <span>Your progress in view.</span>
             </h2>
             <p>
-              From your first warm-up to your last rep, everything has its place. So you can stay in
-              the session.
+              See the days you trained, the work you logged, and what you’re lifting over time. Your
+              next workout is right there when you’re ready.
             </p>
           </div>
           <div className={styles.productStage}>
@@ -97,16 +97,16 @@ export function Landing() {
                 <span>Desktop overview</span>
               </div>
               <Image
-                src="/showcase/overview.webp"
+                src="/showcase/dashboard.webp"
                 unoptimized
                 width={1440}
-                height={1000}
-                alt="Auctus overview with weekly workouts and training metrics, showing fictional demo data"
+                height={1807}
+                alt="Auctus dashboard showing checked-off training days, weekly workout progress, training totals, and activity and exercise charts with fictional demo data"
                 sizes="(max-width: 760px) 100vw, 1100px"
               />
             </div>
             <p className={styles.imageCaption}>
-              A clear view of your week. Illustrated with sample training data.
+              The real Auctus dashboard. Shown with fictional showcase data.
             </p>
           </div>
           <div className={styles.featureSteps}>
@@ -124,8 +124,8 @@ export function Landing() {
               <span>03</span>
               <h3>See what adds up.</h3>
               <p>
-                Look back at your sessions and follow your strength, volume, and consistency over
-                time.
+                Follow eight weeks of workouts, sets, and volume. See your recorded weights and reps
+                for each exercise, with the original sessions a click away.
               </p>
             </article>
           </div>
@@ -202,7 +202,11 @@ export function Landing() {
             {[
               [
                 'What can I try in the showcase?',
-                'Explore a complete training journal with a sample program, exercises, and workout history. Start a workout, log sets, or adjust the program. You get your own temporary copy, so your changes only affect your visit.',
+                'Explore the dashboard’s weekly attendance, training charts, and exercise trends alongside a sample program and workout history. Start a workout, log sets, or adjust the program. You get your own temporary copy, so your changes only affect your visit.',
+              ],
+              [
+                'How does the weekly schedule work?',
+                'Days are automatically checked off when you complete a workout. Select a day to open its sessions, or browse past weeks. Your program shows the workouts still to do; they are not tied to fixed weekdays.',
               ],
               [
                 'Do I need to create an account?',
