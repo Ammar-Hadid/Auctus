@@ -1,6 +1,6 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { TIMEZONE, trainingWeek } from './calendar';
-import { summarize } from './metrics';
+import { exerciseProgress, summarize } from './metrics';
 import type { Week, WorkoutDetail } from './types';
 
 export function localDate(time: number) {
@@ -39,32 +39,9 @@ export function trainingTrend(history: WorkoutDetail[], currentWeek: Week) {
 
 /** One observed top working set per workout; no estimated strength or warm-ups. */
 export function strengthTrend(history: WorkoutDetail[], exerciseId: string) {
-  return history
-    .filter((w) => w.status === 'completed')
-    .flatMap((w) => {
-      const sets = w.exercises
-        .filter((e) => e.exercise_id === exerciseId)
-        .flatMap((e) => e.sets)
-        .filter(
-          (s) =>
-            s.status === 'completed' &&
-            s.type !== 'warmup' &&
-            (s.actual_grams ?? 0) > 0 &&
-            (s.actual_reps ?? 0) > 0,
-        )
-        .sort((a, b) => b.actual_grams! - a.actual_grams! || b.actual_reps! - a.actual_reps!);
-      return sets.length
-        ? [
-            {
-              workoutId: w.id,
-              date: w.started_at,
-              kg: sets[0].actual_grams! / 1000,
-              reps: sets[0].actual_reps!,
-            },
-          ]
-        : [];
-    })
-    .sort((a, b) => a.date - b.date)
+  return exerciseProgress(history, exerciseId)
+    .filter((session) => session.topSet.kg > 0)
+    .map((session) => ({ workoutId: session.workoutId, date: session.date, ...session.topSet }))
     .slice(-8);
 }
 
@@ -88,5 +65,5 @@ export function shortDate(time: number) {
   return `${date.day} ${months[date.month - 1]}`;
 }
 export function formatNumber(value: number) {
-  return value.toLocaleString('en-GB', { maximumFractionDigits: 1 });
+  return value.toLocaleString('en-GB', { maximumFractionDigits: 3 });
 }

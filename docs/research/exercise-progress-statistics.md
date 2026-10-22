@@ -38,3 +38,15 @@ Verified against `src/domain/types.ts`, `src/domain/metrics.ts`, `src/domain/das
 - **Unknown exercise type:** Auctus records equipment but does not classify bodyweight, assisted, or timed exercise types. Never infer the type from an exercise name or assume that greater machine assistance means better performance. Use neutral recorded-weight language. Do not add bodyweight-adjusted loads, recovery, percentiles, muscle-growth scores, or duration records unsupported by the input model.
 
 Charts need visible units and dates, keyboard-operable controls, and exact values available without hover or color. A clear empty state and one-session state are part of the feature, not exceptions to hide with sample data.
+
+## Implementation and verification
+
+Implemented on `codex/dashboard-redesign` after the dashboard work. Every active library exercise has a visible Progress action and latest-set summary; archived exercises retain a Progress action. The detailed view adds previous-session weight/rep differences, all-time records, eight-week chart windows with earlier-history navigation, exact weekly breakdowns, rep-count records, and paginated session links. Zero-weight histories default to reps. Recorded values retain gram precision; estimated maxima remain rounded and labelled. The dashboard now uses the same canonical exercise aggregation.
+
+Verified on 22 October 2026:
+
+- 103 unit tests passed, including eight new exercise-statistics cases for identity, repeated appearances, warm-ups, removed completed records, missing/zero loads, correction recalculation, weekly attribution, DST, old-history pagination and display precision.
+- 12 production browser tests passed across Chromium and mobile WebKit, covering every showcase library exercise, weekly metric selection, records, session links, archive access, empty/zero-weight states, pagination, the dashboard, and the existing full workout/history correction flow.
+- Production build, TypeScript and ESLint passed. Exercise views were inspected at 320, 390, 768, 1024 and 1440 pixels without horizontal page overflow or runtime errors.
+
+No push or production deployment was performed.

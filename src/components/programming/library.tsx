@@ -1,19 +1,23 @@
 'use client';
 import { EquipmentField, EquipmentLabel } from '../ui/equipment';
 import { equipmentLabel } from '@/domain/equipment';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Plus, ArrowUpRight, Archive } from 'lucide-react';
-import type { Exercise } from '@/domain/types';
+import type { Exercise, WorkoutDetail } from '@/domain/types';
+import { exerciseProgress } from '@/domain/metrics';
+import { formatNumber } from '@/domain/dashboard';
 import type { Send } from '../use-model';
 import { ExerciseSearch } from '../ui/exercise-search';
 import { CreateExerciseDialog } from './create-exercise-dialog';
 export function Library({
   exercises,
+  workouts,
   send,
   onProgress,
   onPrograms,
 }: {
   exercises: Exercise[];
+  workouts: WorkoutDetail[];
   send: Send;
   onProgress: (id: string) => void;
   onPrograms: () => void;
@@ -21,6 +25,10 @@ export function Library({
   const [query, setQuery] = useState(''),
     [editing, setEditing] = useState<Exercise | null | undefined>(undefined),
     [archiving, setArchiving] = useState<string | null>(null);
+  const performance = useMemo(
+    () => new Map(exercises.map((e) => [e.id, exerciseProgress(workouts, e.id)])),
+    [exercises, workouts],
+  );
   const searchInput = useRef<HTMLInputElement>(null);
   const [createName, setCreateName] = useState<string | null>(null);
   async function save(e: React.FormEvent<HTMLFormElement>) {
@@ -41,7 +49,9 @@ export function Library({
       <div className="row between">
         <div>
           <h1>Exercise library</h1>
-          <p className="subtitle">Save exercise names, equipment and technique notes here.</p>
+          <p className="subtitle">
+            Your exercises, technique notes, and progress — all in one place.
+          </p>
         </div>
         <button className="primary" onClick={() => setEditing(null)}>
           <Plus size={18} />
@@ -114,48 +124,63 @@ export function Library({
                 text.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
               ),
           )
-          .map((e) => (
-            <div className="list-row" key={e.id}>
-              <div className="grow">
-                <h3>{e.name}</h3>
-                <EquipmentLabel equipment={e.equipment} />
-                <p>{e.details || 'No technique notes'}</p>
-              </div>
-              <div className="row">
-                <button className="small ghost" onClick={() => setEditing(e)}>
-                  Edit
-                </button>
-                <button
-                  className="small ghost"
-                  onClick={() => onProgress(e.id)}
-                  aria-label={`Progress for ${e.name}`}
-                >
-                  <ArrowUpRight size={18} />
-                </button>
-                <button
-                  className="small ghost"
-                  onClick={() => setArchiving(e.id)}
-                  aria-label={`Archive ${e.name}`}
-                >
-                  <Archive size={16} />
-                </button>
-              </div>
-              {archiving === e.id && (
-                <div className="inline-confirm">
-                  <p>Archive this exercise? Existing templates and history keep it.</p>
-                  <button
-                    className="danger"
-                    onClick={async () => {
-                      if (await send('archive', { kind: 'exercise', id: e.id })) setArchiving(null);
-                    }}
-                  >
-                    Archive
-                  </button>
-                  <button onClick={() => setArchiving(null)}>Keep</button>
+          .map((e) => {
+            const sessions = performance.get(e.id) ?? [];
+            const latest = sessions.at(-1);
+            return (
+              <div className="list-row" key={e.id}>
+                <div className="grow">
+                  <h3>{e.name}</h3>
+                  <EquipmentLabel equipment={e.equipment} />
+                  <p>{e.details || 'No technique notes'}</p>
+                  <p>
+                    {latest ? (
+                      <>
+                        Latest top set: {formatNumber(latest.topSet.kg)} kg × {latest.topSet.reps}{' '}
+                        reps · {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
+                      </>
+                    ) : (
+                      'No completed working sets yet'
+                    )}
+                  </p>
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="row">
+                  <button className="small ghost" onClick={() => setEditing(e)}>
+                    Edit
+                  </button>
+                  <button
+                    className="small ghost"
+                    onClick={() => onProgress(e.id)}
+                    aria-label={`Progress for ${e.name}`}
+                  >
+                    Progress <ArrowUpRight size={16} />
+                  </button>
+                  <button
+                    className="small ghost"
+                    onClick={() => setArchiving(e.id)}
+                    aria-label={`Archive ${e.name}`}
+                  >
+                    <Archive size={16} />
+                  </button>
+                </div>
+                {archiving === e.id && (
+                  <div className="inline-confirm">
+                    <p>Archive this exercise? Existing templates and history keep it.</p>
+                    <button
+                      className="danger"
+                      onClick={async () => {
+                        if (await send('archive', { kind: 'exercise', id: e.id }))
+                          setArchiving(null);
+                      }}
+                    >
+                      Archive
+                    </button>
+                    <button onClick={() => setArchiving(null)}>Keep</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
       </div>
       {!exercises.some((e) => !e.archived_at) && (
         <div className="empty">
@@ -172,7 +197,17 @@ export function Library({
           {exercises
             .filter((e) => e.archived_at)
             .map((e) => (
-              <p key={e.id}>{e.name} · preserved in history</p>
+              <div className="row between" key={e.id}>
+                <p>{e.name} · preserved in history</p>
+                <button
+                  className="small ghost"
+                  aria-label={`Progress for ${e.name}`}
+                  onClick={() => onProgress(e.id)}
+                >
+                  Progress
+                  <ArrowUpRight size={16} />
+                </button>
+              </div>
             ))}
         </details>
       )}

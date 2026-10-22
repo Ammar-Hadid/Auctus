@@ -193,8 +193,12 @@ test('author, train, recover, correct history and inspect progress', async ({ pa
   await page.getByRole('button', { name: 'Save correction' }).click();
   await expect(page.getByText('24 kg × 9', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Progress', exact: true }).click();
-  await expect(page.getByText('24', { exact: true })).toBeVisible();
-  await expect(page.getByText('31.2', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'All-time exercise statistics' })).toContainText(
+    '24kg',
+  );
+  await expect(page.getByRole('region', { name: 'All-time exercise statistics' })).toContainText(
+    '31.2kg',
+  );
   await page.getByRole('combobox', { name: 'Metric', exact: true }).click();
   await page.getByRole('option', { name: 'Estimated 1RM', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Metric', exact: true })).toContainText(

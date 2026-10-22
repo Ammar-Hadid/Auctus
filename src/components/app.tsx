@@ -134,6 +134,7 @@ export function App({ initial }: { initial: State }) {
               )}
               {view === 'library' && (
                 <Library
+                  workouts={model.state.history}
                   exercises={model.state.exercises}
                   send={model.send}
                   onPrograms={() => navigate('programs')}
@@ -156,6 +157,12 @@ export function App({ initial }: { initial: State }) {
               )}
               {view === 'progress' && progressId && (
                 <ProgressView
+                  key={progressId}
+                  now={model.state.serverNow}
+                  onHistory={(id) => {
+                    setHistoryId(id);
+                    navigate('history');
+                  }}
                   exercise={model.state.exercises.find((e) => e.id === progressId)!}
                   workouts={model.state.history}
                   back={() => navigate('library')}
