@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { attendanceWeek, strengthTrend, trainingTrend } from '../src/domain/dashboard';
+import { attendanceWeek, shortDate, strengthTrend, trainingTrend } from '../src/domain/dashboard';
 import { trainingWeek } from '../src/domain/calendar';
 import { readState } from '../src/server/read-state';
 import { seedShowcase } from '../src/server/showcase-seed';
@@ -15,6 +15,9 @@ function fixture() {
 }
 
 describe('dashboard insights', () => {
+  it('uses a consistent September label across server and browser locales', () => {
+    expect(shortDate(Date.parse('2026-09-07T12:00Z'))).toBe('7 Sep');
+  });
   it('matches authoritative current and previous totals and fills empty weeks with zeros', () => {
     const state = fixture();
     const trend = trainingTrend(state.history, state.week);

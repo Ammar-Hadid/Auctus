@@ -1,0 +1,561 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.dashboard > header h1 {
+  margin-top: 8px;
+}
+.topGrid,
+.chartGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+.panel {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.panelHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.panelHeading h2 {
+  font-size: 20px;
+  margin-top: 5px;
+}
+.panelHeading > svg {
+  flex-shrink: 0;
+}
+.weekControls {
+  display: flex;
+  gap: 2px;
+}
+.weekControls button {
+  padding: 8px;
+  width: 36px;
+  min-height: 44px;
+  border-color: transparent;
+}
+.attendanceSummary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 20px;
+}
+.attendanceSummary p {
+  font-size: 13px;
+}
+.attendanceSummary strong {
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 500;
+  margin-right: 3px;
+}
+.attendanceSummary > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 8px;
+  background: var(--bg);
+  border: 1px solid transparent;
+  min-width: 0;
+  border-radius: 8px;
+  font-weight: 400;
+}
+.day > span:first-child {
+  font-size: 11px;
+  color: var(--muted);
+}
+.day > strong {
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.day s {
+  text-decoration-thickness: 1.5px;
+}
+.dayMark {
+  height: 18px;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+}
+.attended {
+  background: var(--completed-surface);
+  color: var(--accent);
+}
+.attended > span:first-child,
+.attended .dayMark {
+  color: var(--accent);
+}
+.today {
+  border-color: var(--muted);
+}
+.day[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.todayDot {
+  height: 5px;
+  width: 5px;
+  border-radius: 50%;
+  background: var(--text);
+}
+.calendarDetail {
+  margin: 18px 0 10px;
+  min-height: 40px;
+  font-size: 12px;
+}
+.calendarDetail p > svg {
+  display: inline;
+  vertical-align: -3px;
+  color: var(--accent);
+  margin-right: 3px;
+}
+.calendarDetail button {
+  margin-right: 12px;
+}
+.footnote {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.inlineLink {
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  min-height: 44px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+}
+.inlineLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.planCount {
+  font-size: 25px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.planCount > span {
+  font-size: 16px;
+  color: var(--muted);
+}
+.programName {
+  font-size: 12px;
+  margin-top: -8px;
+  margin-bottom: 14px;
+  overflow-wrap: anywhere;
+}
+.goalTrack {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--line);
+}
+.goalTrack > div {
+  height: 100%;
+  background: var(--accent);
+}
+.planList {
+  margin: 6px 0 12px;
+}
+.planRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.planRow:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.planMark {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.planDone {
+  background: var(--completed-surface);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.planName {
+  flex: 1;
+  min-width: 0;
+}
+.planName h3 {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+.planName > span {
+  font-size: 10px;
+  color: var(--muted);
+  display: inline-flex;
+  margin-right: 5px;
+}
+.planRow > button {
+  font-size: 11px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+  gap: 5px;
+}
+.planEmpty {
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  align-items: flex-start;
+}
+.totalsHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.totalsHeading h2 {
+  font-size: 17px;
+}
+.totalsHeading > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line);
+  margin-top: 12px;
+}
+.metric {
+  padding: 8px 20px 20px;
+  border-right: 1px solid var(--line);
+}
+.metric:first-child {
+  padding-left: 0;
+}
+.metric:last-child {
+  border-right: 0;
+}
+.metric > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.metric > strong {
+  display: block;
+  font-size: clamp(26px, 2.8vw, 36px);
+  font-weight: 500;
+  margin: 6px 0 2px;
+  overflow-wrap: anywhere;
+}
+.metric small {
+  font-size: 13px;
+  color: var(--muted);
+  margin-left: 5px;
+  letter-spacing: 0;
+}
+.metric > p {
+  font-size: 11px;
+}
+.metricNotes {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 12px;
+}
+.metricNotes summary,
+.chartData summary {
+  cursor: pointer;
+  width: fit-content;
+  padding: 8px 0;
+  min-height: 32px;
+}
+.metricNotes p {
+  margin: 8px 0;
+  max-width: 85ch;
+}
+.chartGrid {
+  align-items: stretch;
+}
+.chartGrid > section {
+  display: flex;
+  flex-direction: column;
+}
+.chartControls {
+  display: flex;
+  align-self: flex-start;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 8px;
+  background: var(--bg);
+  margin-bottom: 16px;
+}
+.chartControls button {
+  background: none;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  min-height: 36px;
+}
+.chartControls button[aria-pressed='true'] {
+  background: var(--raised);
+  color: var(--accent);
+  border-color: var(--line);
+}
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  margin-top: auto;
+}
+.chart text {
+  fill: var(--muted);
+  font:
+    11px Arial,
+    sans-serif;
+}
+.chartCaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+.chartData {
+  font-size: 11px;
+  color: var(--muted);
+}
+.chartData table {
+  font-size: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+.chartEmpty {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px 12px;
+}
+.chartEmpty > svg {
+  color: var(--muted);
+}
+.chartEmpty h3 {
+  font-size: 16px;
+  font-weight: 500;
+}
+.chartEmpty p {
+  font-size: 13px;
+  max-width: 32ch;
+}
+.liftHeadline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  justify-content: space-between;
+  margin: 14px 0 6px;
+}
+.liftHeadline > strong {
+  font-size: 26px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.liftHeadline small {
+  font-size: 14px;
+  color: var(--muted);
+}
+.liftHeadline > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.firstLift {
+  padding: 24px 0;
+  font-size: 13px;
+}
+.strengthFooter {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.strengthFooter:has(details[open]) {
+  flex-direction: column;
+}
+.strengthFooter details[open] {
+  width: 100%;
+}
+.recentGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.recentSession {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  gap: 8px;
+  padding: 18px;
+  background: var(--surface);
+  font-weight: 400;
+}
+.recentSession > strong {
+  font-size: 15px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.recentSession > span {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.recentSession > span:last-child {
+  justify-content: space-between;
+}
+.recentDate svg {
+  color: var(--accent);
+}
+@media (max-width: 1180px) and (min-width: 761px) {
+  .topGrid,
+  .chartGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .calendar {
+    gap: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .dashboard {
+    gap: 24px;
+  }
+  .topGrid,
+  .chartGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .panel {
+    padding: 20px;
+  }
+  .panelHeading h2 {
+    font-size: 18px;
+  }
+  .panelHeading .eyeline {
+    font-size: 9px;
+    letter-spacing: 1.3px;
+  }
+  .calendar {
+    gap: 5px;
+  }
+  .day {
+    gap: 8px;
+  }
+  .day > strong {
+    font-size: 20px;
+  }
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .metric {
+    padding: 14px 16px;
+  }
+  .metric:nth-child(2) {
+    border-right: 0;
+  }
+  .metric:nth-child(3) {
+    padding-left: 0;
+  }
+  .metric:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+  .metric > strong {
+    font-size: 32px;
+  }
+  .recentGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .recentSession {
+    gap: 5px;
+    padding: 16px;
+  }
+  .chartControls button {
+    min-height: 44px;
+  }
+  .chartData summary,
+  .metricNotes summary {
+    min-height: 44px;
+    padding-top: 12px;
+  }
+}
+@media (max-width: 380px) {
+  .panel {
+    padding: 16px 12px;
+  }
+  .panelHeading {
+    gap: 6px;
+  }
+  .panelHeading h2 {
+    font-size: 17px;
+  }
+  .weekControls button {
+    width: 30px;
+    padding: 5px;
+  }
+  .calendar {
+    gap: 3px;
+  }
+  .day > span:first-child {
+    font-size: 10px;
+  }
+  .planRow {
+    gap: 7px;
+  }
+  .planRow > button {
+    padding: 7px;
+  }
+  .planRow > button svg {
+    display: none;
+  }
+}

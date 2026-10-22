@@ -72,7 +72,7 @@ test('all workouts advance weekly progress while mandatory workouts determine we
   await page.getByRole('button', { name: 'Save workout', exact: true }).click();
   await page.getByRole('button', { name: 'Use this program', exact: true }).click();
   await nav.getByRole('button', { name: 'Overview', exact: true }).click();
-  await expect(page.locator('.weekly-goal-summary')).toHaveText(
+  await expect(page.getByText('0 of 1 mandatory workouts completed.', { exact: true })).toHaveText(
     '0 of 1 mandatory workouts completed.',
   );
   await expect(page.getByRole('progressbar', { name: 'Weekly workout progress' })).toHaveAttribute(
@@ -96,8 +96,9 @@ test('all workouts advance weekly progress while mandatory workouts determine we
   }
   await page.setViewportSize(info.project.use.viewport!);
   await page
-    .locator('.workout-row')
-    .filter({ has: page.getByRole('heading', { name: 'Extra training', exact: true }) })
+    .getByRole('heading', { name: 'Extra training', exact: true })
+    .locator('..')
+    .locator('..')
     .getByRole('button', { name: 'Start workout', exact: true })
     .click();
   await expect(
@@ -114,14 +115,14 @@ test('all workouts advance weekly progress while mandatory workouts determine we
     skipRemaining: true,
   });
   await page.reload();
-  await expect(page.locator('.weekly-goal-summary')).toHaveText(
+  await expect(page.getByText('0 of 1 mandatory workouts completed.', { exact: true })).toHaveText(
     '0 of 1 mandatory workouts completed.',
   );
   await expect(page.getByRole('progressbar', { name: 'Weekly workout progress' })).toHaveAttribute(
     'aria-valuenow',
     '1',
   );
-  await expect(page.locator('.week-done')).toHaveCount(0);
+  await expect(page.getByText('Week done.', { exact: true })).toHaveCount(0);
   const requiredAssignment = state.assignments.find(
     (a: { name: string }) => a.name === 'Required training',
   );
@@ -133,7 +134,7 @@ test('all workouts advance weekly progress while mandatory workouts determine we
     skipRemaining: true,
   });
   await page.reload();
-  await expect(page.locator('.week-done')).toHaveText('Week done.');
+  await expect(page.getByText('Week done.', { exact: true })).toHaveText('Week done.');
   await expect(page.getByRole('progressbar', { name: 'Weekly workout progress' })).toHaveAttribute(
     'aria-valuenow',
     '2',

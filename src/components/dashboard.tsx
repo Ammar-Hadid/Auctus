@@ -1,43 +1,70 @@
-import { weeklyGoal } from '@/domain/weekly-goal';
+import { ArrowUpRight, Check, Clock, Dumbbell, Layers, Weight } from 'lucide-react';
+import type { State } from '@/domain/types';
+import { formatNumber, shortDate } from '@/domain/dashboard';
+import { summarize } from '@/domain/metrics';
+import type { Send } from './use-model';
 import { WorkoutRequirement } from './ui/workout-requirement';
 import { ActivityStatusLabel } from './ui/activity-status';
-import { ArrowUpRight, Check, Play } from 'lucide-react';
-import type { State } from '@/domain/types';
-import type { Send } from './use-model';
+import { Attendance } from './dashboard/attendance';
+import { WeeklyPlan } from './dashboard/weekly-plan';
+import { ActivityChart } from './dashboard/activity-chart';
+import { StrengthChart } from './dashboard/strength-chart';
+import styles from './dashboard/dashboard.module.css';
+
 export function Dashboard({
   state,
   send,
   navigate,
+  onHistory,
+  onProgress,
 }: {
   state: State;
   send: Send;
   navigate: (view: string) => void;
+  onHistory: (id: string) => void;
+  onProgress: (id: string) => void;
 }) {
-  const program = state.programs.find((p) => p.id === state.selectedProgramId);
-  const available = state.assignments.filter((a) => !a.withdrawn_at);
-  const goal = weeklyGoal(state.assignments);
-  const weekLabel = new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'Europe/Amsterdam',
-  }).format(state.week.start);
   const metrics = [
-    ['Workouts', state.current.workouts, state.previous.workouts, ''],
-    ['Volume', Math.round(state.current.volume), Math.round(state.previous.volume), 'kg'],
-    ['Sets', state.current.sets, state.previous.sets, ''],
-    [
-      'Training',
-      Math.round(state.current.duration / 60000),
-      Math.round(state.previous.duration / 60000),
-      'min',
-    ],
+    {
+      label: 'Workouts',
+      value: state.current.workouts,
+      previous: state.previous.workouts,
+      unit: '',
+      icon: Dumbbell,
+    },
+    {
+      label: 'Completed sets',
+      value: state.current.sets,
+      previous: state.previous.sets,
+      unit: '',
+      icon: Layers,
+    },
+    {
+      label: 'Logged volume',
+      value: state.current.volume,
+      previous: state.previous.volume,
+      unit: 'kg',
+      icon: Weight,
+    },
+    {
+      label: 'Training time',
+      value: Math.round(state.current.duration / 60000),
+      previous: Math.round(state.previous.duration / 60000),
+      unit: 'min',
+      icon: Clock,
+    },
   ];
+  const recent = state.history
+    .filter((w) => w.status === 'completed')
+    .sort((a, b) => b.started_at - a.started_at)
+    .slice(0, 3);
   return (
-    <div className="stack">
-      <div className="row between">
+    <div className={styles.dashboard}>
+      <header className="row between">
         <div>
+          <span className="eyeline">YOUR TRAINING, AT A GLANCE</span>
           <h1>Make today count.</h1>
-          <p className="subtitle">Your training week, starting {weekLabel}.</p>
+          <p className="subtitle">A clear view of your week. A longer view of your progress.</p>
         </div>
         <span className="week-label">
           {new Intl.DateTimeFormat('en-GB', {
@@ -47,7 +74,7 @@ export function Dashboard({
             timeZone: 'Europe/Amsterdam',
           }).format(state.serverNow)}
         </span>
-      </div>
+      </header>
       {state.activeWorkout && (
         <section className={`resume-banner row between ${state.activeWorkout.status}`}>
           <div>
@@ -62,109 +89,83 @@ export function Dashboard({
           </button>
         </section>
       )}
-      <div className="metrics">
-        {metrics.map(([label, value, previous, unit]) => (
-          <div key={label} className="metric">
-            <span>{label}</span>
-            <strong className="number">
-              {Number(value).toLocaleString()}
-              <small>{unit}</small>
-            </strong>
-            <p>
-              {previous} {unit} last week
-            </p>
+      <div className={styles.topGrid}>
+        <Attendance state={state} onHistory={onHistory} />
+        <WeeklyPlan state={state} send={send} navigate={navigate} />
+      </div>
+      <section aria-labelledby="totals-heading" className={styles.totals}>
+        <div className={styles.totalsHeading}>
+          <h2 id="totals-heading">This week so far</h2>
+          <span>Training week of {shortDate(state.week.start)}</span>
+        </div>
+        <div className={styles.metrics}>
+          {metrics.map((m) => (
+            <div key={m.label} className={styles.metric}>
+              <span>
+                <m.icon size={15} />
+                {m.label}
+              </span>
+              <strong className="number">
+                {formatNumber(m.value)}
+                <small>{m.unit}</small>
+              </strong>
+              <p>
+                {formatNumber(m.previous)} {m.unit} last full week
+              </p>
+            </div>
+          ))}
+        </div>
+        <details className={styles.metricNotes}>
+          <summary>How these numbers work</summary>
+          <p>
+            Totals count completed workouts in their assigned training week. Repeats count as
+            workouts, but each workout in your plan is checked off only once. Weeks reset Monday at
+            03:00 Amsterdam time.
+          </p>
+          <p>
+            Sets and volume include warm-ups. Volume is entered kg × reps; dumbbell loads are per
+            dumbbell and unilateral reps are per side. Training time includes rest and excludes
+            workout pauses. Attendance uses the actual date you started each completed session,
+            which can differ from its assigned week.
+          </p>
+        </details>
+      </section>
+      <div className={styles.chartGrid}>
+        <ActivityChart state={state} />
+        <StrengthChart state={state} onProgress={onProgress} />
+      </div>
+      {recent.length > 0 && (
+        <section className={styles.recent} aria-labelledby="recent-heading">
+          <div className={styles.panelHeading}>
+            <div>
+              <span className="eyeline">THE WORK BEHIND THE NUMBERS</span>
+              <h2 id="recent-heading">Recent sessions</h2>
+            </div>
+            <button className={styles.inlineLink} onClick={() => navigate('history')}>
+              All history
+              <ArrowUpRight size={15} />
+            </button>
           </div>
-        ))}
-      </div>
-      <div className="row between section-heading">
-        <div>
-          <h2>This week’s workouts</h2>
-          <p>{program?.name ?? 'Select a program to get started'}</p>
-        </div>
-        <span className="completion-count">
-          {goal.completed}
-          <span> / {goal.total} workouts</span>
-        </span>
-      </div>
-      <div
-        className="progress-track"
-        role="progressbar"
-        aria-label="Weekly workout progress"
-        aria-valuemin={0}
-        aria-valuemax={goal.total || 1}
-        aria-valuenow={goal.completed}
-        aria-valuetext={`${goal.completed} of ${goal.total} workouts completed`}
-      >
-        <div style={{ width: `${goal.total ? (goal.completed / goal.total) * 100 : 0}%` }} />
-      </div>
-      {available.length > 0 && (
-        <p className="muted weekly-goal-summary">
-          {goal.weekDone && <strong className="week-done">Week done. </strong>}
-          {goal.mandatoryTotal === 0
-            ? 'No mandatory workouts set. Every workout counts toward your weekly progress.'
-            : `${goal.mandatoryCompleted} of ${goal.mandatoryTotal} mandatory workouts completed.`}
-        </p>
-      )}
-      {available.length ? (
-        <div className="list">
-          {available.map((a, i) => {
-            const t = state.templates.find((t) => t.id === a.template_id);
-            return (
-              <div className="workout-row" key={a.id}>
-                <span className="ordinal">{String(i + 1).padStart(2, '0')}</span>
-                <div className="grow">
-                  <span className={'status ' + (a.completed ? 'done' : '')}>
-                    {a.completed ? (
-                      <>
-                        <Check size={12} />
-                        Completed
-                      </>
-                    ) : (
-                      'Ready when you are'
-                    )}
+          <div className={styles.recentGrid}>
+            {recent.map((w) => {
+              const totals = summarize([w]);
+              return (
+                <button key={w.id} className={styles.recentSession} onClick={() => onHistory(w.id)}>
+                  <span className={styles.recentDate}>
+                    <Check size={13} />
+                    {shortDate(w.started_at)}
                   </span>
-                  <h2>{a.name}</h2>
-                  <WorkoutRequirement mandatory={a.mandatory} />
-                  <p>
-                    {t?.exercises.length ?? 0} exercises ·{' '}
-                    {t?.exercises.reduce((n, e) => n + e.sets.length, 0) ?? 0} sets
-                  </p>
-                </div>
-                <button
-                  className={a.completed ? 'ghost' : 'primary'}
-                  disabled={
-                    !!state.activeWorkout ||
-                    !!t?.archived_at ||
-                    t?.program_id !== state.selectedProgramId
-                  }
-                  onClick={async () => {
-                    if (
-                      await send('workout.start', { assignment_id: a.id, repeat: a.completed > 0 })
-                    )
-                      navigate('workout');
-                  }}
-                >
-                  <Play size={16} />
-                  {a.completed ? 'Repeat' : 'Start workout'}
+                  <strong>{w.name}</strong>
+                  <span>
+                    {totals.sets} sets · {Math.round(totals.duration / 60000)} min
+                    <ArrowUpRight size={16} />
+                  </span>
                 </button>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="empty">
-          <h2>Give your week a plan.</h2>
-          <p>Create a program, add workouts, and apply it to this week.</p>
-          <button className="primary" onClick={() => navigate('programs')}>
-            Build your program
-            <ArrowUpRight size={16} />
-          </button>
-        </div>
+              );
+            })}
+          </div>
+        </section>
       )}
-      <div className="week-footer">
-        <p>New week. Fresh opportunities.</p>
-        <span>Resets Monday · 03:00 Amsterdam</span>
-      </div>
     </div>
   );
 }

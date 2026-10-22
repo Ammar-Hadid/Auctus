@@ -69,11 +69,23 @@ export function strengthTrend(history: WorkoutDetail[], exerciseId: string) {
 }
 
 export function shortDate(time: number) {
-  return new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    timeZone: TIMEZONE,
-  }).format(time);
+  const date = localDate(time);
+  // ICU versions disagree on September (Sep / Sept), which breaks hydration in Safari.
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  return `${date.day} ${months[date.month - 1]}`;
 }
 export function formatNumber(value: number) {
   return value.toLocaleString('en-GB', { maximumFractionDigits: 1 });

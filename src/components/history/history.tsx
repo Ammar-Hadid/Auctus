@@ -15,14 +15,16 @@ import { repRangeLabel } from '@/domain/reps';
 import { NotificationHost } from '../ui/notification';
 export function HistoryView({
   workouts,
+  initialSelected = null,
   send,
   onProgress,
 }: {
   workouts: WorkoutDetail[];
+  initialSelected?: string | null;
   send: Send;
   onProgress: (id: string) => void;
 }) {
-  const [selected, setSelected] = useState<string | null>(null),
+  const [selected, setSelected] = useState<string | null>(initialSelected),
     [filter, setFilter] = useState('all'),
     [editing, setEditing] = useState<{ kind: 'set' | 'rest' | 'workout'; id?: string } | null>(
       null,

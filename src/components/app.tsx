@@ -30,9 +30,11 @@ const nav = [
 export function App({ initial }: { initial: State }) {
   const model = useModel(initial);
   const [view, setView] = useState(initial.activeWorkout ? 'workout' : 'dashboard');
+  const [historyId, setHistoryId] = useState<string | null>(null);
   const [progressId, setProgressId] = useState<string | null>(null);
   const navigate = (v: string) => {
     setView(v);
+    if (v !== 'history') setHistoryId(null);
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
   return (
@@ -116,7 +118,19 @@ export function App({ initial }: { initial: State }) {
             )}
             <fieldset disabled={model.busy} className="app-fields" aria-busy={model.busy}>
               {view === 'dashboard' && (
-                <Dashboard state={model.state} send={model.send} navigate={navigate} />
+                <Dashboard
+                  state={model.state}
+                  send={model.send}
+                  navigate={navigate}
+                  onHistory={(id) => {
+                    setHistoryId(id);
+                    navigate('history');
+                  }}
+                  onProgress={(id) => {
+                    setProgressId(id);
+                    navigate('progress');
+                  }}
+                />
               )}
               {view === 'library' && (
                 <Library
@@ -131,6 +145,7 @@ export function App({ initial }: { initial: State }) {
               )}
               {view === 'history' && (
                 <HistoryView
+                  initialSelected={historyId}
                   workouts={model.state.history}
                   send={model.send}
                   onProgress={(id) => {
